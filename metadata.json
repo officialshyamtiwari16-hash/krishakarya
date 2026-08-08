@@ -1,0 +1,6 @@
+{
+  "name": "Krishakarya",
+  "description": "Agriculture platform for hiring Sahyogi labor, renting agricultural machinery and tools, managing digital ledger book, and ratings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

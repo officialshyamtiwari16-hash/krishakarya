@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile in KrishiKulture",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "village": { "type": "string" },
+        "district": { "type": "string" },
+        "state": { "type": "string" },
+        "isVerified": { "type": "boolean" },
+        "isSahyogi": { "type": "boolean" },
+        "isMachineryOwner": { "type": "boolean" }
+      },
+      "required": ["id", "name", "phone"]
+    },
+    "Sahyogi": {
+      "title": "Sahyogi",
+      "description": "Sahyogi agricultural labor helper listing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "dailyRate": { "type": "number" },
+        "hourlyRate": { "type": "number" },
+        "availabilityStatus": { "type": "string", "enum": ["available", "busy"] }
+      },
+      "required": ["id", "userId", "name", "phone", "dailyRate"]
+    },
+    "Machinery": {
+      "title": "Machinery",
+      "description": "Agricultural equipment listing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "ratePerDay": { "type": "number" },
+        "availabilityStatus": { "type": "string", "enum": ["available", "rented"] }
+      },
+      "required": ["id", "ownerId", "title", "category", "ratePerDay"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Service booking record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["sahyogi", "machinery"] },
+        "itemId": { "type": "string" },
+        "renterId": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Pending", "Confirmed", "Completed", "Cancelled"] }
+      },
+      "required": ["id", "type", "itemId", "renterId", "totalAmount", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile collection"
+    },
+    "/sahyogis/{sahyogiId}": {
+      "schema": { "$ref": "#/entities/Sahyogi" },
+      "description": "Sahyogi helper listings collection"
+    },
+    "/machineries/{machineryId}": {
+      "schema": { "$ref": "#/entities/Machinery" },
+      "description": "Machinery listings collection"
+    },
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/Booking" },
+      "description": "Bookings collection"
+    }
+  }
+}
