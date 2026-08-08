@@ -3,15 +3,10 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { LanguageProvider } from './context/LanguageContext';
+import { initChromeShortcutConnector } from './lib/chromeShortcutConnector';
 
-// Register Service Worker for PWA / Web App install capability
-if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      // SW registration error fallback
-    });
-  });
-}
+// Initialize Chrome Shortcut Connector & Service Worker
+initChromeShortcutConnector();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

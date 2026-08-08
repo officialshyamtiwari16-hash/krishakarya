@@ -11,9 +11,7 @@ import {
   ChevronDown,
   MessageSquare,
   Share2,
-  Check,
-  Download,
-  Sparkles
+  Check
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
@@ -95,22 +93,11 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center justify-between gap-2">
             {/* Left Utility Actions */}
             <div className="flex items-center gap-1 sm:gap-2">
-              {/* Install / Shortcut Button */}
-              <button
-                onClick={() => setIsInstallModalOpen(true)}
-                title="Download App / Add Shortcut on Phone or Desktop"
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-[11px] sm:text-xs font-black shadow-xs border border-emerald-500/30 transition-all min-h-[36px] shrink-0"
-              >
-                <Download className="w-3.5 h-3.5 text-amber-300 animate-bounce" />
-                <span>Shortcut</span>
-                <Sparkles className="w-3 h-3 text-amber-300 hidden sm:inline" />
-              </button>
-
               {/* Share Website Button */}
               <button
                 onClick={handleShareWebsite}
                 title="Share Krishakarya Website"
-                className="flex items-center gap-1 px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-[11px] sm:text-xs font-extrabold border border-emerald-200 transition-all min-h-[36px] shrink-0"
+                className="flex items-center gap-1 px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-[11px] sm:text-xs font-extrabold border border-emerald-200 transition-all min-h-[36px] shrink-0 cursor-pointer"
               >
                 {copiedLink ? (
                   <>
@@ -127,34 +114,34 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* TOP CENTER: Krishakarya Heading & Logo */}
-            <div className="flex-1 flex justify-center text-center px-1">
+            <div className="flex-1 flex justify-center text-center px-1 min-w-0">
               <button
                 onClick={() => {
                   setActiveTab('home');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="focus:outline-none inline-flex items-center justify-center gap-2.5 cursor-pointer group py-0.5"
+                className="focus:outline-none inline-flex items-center justify-center gap-1.5 sm:gap-2.5 cursor-pointer group py-0.5 min-w-0"
                 title="Krishakarya Home"
               >
-                <KrishakaryaLogo size={36} />
-                <span className="font-['Outfit',sans-serif] font-black text-2xl sm:text-3xl tracking-tight leading-none text-emerald-800 dark:text-emerald-400 group-hover:text-emerald-600 transition-colors">
+                <KrishakaryaLogo size={32} />
+                <span className="font-['Outfit',sans-serif] font-black text-xl xs:text-2xl sm:text-3xl tracking-tight leading-none text-emerald-800 dark:text-emerald-400 group-hover:text-emerald-600 transition-colors truncate">
                   Krishakarya
                 </span>
               </button>
             </div>
 
             {/* Right Action Controls */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {/* Indian Languages Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setIsLangOpen(!isLangOpen)}
-                  className="flex items-center gap-1 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-[11px] sm:text-xs font-bold border border-slate-200/80 transition-all min-h-[36px]"
+                  className="flex items-center gap-1 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-[11px] sm:text-xs font-bold border border-slate-200/80 transition-all min-h-[36px] cursor-pointer"
                   title="Select Indian Language / भाषा चुनें"
                 >
                   <Globe className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="hidden xs:inline">{selectedLang.nativeName}</span>
-                  <span className="xs:hidden font-extrabold uppercase text-[10px]">{selectedLang.code}</span>
+                  <span className="hidden sm:inline">{selectedLang.nativeName}</span>
+                  <span className="sm:hidden font-extrabold uppercase text-[10px]">{selectedLang.code}</span>
                   <ChevronDown className="w-3 h-3 text-slate-400" />
                 </button>
 
@@ -202,8 +189,20 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </div>
 
-              {/* User Profile / Sign In Button - Right next to Language Section */}
-              {currentUser ? (
+              {/* Sign In / Sign Up Button (when logged out) */}
+              {!currentUser && (
+                <button
+                  onClick={onOpenAuth}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold rounded-xl text-xs shadow-xs border border-emerald-500/30 transition-all min-h-[36px] shrink-0 cursor-pointer"
+                  title="Sign In / Register"
+                >
+                  <UserIcon className="w-3.5 h-3.5 text-emerald-200" />
+                  <span className="text-[11px] sm:text-xs font-bold">{t('signIn')}</span>
+                </button>
+              )}
+
+              {/* User Profile / Logout Buttons (rendered when user is logged in) */}
+              {currentUser && (
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => {
@@ -246,14 +245,6 @@ export const Header: React.FC<HeaderProps> = ({
                     <LogOut className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              ) : (
-                <button
-                  onClick={onOpenAuth}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl text-xs shadow-xs transition-all min-h-[36px] cursor-pointer"
-                >
-                  <UserIcon className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>{t('signIn')}</span>
-                </button>
               )}
 
               {/* Add Listing Button */}

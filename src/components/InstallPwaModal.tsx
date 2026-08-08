@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Smartphone, Monitor, Share2, Plus, Sparkles, X, ChevronRight, Apple } from 'lucide-react';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
+import { triggerChromeInstall } from '../lib/chromeShortcutConnector';
 
 interface InstallPwaModalProps {
   isOpen: boolean;
@@ -37,19 +38,18 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
   if (!isOpen) return null;
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      setIsPrompting(true);
-      try {
+    setIsPrompting(true);
+    try {
+      const res = await triggerChromeInstall();
+      if (res === 'accepted') {
+        setIsInstalled(true);
+      } else if (res === 'unavailable' && deferredPrompt) {
         deferredPrompt.prompt();
-        const choiceResult = await deferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          setIsInstalled(true);
-        }
-      } catch (err) {
-        console.error('PWA install error:', err);
-      } finally {
-        setIsPrompting(false);
       }
+    } catch (err) {
+      console.error('PWA install error:', err);
+    } finally {
+      setIsPrompting(false);
     }
   };
 
