@@ -109,85 +109,38 @@ export function syncChromeIconManifest(): void {
   if (typeof document === 'undefined') return;
 
   const logoSvgPath = '/logo.svg';
-  const logoPngPath = '/logo-512.png';
+  const logoPng192 = '/logo-192.png';
+  const logoPng512 = '/logo-512.png';
 
   // Ensure shortcut icons in head match exact emblem
   const iconLinks = [
     { rel: 'icon', type: 'image/svg+xml', href: logoSvgPath },
+    { rel: 'icon', type: 'image/png', href: logoPng192, sizes: '192x192' },
+    { rel: 'icon', type: 'image/png', href: logoPng512, sizes: '512x512' },
     { rel: 'shortcut icon', href: logoSvgPath },
-    { rel: 'apple-touch-icon', href: logoSvgPath },
+    { rel: 'apple-touch-icon', href: logoPng192, sizes: '180x180' },
   ];
 
-  iconLinks.forEach(({ rel, type, href }) => {
-    let link = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement;
+  iconLinks.forEach(({ rel, type, href, sizes }) => {
+    let link = document.querySelector(`link[rel="${rel}"][href="${href}"]`) as HTMLLinkElement;
     if (!link) {
       link = document.createElement('link');
       link.rel = rel;
+      if (type) link.type = type;
+      if (sizes) link.setAttribute('sizes', sizes);
+      link.href = href;
       document.head.appendChild(link);
     }
-    if (type) link.type = type;
-    link.href = href;
   });
 
-  // Dynamically attach data-manifest with exact logo configuration if standard manifest is blocked
-  const manifestData = {
-    id: '/',
-    short_name: 'Krishakarya',
-    name: 'Krishakarya - Agricultural Labor & Machinery Rental',
-    description: 'Hire skilled Sahyogi farm labor workers & rent agricultural machinery near your village on Krishakarya!',
-    start_url: '/',
-    scope: '/',
-    display: 'standalone',
-    background_color: '#064e3b',
-    theme_color: '#047857',
-    icons: [
-      {
-        src: logoSvgPath,
-        type: 'image/svg+xml',
-        sizes: '512x512',
-        purpose: 'any maskable',
-      },
-      {
-        src: logoPngPath,
-        type: 'image/png',
-        sizes: '512x512',
-        purpose: 'any maskable',
-      },
-      {
-        src: '/logo-192.png',
-        type: 'image/png',
-        sizes: '192x192',
-        purpose: 'any maskable',
-      },
-    ],
-    shortcuts: [
-      {
-        name: 'Hire Sahyogi Labor',
-        short_name: 'Sahyogi',
-        description: 'Find and hire agricultural workers near your village',
-        url: '/?tab=sahyogi',
-        icons: [{ src: logoSvgPath, sizes: '192x192' }],
-      },
-      {
-        name: 'Rent Machinery',
-        short_name: 'Machinery',
-        description: 'Rent tractors, harvesters and farm equipment',
-        url: '/?tab=machinery',
-        icons: [{ src: logoSvgPath, sizes: '192x192' }],
-      },
-    ],
-  };
-
-  let inlineManifest = document.getElementById('chrome-manifest') as HTMLLinkElement;
-  if (!inlineManifest) {
-    inlineManifest = document.createElement('link');
-    inlineManifest.id = 'chrome-manifest';
-    inlineManifest.rel = 'manifest';
-    document.head.appendChild(inlineManifest);
+  // Ensure single valid manifest link pointing to /manifest.json
+  let manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+  if (!manifestLink) {
+    manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    document.head.appendChild(manifestLink);
   }
-  inlineManifest.href = `data:application/manifest+json;charset=utf-8,${encodeURIComponent(
-    JSON.stringify(manifestData)
-  )}`;
+  manifestLink.href = '/manifest.json';
 }
 
 /**

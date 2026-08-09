@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User } from '../types';
 import { 
   Home, 
@@ -6,7 +6,6 @@ import {
   Tractor, 
   User as UserIcon, 
   LogOut,
-  PlusCircle,
   Globe,
   ChevronDown,
   MessageSquare,
@@ -16,7 +15,6 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
-import { InstallPwaModal } from './InstallPwaModal';
 
 interface HeaderProps {
   activeTab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms';
@@ -41,23 +39,6 @@ export const Header: React.FC<HeaderProps> = ({
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-
-  // PWA Install & Shortcut Prompt State
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      (window as any).deferredPwaPrompt = e;
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
 
   const selectedLang = getLanguageInfo(currentLanguage);
 
@@ -201,15 +182,15 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               )}
 
-              {/* User Profile / Logout Buttons (rendered when user is logged in) */}
+              {/* User Profile & Sign Out Buttons (rendered when user is logged in) */}
               {currentUser && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => {
                       setActiveTab('profile');
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className={`flex items-center gap-1.5 p-1 sm:p-1.5 pl-2 sm:pl-2.5 pr-2 rounded-xl border text-xs font-bold transition-all min-h-[36px] ${
+                    className={`flex items-center gap-1.5 p-1 sm:p-1.5 pl-2 sm:pl-2.5 pr-2 rounded-xl border text-xs font-bold transition-all min-h-[36px] cursor-pointer ${
                       activeTab === 'profile'
                         ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20'
                         : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
@@ -237,24 +218,17 @@ export const Header: React.FC<HeaderProps> = ({
                     )}
                   </button>
 
+                  {/* Sign Out Button - Placed in position of listing button */}
                   <button
                     onClick={onLogout}
                     title={t('signOut')}
-                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 font-extrabold rounded-xl text-xs border border-red-200/80 transition-all min-h-[36px] shrink-0 cursor-pointer"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
+                    <LogOut className="w-3.5 h-3.5 text-red-600" />
+                    <span className="hidden sm:inline text-[11px] sm:text-xs">{t('signOut')}</span>
                   </button>
                 </div>
               )}
-
-              {/* Add Listing Button */}
-              <button
-                onClick={onOpenAddListing}
-                className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold rounded-xl text-xs transition-all min-h-[36px]"
-              >
-                <PlusCircle className="w-3.5 h-3.5 text-emerald-700" />
-                <span>{t('addListing')}</span>
-              </button>
             </div>
           </div>
 
@@ -344,13 +318,6 @@ export const Header: React.FC<HeaderProps> = ({
         isOpen={isInboxOpen}
         onClose={() => setIsInboxOpen(false)}
         currentUser={currentUser}
-      />
-
-      {/* PWA Download / Shortcut Modal */}
-      <InstallPwaModal
-        isOpen={isInstallModalOpen}
-        onClose={() => setIsInstallModalOpen(false)}
-        deferredPrompt={deferredPrompt}
       />
 
       {/* Mobile Bottom Navigation Bar */}

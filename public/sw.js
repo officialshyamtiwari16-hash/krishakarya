@@ -1,11 +1,16 @@
 // Service Worker for Krishakarya PWA App
-const CACHE_NAME = 'krishakarya-app-v1';
+const CACHE_NAME = 'krishakarya-app-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/logo.svg',
-  '/logo.png'
+  '/logo-192.png',
+  '/logo-512.png',
+  '/pwa-192.png',
+  '/pwa-512.png',
+  '/logo.png',
+  '/icon.png'
 ];
 
 self.addEventListener('install', (event) => {
