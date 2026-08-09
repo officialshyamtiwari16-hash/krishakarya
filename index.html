@@ -25,42 +25,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700;800;900&family=Outfit:wght@600;700;800;900&family=Philosopher:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Inline Blob Service Worker Registration Script -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          var swCode = [
-            "const CACHE_NAME = 'krishakarya-v2';",
-            "const urlsToCache = ['/', '/index.html', '/logo.svg', '/logo-192.png', '/logo-512.png', '/manifest.json'];",
-            "self.addEventListener('install', event => {",
-            "  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)).then(() => self.skipWaiting()));",
-            "});",
-            "self.addEventListener('activate', event => {",
-            "  event.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.clients.claim()));",
-            "});",
-            "self.addEventListener('fetch', event => {",
-            "  if (event.request.method !== 'GET') return;",
-            "  event.respondWith(caches.match(event.request).then(response => response || fetch(event.request).catch(() => caches.match('/'))));",
-            "});"
-          ].join('\n');
-
-          try {
-            navigator.serviceWorker.register('/sw.js').then(function(reg) {
-              console.log('SW registered via /sw.js', reg);
-            }).catch(function() {
-              var blob = new Blob([swCode], { type: 'application/javascript' });
-              var blobUrl = URL.createObjectURL(blob);
-              navigator.serviceWorker.register(blobUrl, { scope: '/' }).then(function(reg) {
-                console.log('SW registered via inline Blob URL', reg);
-              });
-            });
-          } catch(e) {
-            console.warn('SW registration fallback warning:', e);
-          }
-        });
-      }
-    </script>
   </head>
   <body class="font-['Plus_Jakarta_Sans',sans-serif] bg-slate-50 text-slate-900 antialiased selection:bg-emerald-500 selection:text-white overflow-x-hidden">
     <div id="root"></div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { 
   Home, 
@@ -10,7 +10,8 @@ import {
   ChevronDown,
   MessageSquare,
   Share2,
-  Check
+  Check,
+  Download
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
@@ -39,6 +40,51 @@ export const Header: React.FC<HeaderProps> = ({
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // PWA Install Prompt State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check if app is running in standalone mode
+    if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      (window as any).deferredPwaPrompt = e;
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    const promptEvent = deferredPrompt || (window as any).deferredPwaPrompt;
+    if (promptEvent) {
+      promptEvent.prompt();
+      const { outcome } = await promptEvent.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+      }
+      setDeferredPrompt(null);
+      (window as any).deferredPwaPrompt = null;
+    } else {
+      alert('To install Krishakarya App:\n\n1. Open Chrome menu (3 dots) or Share menu\n2. Tap "Install App" or "Add to Home screen"\n3. Enjoy offline-ready access!');
+    }
+  };
 
   const selectedLang = getLanguageInfo(currentLanguage);
 
@@ -74,6 +120,18 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center justify-between gap-2">
             {/* Left Utility Actions */}
             <div className="flex items-center gap-1 sm:gap-2">
+              {/* Install App Button */}
+              {!isInstalled && (
+                <button
+                  onClick={handleInstallClick}
+                  title="Install Krishakarya App"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-[11px] sm:text-xs font-black shadow-xs border border-emerald-500/30 transition-all min-h-[36px] shrink-0 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-amber-300 animate-bounce" />
+                  <span>Install App</span>
+                </button>
+              )}
+
               {/* Share Website Button */}
               <button
                 onClick={handleShareWebsite}

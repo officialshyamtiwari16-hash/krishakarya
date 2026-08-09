@@ -1,50 +1,19 @@
 {
-  "id": "/",
   "short_name": "Krishakarya",
   "name": "Krishakarya - Agricultural Labor & Machinery Rental",
   "description": "Hire skilled Sahyogi farm labor workers & rent agricultural machinery near your village on Krishakarya!",
-  "start_url": "/",
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "any",
-  "background_color": "#064e3b",
-  "theme_color": "#047857",
   "icons": [
     {
       "src": "/logo-192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo-192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "/logo-512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo-512.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/pwa-192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any"
-    },
-    {
-      "src": "/pwa-512.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "/logo.svg",
@@ -53,6 +22,12 @@
       "purpose": "any"
     }
   ],
+  "start_url": "/",
+  "scope": "/",
+  "background_color": "#064e3b",
+  "theme_color": "#047857",
+  "display": "standalone",
+  "orientation": "portrait-primary",
   "shortcuts": [
     {
       "name": "Hire Sahyogi Labor",
