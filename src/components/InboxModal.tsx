@@ -526,9 +526,6 @@ export const InboxModal: React.FC<InboxModalProps> = ({
             <div>
               <h3 className="font-extrabold text-base sm:text-lg flex items-center gap-2 tracking-wide text-white">
                 <span className="text-emerald-400">Krishakarya</span> Messenger
-                <span className="bg-emerald-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
-                  Live
-                </span>
               </h3>
               <p className="text-[11px] text-emerald-100/90 font-medium hidden sm:block">
                 Direct Chat with Farmers, Sahyogi Workers & Machinery Owners
@@ -538,17 +535,12 @@ export const InboxModal: React.FC<InboxModalProps> = ({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowNewChatModal(true)}
-              className="px-3.5 py-1.5 bg-[#00a884] hover:bg-[#008f6f] text-slate-950 font-extrabold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-md active:scale-95"
-            >
-              <Plus className="w-4 h-4" /> <span>New Chat</span>
-            </button>
-
-            <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center text-white transition-colors"
+              className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs rounded-xl transition-all flex items-center gap-1.5 border border-white/10 cursor-pointer active:scale-95"
+              title="Close Messenger"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-emerald-300" />
+              <span>Close</span>
             </button>
           </div>
         </div>

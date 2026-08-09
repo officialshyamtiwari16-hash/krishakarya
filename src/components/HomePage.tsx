@@ -122,35 +122,35 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* Quick Tools Section */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
           <div>
-            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Quick Tools
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-600" /> Quick Tools
             </h2>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
               Instant access to agricultural utilities and quick booking tools
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {/* Tool 1: Find Sahyogi */}
           <button
             onClick={() => onNavigate('sahyogi')}
-            className="group bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-emerald-500 transition-all text-left flex items-start gap-3"
+            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 rounded-xl group-hover:scale-105 transition-transform flex-shrink-0">
-              <Users className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+              <Users className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="space-y-0.5">
-              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-xs sm:text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
                 {t('hireSahyogi')}
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+              <p className="text-[11px] text-slate-500 leading-snug">
                 Search verified labor workers for harvesting & sowing.
               </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 pt-0.5">
-                Browse {sahyogis.length} Sahyogis <ArrowRight className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
+                Browse {sahyogis.length} Sahyogis <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </div>
           </button>
@@ -158,20 +158,20 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 2: Rent Machinery */}
           <button
             onClick={() => onNavigate('machinery')}
-            className="group bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-amber-500 transition-all text-left flex items-start gap-3"
+            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-amber-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 rounded-xl group-hover:scale-105 transition-transform flex-shrink-0">
-              <Tractor className="w-5 h-5" />
+            <div className="p-2.5 bg-amber-100 text-amber-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+              <Tractor className="w-5 h-5 text-amber-700" />
             </div>
             <div className="space-y-0.5">
-              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-xs sm:text-sm group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-amber-700 transition-colors">
                 {t('rentMachinery')}
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+              <p className="text-[11px] text-slate-500 leading-snug">
                 Rent tractors, harvesters, spray drones & pumps.
               </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-400 pt-0.5">
-                Browse {machineries.length} Machines <ArrowRight className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 pt-0.5">
+                Browse {machineries.length} Machines <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </div>
           </button>
@@ -179,10 +179,10 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 3: List Service / Machinery */}
           <button
             onClick={onOpenAddListing}
-            className="group bg-white p-4 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-emerald-500 transition-all text-left flex items-start gap-3"
+            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform flex-shrink-0">
-              <PlusCircle className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+              <PlusCircle className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="space-y-0.5">
               <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
@@ -192,7 +192,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 Register labor profile or list machinery for income.
               </p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Publish Listing <ArrowRight className="w-3 h-3" />
+                Publish Listing <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </div>
           </button>
@@ -200,25 +200,25 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 4: Kisan Bahi Khata (Digital Ledger) */}
           <button
             onClick={() => setIsLedgerOpen(true)}
-            className="group bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-emerald-500 transition-all text-left flex items-start gap-3"
+            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 rounded-xl group-hover:scale-105 transition-transform flex-shrink-0">
-              <BookOpen className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
+            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+              <BookOpen className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
-                <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-xs sm:text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
                   Kisan Bahi Khata
                 </h3>
                 <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase">
                   Ledger
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+              <p className="text-[11px] text-slate-500 leading-snug">
                 Record farm income, labor costs, seed purchases & sync bookings.
               </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 pt-0.5">
-                Manage Ledger ({ledgerEntries.length} Records) <ArrowRight className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
+                Manage Ledger ({ledgerEntries.length} Records) <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </div>
           </button>
@@ -226,10 +226,10 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 5: Land Acreage & Seed Calculator */}
           <button
             onClick={() => setIsCalculatorOpen(true)}
-            className="group bg-white p-4 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-emerald-500 transition-all text-left flex items-start gap-3"
+            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform flex-shrink-0">
-              <Calculator className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+              <Calculator className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="space-y-0.5">
               <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
@@ -239,7 +239,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 Convert Bigha/Katha to Acres, seed rates & fertilizer schedules.
               </p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Open Calculator <ArrowRight className="w-3 h-3" />
+                Open Calculator <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </div>
           </button>
@@ -247,20 +247,20 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 6: User Profile & Details */}
           <button
             onClick={() => onNavigate('profile')}
-            className="group bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-emerald-500 transition-all text-left flex items-start gap-3"
+            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl group-hover:scale-105 transition-transform flex-shrink-0">
-              <UserIcon className="w-5 h-5" />
+            <div className="p-2.5 bg-slate-100 text-slate-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+              <UserIcon className="w-5 h-5 text-slate-700" />
             </div>
             <div className="space-y-0.5">
-              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-xs sm:text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
                 {t('editProfile')}
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+              <p className="text-[11px] text-slate-500 leading-snug">
                 View & update post, district, pincode & farm details.
               </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 pt-0.5">
-                Open Profile <ArrowRight className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
+                Open Profile <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </div>
           </button>
@@ -270,14 +270,14 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* Featured Overview Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Available Sahyogis Card */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-base flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-700 dark:text-emerald-400" /> {t('featuredSahyogis')}
+            <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+              <Users className="w-5 h-5 text-emerald-700" /> {t('featuredSahyogis')}
             </h3>
             <button
               onClick={() => onNavigate('sahyogi')}
-              className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
             >
               View All ({sahyogis.length})
             </button>
@@ -285,30 +285,30 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div className="space-y-3">
             {sahyogis.length === 0 ? (
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 text-center space-y-2">
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">No Sahyogi labor workers registered yet.</p>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center space-y-2">
+                <p className="text-xs text-slate-500 font-medium">No Sahyogi labor workers registered yet.</p>
                 <button
                   onClick={onOpenAddListing}
-                  className="px-3 py-1.5 bg-emerald-700 text-white font-bold rounded-xl text-[11px] shadow-xs"
+                  className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-[11px] shadow-xs cursor-pointer"
                 >
                   Register as Sahyogi
                 </button>
               </div>
             ) : (
               sahyogis.slice(0, 2).map((s) => (
-                <div key={s.id} className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold flex-shrink-0">
-                    <Users className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
+                <div key={s.id} className="p-3.5 bg-slate-50/80 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition-all flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shrink-0">
+                    <Users className="w-5 h-5 text-emerald-700" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs truncate">{s.name}</h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <h4 className="font-bold text-slate-900 text-xs truncate">{s.name}</h4>
+                    <p className="text-[11px] text-slate-500 truncate">
                       {s.village}, {s.district} • Rate: ₹{s.dailyRate}{t('perDay')}
                     </p>
                   </div>
                   <button
                     onClick={() => onNavigate('sahyogi')}
-                    className="px-3 py-1.5 bg-emerald-700 text-white font-bold rounded-lg text-[11px]"
+                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-[11px] cursor-pointer transition-colors active:scale-95"
                   >
                     {t('bookNow')}
                   </button>
@@ -319,14 +319,14 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         {/* Available Machinery Card */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-base flex items-center gap-2">
-              <Tractor className="w-5 h-5 text-amber-600 dark:text-amber-400" /> {t('featuredMachinery')}
+            <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+              <Tractor className="w-5 h-5 text-amber-600" /> {t('featuredMachinery')}
             </h3>
             <button
               onClick={() => onNavigate('machinery')}
-              className="text-xs font-bold text-amber-700 dark:text-amber-400 hover:underline"
+              className="text-xs font-bold text-amber-700 hover:text-amber-800 hover:underline cursor-pointer"
             >
               View All ({machineries.length})
             </button>
@@ -334,30 +334,30 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div className="space-y-3">
             {machineries.length === 0 ? (
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 text-center space-y-2">
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">No machinery listed for rent yet.</p>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center space-y-2">
+                <p className="text-xs text-slate-500 font-medium">No machinery listed for rent yet.</p>
                 <button
                   onClick={onOpenAddListing}
-                  className="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-xl text-[11px] shadow-xs"
+                  className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] shadow-xs cursor-pointer"
                 >
                   List Machinery
                 </button>
               </div>
             ) : (
               machineries.slice(0, 2).map((m) => (
-                <div key={m.id} className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 flex items-center justify-center font-bold flex-shrink-0">
-                    <Tractor className="w-5 h-5 text-amber-700 dark:text-amber-400" />
+                <div key={m.id} className="p-3.5 bg-slate-50/80 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition-all flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold shrink-0">
+                    <Tractor className="w-5 h-5 text-amber-700" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs truncate">{m.title}</h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <h4 className="font-bold text-slate-900 text-xs truncate">{m.title}</h4>
+                    <p className="text-[11px] text-slate-500 truncate">
                       {m.category} • Rent: ₹{m.ratePerDay}{t('perDay')}
                     </p>
                   </div>
                   <button
                     onClick={() => onNavigate('machinery')}
-                    className="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-lg text-[11px]"
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] cursor-pointer transition-colors active:scale-95"
                   >
                     Rent
                   </button>
