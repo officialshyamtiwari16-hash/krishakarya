@@ -48,7 +48,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialTab = 'login',
 }) => {
   // Theme state
-  const [themeMode, setThemeMode] = useState<'light' | 'dark'>('dark');
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>('light');
 
   // Main mode: 'login' | 'signup' | 'forgot'
   const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'forgot'>(initialTab);

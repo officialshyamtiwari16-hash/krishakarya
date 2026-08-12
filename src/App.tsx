@@ -396,7 +396,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full flex flex-col font-sans bg-slate-50 text-slate-900 transition-colors duration-200 overflow-x-hidden">
+    <div className="min-h-screen min-h-[100dvh] w-full flex flex-col font-sans bg-mesh-animated bg-grid-pattern text-slate-900 transition-colors duration-200 overflow-x-hidden">
       {/* Header Bar */}
       <Header
         activeTab={activeTab}

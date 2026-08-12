@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { LedgerEntry, LedgerCategory, Booking, User } from '../types';
+import { AnimatedCounter } from './AnimatedCounter';
 import { 
   BookOpen, 
   TrendingUp, 
@@ -195,53 +197,53 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Total Income */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
+        <div className="glass-card p-5 rounded-2xl space-y-1">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-              <ArrowUpRight className="w-4 h-4 text-emerald-600" /> Total Farm Income (आय)
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1">
+              <ArrowUpRight className="w-4 h-4 text-emerald-600 icon-micro-rotate" /> Total Farm Income (आय)
             </span>
-            <span className="text-xs bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-md">
-              {ledgerEntries.filter((e) => e.type === 'income').length} Entries
+            <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md">
+              <AnimatedCounter value={ledgerEntries.filter((e) => e.type === 'income').length} /> Entries
             </span>
           </div>
-          <p className="text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400">
-            ₹{totalIncome.toLocaleString('en-IN')}
+          <p className="text-2xl sm:text-3xl font-black text-emerald-700">
+            ₹<AnimatedCounter value={totalIncome} />
           </p>
           <p className="text-[11px] text-slate-500 font-medium">Crop sales, Mandi payouts & subsidies</p>
         </div>
 
         {/* Total Expense */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
+        <div className="glass-card p-5 rounded-2xl space-y-1">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 flex items-center gap-1">
-              <ArrowDownRight className="w-4 h-4 text-rose-600" /> Total Farm Expenses (खर्च)
+            <span className="text-xs font-bold uppercase tracking-wider text-rose-700 flex items-center gap-1">
+              <ArrowDownRight className="w-4 h-4 text-rose-600 icon-micro-rotate" /> Total Farm Expenses (खर्च)
             </span>
-            <span className="text-xs bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-bold px-2 py-0.5 rounded-md">
-              {ledgerEntries.filter((e) => e.type === 'expense').length} Entries
+            <span className="text-xs bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-md">
+              <AnimatedCounter value={ledgerEntries.filter((e) => e.type === 'expense').length} /> Entries
             </span>
           </div>
-          <p className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400">
-            ₹{totalExpense.toLocaleString('en-IN')}
+          <p className="text-2xl sm:text-3xl font-black text-rose-600">
+            ₹<AnimatedCounter value={totalExpense} />
           </p>
           <p className="text-[11px] text-slate-500 font-medium">Labor, machinery rent, seeds & fertilizer</p>
         </div>
 
         {/* Net Profit / Loss */}
-        <div className={`p-5 rounded-2xl border shadow-xs space-y-1 ${
+        <div className={`p-5 rounded-2xl border shadow-md space-y-1 ${
           netProfitLoss >= 0 
-            ? 'bg-emerald-900 text-white border-emerald-800' 
-            : 'bg-rose-950 text-white border-rose-900'
+            ? 'bg-gradient-to-br from-emerald-900 to-teal-950 text-white border-emerald-700/50' 
+            : 'bg-gradient-to-br from-rose-950 to-slate-900 text-white border-rose-800/50'
         }`}>
           <div className="flex items-center justify-between text-emerald-200">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
-              <TrendingUp className="w-4 h-4 text-amber-300" /> Net Profit / Loss (शुद्ध लाभ)
+              <TrendingUp className="w-4 h-4 text-amber-300 icon-micro-rotate" /> Net Profit / Loss (शुद्ध लाभ)
             </span>
             <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-white/10 rounded-md text-amber-300">
               {netProfitLoss >= 0 ? 'PROFIT' : 'LOSS'}
             </span>
           </div>
           <p className="text-2xl sm:text-3xl font-black text-white">
-            ₹{Math.abs(netProfitLoss).toLocaleString('en-IN')}
+            ₹<AnimatedCounter value={Math.abs(netProfitLoss)} />
           </p>
           <p className="text-[11px] text-emerald-200/90 font-medium">
             {netProfitLoss >= 0 ? 'Total Income exceeds farm costs' : 'Total Expenses exceed farm sales'}

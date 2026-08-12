@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { Machinery, MachineryCategory, User, Booking } from '../types';
 import { 
   Tractor, 
@@ -12,6 +13,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { AnimatedCounter } from './AnimatedCounter';
 
 interface MachineryListingsProps {
   machineries: Machinery[];
@@ -153,11 +155,17 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
   return (
     <div className="space-y-8">
       {/* Hero Banner */}
-      <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-amber-900 via-stone-800 to-emerald-950 p-3 sm:p-4 text-white shadow-sm space-y-2">
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-950 p-4 sm:p-5 text-white shadow-xl space-y-2 border border-emerald-500/30"
+      >
+        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded-full text-[10px]">
-              <Tractor className="w-3 h-3" /> Reliable Agricultural Equipment Hub
+            <div className="inline-flex items-center gap-1.5 bg-amber-400 text-slate-950 font-bold px-2.5 py-0.5 rounded-full text-[10px]">
+              <Tractor className="w-3 h-3 icon-micro-rotate" /> Reliable Agricultural Equipment Hub
             </div>
             <h1 className="text-sm sm:text-base font-extrabold tracking-tight leading-snug">
               Rent Modern <span className="text-amber-400">Tractors & Farming Machinery</span>
@@ -169,26 +177,32 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
 
           <button
             onClick={onOpenAddListing}
-            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[11px] shadow-xs transition-all flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center"
+            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[11px] shadow-md transition-all flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center btn-futuristic pulse-glow-cta cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> List Machine for Rent
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Filter and Category Pills */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/80 space-y-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-30px' }}
+        transition={{ duration: 0.5 }}
+        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-4"
+      >
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar smooth-scroll">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-            <Filter className="w-3 h-3 text-amber-600" /> Equipment Type:
+            <Filter className="w-3 h-3 text-emerald-600" /> Equipment Type:
           </span>
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-amber-600 text-white shadow-sm'
+                  ? 'bg-emerald-700 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -205,7 +219,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
               placeholder="Search machinery type (tractor, rotavator, drone), model, village, or district..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
             {searchTerm && (
               <button
@@ -222,7 +236,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
             <select
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             >
               {districts.map((dist) => (
                 <option key={dist} value={dist}>
@@ -236,7 +250,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-bold text-slate-700 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5 text-amber-600" /> Max Daily Rent: ₹{maxRate}
+              <Filter className="w-3.5 h-3.5 text-emerald-600" /> Max Daily Rent: ₹<AnimatedCounter value={maxRate} />
             </span>
             <input
               type="range"
@@ -245,7 +259,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
               step={500}
               value={maxRate}
               onChange={(e) => setMaxRate(Number(e.target.value))}
-              className="w-36 accent-amber-600 cursor-pointer"
+              className="w-36 accent-emerald-600 cursor-pointer"
             />
 
             {(searchTerm || selectedCategory !== 'All' || selectedDistrict !== 'All' || maxRate < 12000) && (
@@ -256,7 +270,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
                   setSelectedDistrict('All');
                   setMaxRate(12000);
                 }}
-                className="text-amber-700 hover:text-amber-900 font-bold underline text-[11px] flex items-center gap-1"
+                className="text-emerald-700 hover:text-emerald-900 font-bold underline text-[11px] flex items-center gap-1 cursor-pointer"
               >
                 <X className="w-3 h-3" /> Clear All Filters
               </button>
@@ -264,16 +278,16 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
           </div>
 
           <div className="text-slate-500 font-medium">
-            Showing <span className="font-bold text-amber-700">{filteredMachinery.length}</span> Rentable Equipment
+            Showing <span className="font-bold text-emerald-700"><AnimatedCounter value={filteredMachinery.length} /></span> Rentable Equipment
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Grid of Machinery Cards */}
       {filteredMachinery.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-4">
+        <div className="glass-panel rounded-2xl p-8 text-center space-y-4">
           <div className="w-16 h-16 bg-amber-50 text-amber-700 rounded-full flex items-center justify-center mx-auto">
-            <Tractor className="w-8 h-8" />
+            <Tractor className="w-8 h-8 icon-micro-rotate" />
           </div>
           <div className="space-y-1">
             <h3 className="text-lg font-bold text-slate-900">No Machinery Listed for Rent Yet</h3>
@@ -283,17 +297,21 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
           </div>
           <button
             onClick={onOpenAddListing}
-            className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-2 shadow-sm"
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-2 shadow-sm btn-futuristic cursor-pointer"
           >
             <Plus className="w-4 h-4" /> List Machinery for Rent
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMachinery.map((machine) => (
-            <div
+          {filteredMachinery.map((machine, index) => (
+            <motion.div
               key={machine.id}
-              className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+              className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group"
             >
               <div>
                 {machine.image && machine.image.trim().length > 0 && (
@@ -346,8 +364,8 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
                   </p>
 
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[11px] grid grid-cols-2 gap-1 text-slate-700">
-                    <span>HP: <strong className="text-slate-900">{machine.horsepower > 0 ? `${machine.horsepower} HP` : 'N/A'}</strong></span>
-                    <span>Hourly: <strong className="text-emerald-800">₹{machine.ratePerHour}/hr</strong></span>
+                    <span>HP: <strong className="text-slate-900">{machine.horsepower > 0 ? <><AnimatedCounter value={machine.horsepower} /> HP</> : 'N/A'}</strong></span>
+                    <span>Hourly: <strong className="text-emerald-800">₹<AnimatedCounter value={machine.ratePerHour} />/hr</strong></span>
                   </div>
                 </div>
               </div>
@@ -359,7 +377,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
                   Daily Rent Rate
                 </span>
                 <span className="text-base sm:text-lg font-extrabold text-amber-700">
-                  ₹{machine.ratePerDay}
+                  ₹<AnimatedCounter value={machine.ratePerDay} />
                   <span className="text-xs font-normal text-slate-500"> / day</span>
                 </span>
               </div>
@@ -367,7 +385,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
               <div className="flex items-center gap-2 w-full xs:w-auto justify-end">
                 <button
                   onClick={() => setSelectedMachine(machine)}
-                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 min-h-[38px]"
+                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 min-h-[38px] cursor-pointer"
                 >
                   Specs & Reviews
                 </button>
@@ -376,21 +394,21 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
                     setSelectedMachine(machine);
                     setIsRentModalOpen(true);
                   }}
-                  className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded-xl text-xs shadow-sm transition-colors flex items-center gap-1 min-h-[38px]"
+                  className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded-xl text-xs shadow-sm transition-all flex items-center gap-1 min-h-[38px] btn-futuristic cursor-pointer"
                 >
                   <Calendar className="w-3.5 h-3.5" /> Rent Equipment
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
       )}
 
       {/* Detail & Rental Modal */}
       {selectedMachine && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-2xl glass-panel rounded-3xl shadow-2xl border border-emerald-500/30 overflow-hidden my-auto max-h-[92vh] flex flex-col">
             <div className="relative p-6 bg-gradient-to-r from-amber-900 via-stone-900 to-emerald-950 text-white flex-shrink-0">
               <button
                 onClick={() => setSelectedMachine(null)}

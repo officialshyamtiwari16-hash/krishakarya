@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { User, Sahyogi, Machinery, LedgerEntry, Booking } from '../types';
 import { 
   Users, 
@@ -18,6 +19,7 @@ import { InboxModal } from './InboxModal';
 import { SeedCalculatorModal } from './SeedCalculatorModal';
 import { LedgerModal } from './LedgerModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
+import { AnimatedCounter } from './AnimatedCounter';
 
 interface HomePageProps {
   currentUser: User | null;
@@ -79,52 +81,64 @@ export const HomePage: React.FC<HomePageProps> = ({
   };
 
   return (
-    <div className="space-y-4 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Hero Welcome Banner */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-950 via-emerald-900 to-amber-950 text-white px-4 py-3.5 shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-emerald-800/50">
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white px-5 py-4 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-emerald-500/30"
+      >
+        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
         <div className="relative z-10 flex items-center gap-3">
-          <KrishakaryaLogo size={44} />
+          <KrishakaryaLogo size={46} />
           <div className="space-y-0.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-['Outfit',sans-serif] font-black text-2xl tracking-tight leading-none text-emerald-400">
+              <span className="font-['Outfit',sans-serif] font-black text-2xl sm:text-3xl tracking-tight leading-none bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
                 Krishakarya
               </span>
             </div>
-            <p className="text-emerald-100/90 text-xs leading-tight max-w-xl">
+            <p className="text-emerald-100/90 text-xs sm:text-sm leading-tight max-w-xl">
               {t('heroSubtitle')}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0 relative z-10">
+        <div className="flex items-center gap-2 flex-shrink-0 relative z-10 flex-wrap sm:flex-nowrap">
           <button
             onClick={() => onNavigate('sahyogi')}
-            className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl text-xs shadow-xs transition-all flex items-center gap-1 min-h-[32px]"
+            className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[36px] btn-futuristic pulse-glow-cta cursor-pointer"
           >
-            <Users className="w-3.5 h-3.5" /> {t('hireSahyogi')}
+            <Users className="w-4 h-4 icon-micro-rotate" /> {t('hireSahyogi')}
           </button>
 
           <button
             onClick={() => onNavigate('machinery')}
-            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 backdrop-blur-sm transition-all flex items-center gap-1 min-h-[32px]"
+            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[36px] btn-futuristic cursor-pointer"
           >
-            <Tractor className="w-3.5 h-3.5 text-amber-400" /> {t('rentMachinery')}
+            <Tractor className="w-4 h-4 text-amber-400 icon-micro-rotate" /> {t('rentMachinery')}
           </button>
 
           <button
             onClick={() => setIsInboxOpen(true)}
-            className="px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs border border-emerald-400/30 backdrop-blur-sm transition-all flex items-center gap-1 min-h-[32px] shadow-xs"
+            className="px-3.5 py-2 bg-emerald-600/90 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs border border-emerald-400/30 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[36px] shadow-sm btn-futuristic cursor-pointer"
           >
-            <MessageSquare className="w-3.5 h-3.5 text-amber-300" /> Inbox
+            <MessageSquare className="w-4 h-4 text-amber-300 icon-micro-rotate" /> Inbox
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Quick Tools Section */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.6 }}
+        className="space-y-3.5"
+      >
+        <div className="flex items-center justify-between border-b border-emerald-500/15 pb-2.5">
           <div>
-            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-1.5">
+            <h2 className="text-base sm:text-lg font-extrabold gradient-heading flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-emerald-600" /> Quick Tools
             </h2>
             <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
@@ -137,9 +151,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 1: Find Sahyogi */}
           <button
             onClick={() => onNavigate('sahyogi')}
-            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
+            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+            <div className="p-2.5 bg-emerald-100/90 text-emerald-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
               <Users className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="space-y-0.5">
@@ -150,7 +164,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 Search verified labor workers for harvesting & sowing.
               </p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Browse {sahyogis.length} Sahyogis <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                Browse <AnimatedCounter value={sahyogis.length} /> Sahyogis <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </span>
             </div>
           </button>
@@ -158,9 +172,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 2: Rent Machinery */}
           <button
             onClick={() => onNavigate('machinery')}
-            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-amber-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
+            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-amber-100 text-amber-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+            <div className="p-2.5 bg-amber-100/90 text-amber-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
               <Tractor className="w-5 h-5 text-amber-700" />
             </div>
             <div className="space-y-0.5">
@@ -171,7 +185,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 Rent tractors, harvesters, spray drones & pumps.
               </p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 pt-0.5">
-                Browse {machineries.length} Machines <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                Browse <AnimatedCounter value={machineries.length} /> Machines <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </span>
             </div>
           </button>
@@ -179,9 +193,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 3: List Service / Machinery */}
           <button
             onClick={onOpenAddListing}
-            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
+            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+            <div className="p-2.5 bg-emerald-100/90 text-emerald-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
               <PlusCircle className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="space-y-0.5">
@@ -192,7 +206,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 Register labor profile or list machinery for income.
               </p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Publish Listing <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                Publish Listing <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </span>
             </div>
           </button>
@@ -200,9 +214,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 4: Kisan Bahi Khata (Digital Ledger) */}
           <button
             onClick={() => setIsLedgerOpen(true)}
-            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
+            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+            <div className="p-2.5 bg-emerald-100/90 text-emerald-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
               <BookOpen className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="space-y-0.5">
@@ -218,7 +232,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 Record farm income, labor costs, seed purchases & sync bookings.
               </p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Manage Ledger ({ledgerEntries.length} Records) <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                Manage Ledger (<AnimatedCounter value={ledgerEntries.length} /> Records) <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </span>
             </div>
           </button>
@@ -226,9 +240,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 5: Land Acreage & Seed Calculator */}
           <button
             onClick={() => setIsCalculatorOpen(true)}
-            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
+            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+            <div className="p-2.5 bg-emerald-100/90 text-emerald-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
               <Calculator className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="space-y-0.5">
@@ -239,7 +253,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 Convert Bigha/Katha to Acres, seed rates & fertilizer schedules.
               </p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Open Calculator <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                Open Calculator <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </span>
             </div>
           </button>
@@ -247,9 +261,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Tool 6: User Profile & Details */}
           <button
             onClick={() => onNavigate('profile')}
-            className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-500 active:scale-[0.99] transition-all text-left flex items-start gap-3.5 cursor-pointer"
+            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="p-2.5 bg-slate-100 text-slate-800 rounded-xl group-hover:scale-105 transition-transform shrink-0">
+            <div className="p-2.5 bg-slate-100 text-slate-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
               <UserIcon className="w-5 h-5 text-slate-700" />
             </div>
             <div className="space-y-0.5">
@@ -260,55 +274,61 @@ export const HomePage: React.FC<HomePageProps> = ({
                 View & update post, district, pincode & farm details.
               </p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Open Profile <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                Open Profile <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </span>
             </div>
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Featured Overview Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.6 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
         {/* Available Sahyogis Card */}
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+        <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-700" /> {t('featuredSahyogis')}
+              <Users className="w-5 h-5 text-emerald-700 icon-micro-rotate" /> {t('featuredSahyogis')}
             </h3>
             <button
               onClick={() => onNavigate('sahyogi')}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer transition-colors"
             >
-              View All ({sahyogis.length})
+              View All (<AnimatedCounter value={sahyogis.length} />)
             </button>
           </div>
 
           <div className="space-y-3">
             {sahyogis.length === 0 ? (
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center space-y-2">
+              <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 text-center space-y-2">
                 <p className="text-xs text-slate-500 font-medium">No Sahyogi labor workers registered yet.</p>
                 <button
                   onClick={onOpenAddListing}
-                  className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-[11px] shadow-xs cursor-pointer"
+                  className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-[11px] shadow-xs cursor-pointer btn-futuristic"
                 >
                   Register as Sahyogi
                 </button>
               </div>
             ) : (
               sahyogis.slice(0, 2).map((s) => (
-                <div key={s.id} className="p-3.5 bg-slate-50/80 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition-all flex items-center gap-3">
+                <div key={s.id} className="p-3.5 glass-card rounded-2xl flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shrink-0">
                     <Users className="w-5 h-5 text-emerald-700" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-slate-900 text-xs truncate">{s.name}</h4>
                     <p className="text-[11px] text-slate-500 truncate">
-                      {s.village}, {s.district} • Rate: ₹{s.dailyRate}{t('perDay')}
+                      {s.village}, {s.district} • Rate: ₹<AnimatedCounter value={s.dailyRate} />{t('perDay')}
                     </p>
                   </div>
                   <button
                     onClick={() => onNavigate('sahyogi')}
-                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-[11px] cursor-pointer transition-colors active:scale-95"
+                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-[11px] cursor-pointer transition-all btn-futuristic"
                   >
                     {t('bookNow')}
                   </button>
@@ -319,45 +339,45 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         {/* Available Machinery Card */}
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+        <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-              <Tractor className="w-5 h-5 text-amber-600" /> {t('featuredMachinery')}
+              <Tractor className="w-5 h-5 text-amber-600 icon-micro-rotate" /> {t('featuredMachinery')}
             </h3>
             <button
               onClick={() => onNavigate('machinery')}
-              className="text-xs font-bold text-amber-700 hover:text-amber-800 hover:underline cursor-pointer"
+              className="text-xs font-bold text-amber-700 hover:text-amber-800 hover:underline cursor-pointer transition-colors"
             >
-              View All ({machineries.length})
+              View All (<AnimatedCounter value={machineries.length} />)
             </button>
           </div>
 
           <div className="space-y-3">
             {machineries.length === 0 ? (
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center space-y-2">
+              <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 text-center space-y-2">
                 <p className="text-xs text-slate-500 font-medium">No machinery listed for rent yet.</p>
                 <button
                   onClick={onOpenAddListing}
-                  className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] shadow-xs cursor-pointer"
+                  className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] shadow-xs cursor-pointer btn-futuristic"
                 >
                   List Machinery
                 </button>
               </div>
             ) : (
               machineries.slice(0, 2).map((m) => (
-                <div key={m.id} className="p-3.5 bg-slate-50/80 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition-all flex items-center gap-3">
+                <div key={m.id} className="p-3.5 glass-card rounded-2xl flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold shrink-0">
                     <Tractor className="w-5 h-5 text-amber-700" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-slate-900 text-xs truncate">{m.title}</h4>
                     <p className="text-[11px] text-slate-500 truncate">
-                      {m.category} • Rent: ₹{m.ratePerDay}{t('perDay')}
+                      {m.category} • Rent: ₹<AnimatedCounter value={m.ratePerDay} />{t('perDay')}
                     </p>
                   </div>
                   <button
                     onClick={() => onNavigate('machinery')}
-                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] cursor-pointer transition-colors active:scale-95"
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] cursor-pointer transition-all btn-futuristic"
                   >
                     Rent
                   </button>
@@ -366,7 +386,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Seed & Acre Calculator Modal */}
       <SeedCalculatorModal

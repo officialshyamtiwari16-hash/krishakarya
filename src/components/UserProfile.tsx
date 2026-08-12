@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { User, Sahyogi, Machinery, Booking, LedgerEntry } from '../types';
 import { 
   User as UserIcon, 
@@ -36,6 +37,7 @@ import { checkUsernameAvailability, normalizeUsername, saveUserToFirestore } fro
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleAuthProvider } from '../lib/firebase';
 import { KisanKhatabook } from './KisanKhatabook';
+import { AnimatedCounter } from './AnimatedCounter';
 
 interface UserProfileProps {
   currentUser: User | null;
@@ -364,12 +366,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       {/* Header Profile Card - Centered Top */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col items-center justify-center text-center gap-4 relative">
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="glass-panel rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-4 relative"
+      >
         
         {/* Top Account Switcher & Logout Bar */}
         <div className="w-full flex items-center justify-between border-b border-slate-100 pb-3 text-xs">
           <span className="text-slate-500 font-bold flex items-center gap-1">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Logged In Account
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 icon-micro-rotate" /> Logged In Account
           </span>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -382,7 +389,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
             <button
               onClick={() => onOpenAuthModal?.('signup')}
-              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer btn-futuristic"
             >
               <UserPlus className="w-3.5 h-3.5 text-emerald-200" /> Register / Add Account
             </button>
@@ -399,7 +406,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
         </div>
 
         <div className="relative group flex-shrink-0">
-          <div className="w-20 h-20 rounded-full bg-emerald-50 ring-4 ring-emerald-600/20 shadow-sm flex items-center justify-center text-emerald-800 overflow-hidden">
+          <div className="w-20 h-20 rounded-full bg-emerald-50 ring-4 ring-emerald-600/30 shadow-md flex items-center justify-center text-emerald-800 overflow-hidden">
             {profileImage && profileImage.trim().length > 0 ? (
               <img
                 src={profileImage}
@@ -446,7 +453,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               Phone: {currentUser.phone || 'Phone Number'}
             </span>
             <span className="bg-slate-100 text-slate-700 font-semibold px-2.5 py-0.5 rounded-md text-[11px]">
-              Farm: {currentUser.farmSizeAcres || 0} Acres
+              Farm: <AnimatedCounter value={currentUser.farmSizeAcres || 0} /> Acres
             </span>
             <span className="bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-md text-[11px]">
               Crops: {(currentUser.primaryCrops || []).length > 0 ? currentUser.primaryCrops.join(', ') : 'Crops'}
@@ -456,10 +463,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
         {/* Navigation Button Bar */}
         <div className="pt-2 w-full max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 bg-slate-100/80 backdrop-blur-xs p-1.5 rounded-2xl border border-slate-200/80">
             <button
               onClick={() => setActiveSubTab('dashboard')}
-              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
                 activeSubTab === 'dashboard'
                   ? 'bg-emerald-800 text-white shadow-sm'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
@@ -471,7 +478,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
             <button
               onClick={() => setActiveSubTab('khatabook')}
-              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
                 activeSubTab === 'khatabook'
                   ? 'bg-amber-500 text-slate-950 shadow-sm'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
@@ -486,7 +493,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                 setActiveSubTab('profile');
                 setIsEditing(true);
               }}
-              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
                 activeSubTab === 'profile' || activeSubTab === 'security'
                   ? 'bg-emerald-700 text-white shadow-sm'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
@@ -498,68 +505,73 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
             <button
               onClick={() => setActiveSubTab('bookings')}
-              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
                 activeSubTab === 'bookings'
                   ? 'bg-emerald-700 text-white shadow-sm'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span>Bookings ({myBookings.length})</span>
+              <span>Bookings (<AnimatedCounter value={myBookings.length} />)</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('listings')}
-              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
                 activeSubTab === 'listings'
                   ? 'bg-emerald-700 text-white shadow-sm'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
-              <span>Listings ({mySahyogiListings.length + myMachineryListings.length})</span>
+              <span>Listings (<AnimatedCounter value={mySahyogiListings.length + myMachineryListings.length} />)</span>
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* SUBTAB 1: DASHBOARD STATS */}
       {activeSubTab === 'dashboard' && (
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="space-y-6"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+            <div className="glass-card p-5 rounded-2xl space-y-1">
               <div className="flex items-center justify-between text-slate-500">
                 <span className="text-xs font-bold uppercase">Total Bookings</span>
-                <Calendar className="w-4 h-4 text-emerald-600" />
+                <Calendar className="w-4 h-4 text-emerald-600 icon-micro-rotate" />
               </div>
-              <p className="text-2xl font-black text-slate-900">{myBookings.length}</p>
+              <p className="text-2xl font-black text-slate-900"><AnimatedCounter value={myBookings.length} /></p>
               <p className="text-[10px] text-emerald-700 font-bold">Sahyogi Labor & Machinery</p>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+            <div className="glass-card p-5 rounded-2xl space-y-1">
               <div className="flex items-center justify-between text-slate-500">
                 <span className="text-xs font-bold uppercase">Active Listings</span>
-                <Users className="w-4 h-4 text-emerald-600" />
+                <Users className="w-4 h-4 text-emerald-600 icon-micro-rotate" />
               </div>
-              <p className="text-2xl font-black text-slate-900">{mySahyogiListings.length + myMachineryListings.length}</p>
+              <p className="text-2xl font-black text-slate-900"><AnimatedCounter value={mySahyogiListings.length + myMachineryListings.length} /></p>
               <p className="text-[10px] text-emerald-700 font-bold">Labor & Equipment Services</p>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+            <div className="glass-card p-5 rounded-2xl space-y-1">
               <div className="flex items-center justify-between text-slate-500">
                 <span className="text-xs font-bold uppercase">Farm Size</span>
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                <TrendingUp className="w-4 h-4 text-emerald-600 icon-micro-rotate" />
               </div>
-              <p className="text-2xl font-black text-slate-900">{currentUser.farmSizeAcres ?? 0} Acres</p>
+              <p className="text-2xl font-black text-slate-900"><AnimatedCounter value={currentUser.farmSizeAcres ?? 0} /> Acres</p>
               <p className="text-[10px] text-slate-500 font-medium">Cultivated Area</p>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+            <div className="glass-card p-5 rounded-2xl space-y-1">
               <div className="flex items-center justify-between text-slate-500">
                 <span className="text-xs font-bold uppercase">Khatabook Total</span>
-                <BookOpen className="w-4 h-4 text-amber-500" />
+                <BookOpen className="w-4 h-4 text-amber-500 icon-micro-rotate" />
               </div>
-              <p className="text-2xl font-black text-slate-900">{ledgerEntries.length} Records</p>
+              <p className="text-2xl font-black text-slate-900"><AnimatedCounter value={ledgerEntries.length} /> Records</p>
               <p className="text-[10px] text-amber-700 font-bold">Ledger Transactions</p>
             </div>
           </div>
@@ -589,7 +601,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               onSyncBookingsToLedger={onSyncBookingsToLedger}
             />
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* SUBTAB 2: FULL KHATABOOK */}

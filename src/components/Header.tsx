@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-colors duration-200">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-emerald-500/20 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 space-y-2">
           {/* Top Row: Left Utilities | Top Center Krishakarya Heading | Right Controls */}
           <div className="flex items-center justify-between gap-2">
@@ -105,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Krishakarya Home"
               >
                 <KrishakaryaLogo size={32} />
-                <span className="font-['Outfit',sans-serif] font-black text-xl xs:text-2xl sm:text-3xl tracking-tight leading-none text-emerald-800 dark:text-emerald-400 group-hover:text-emerald-600 transition-colors truncate">
+                <span className="font-['Outfit',sans-serif] font-black text-xl xs:text-2xl sm:text-3xl tracking-tight leading-none gradient-heading group-hover:scale-105 transition-transform truncate">
                   Krishakarya
                 </span>
               </button>
