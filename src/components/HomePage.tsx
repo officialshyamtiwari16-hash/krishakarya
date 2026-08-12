@@ -20,6 +20,7 @@ import { SeedCalculatorModal } from './SeedCalculatorModal';
 import { LedgerModal } from './LedgerModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
 import { AnimatedCounter } from './AnimatedCounter';
+import { FarmingHeroBanner } from './FarmingHeroBanner';
 
 interface HomePageProps {
   currentUser: User | null;
@@ -82,202 +83,206 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Hero Welcome Banner */}
-      <motion.div 
+      {/* Master Hero Block with Animated Farming Background */}
+      <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white px-5 py-4 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-emerald-500/30"
+        className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-slate-950 min-h-[420px]"
       >
-        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
-        <div className="relative z-10 flex items-center gap-3">
-          <KrishakaryaLogo size={46} />
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-['Outfit',sans-serif] font-black text-2xl sm:text-3xl tracking-tight leading-none bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
-                Krishakarya
-              </span>
-            </div>
-            <p className="text-emerald-100/90 text-xs sm:text-sm leading-tight max-w-xl">
-              {t('heroSubtitle')}
-            </p>
-          </div>
-        </div>
+        {/* Animated Farming Scene Background */}
+        <FarmingHeroBanner isBackgroundOverlay={true} />
 
-        <div className="flex items-center gap-2 flex-shrink-0 relative z-10 flex-wrap sm:flex-nowrap">
-          <button
-            onClick={() => onNavigate('sahyogi')}
-            className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[36px] btn-futuristic pulse-glow-cta cursor-pointer"
-          >
-            <Users className="w-4 h-4 icon-micro-rotate" /> {t('hireSahyogi')}
-          </button>
-
-          <button
-            onClick={() => onNavigate('machinery')}
-            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[36px] btn-futuristic cursor-pointer"
-          >
-            <Tractor className="w-4 h-4 text-amber-400 icon-micro-rotate" /> {t('rentMachinery')}
-          </button>
-
-          <button
-            onClick={() => setIsInboxOpen(true)}
-            className="px-3.5 py-2 bg-emerald-600/90 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs border border-emerald-400/30 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[36px] shadow-sm btn-futuristic cursor-pointer"
-          >
-            <MessageSquare className="w-4 h-4 text-amber-300 icon-micro-rotate" /> Inbox
-          </button>
-        </div>
-      </motion.div>
-
-      {/* Quick Tools Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.6 }}
-        className="space-y-3.5"
-      >
-        <div className="flex items-center justify-between border-b border-emerald-500/15 pb-2.5">
-          <div>
-            <h2 className="text-base sm:text-lg font-extrabold gradient-heading flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-600" /> Quick Tools
-            </h2>
-            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
-              Instant access to agricultural utilities and quick booking tools
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {/* Tool 1: Find Sahyogi */}
-          <button
-            onClick={() => onNavigate('sahyogi')}
-            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="p-2.5 bg-emerald-100/90 text-emerald-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
-              <Users className="w-5 h-5 text-emerald-700" />
-            </div>
-            <div className="space-y-0.5">
-              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
-                {t('hireSahyogi')}
-              </h3>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                Search verified labor workers for harvesting & sowing.
-              </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Browse <AnimatedCounter value={sahyogis.length} /> Sahyogis <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </div>
-          </button>
-
-          {/* Tool 2: Rent Machinery */}
-          <button
-            onClick={() => onNavigate('machinery')}
-            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="p-2.5 bg-amber-100/90 text-amber-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
-              <Tractor className="w-5 h-5 text-amber-700" />
-            </div>
-            <div className="space-y-0.5">
-              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-amber-700 transition-colors">
-                {t('rentMachinery')}
-              </h3>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                Rent tractors, harvesters, spray drones & pumps.
-              </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 pt-0.5">
-                Browse <AnimatedCounter value={machineries.length} /> Machines <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </div>
-          </button>
-
-          {/* Tool 3: List Service / Machinery */}
-          <button
-            onClick={onOpenAddListing}
-            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="p-2.5 bg-emerald-100/90 text-emerald-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
-              <PlusCircle className="w-5 h-5 text-emerald-700" />
-            </div>
-            <div className="space-y-0.5">
-              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
-                {t('addListing')}
-              </h3>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                Register labor profile or list machinery for income.
-              </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Publish Listing <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </div>
-          </button>
-
-          {/* Tool 4: Kisan Bahi Khata (Digital Ledger) */}
-          <button
-            onClick={() => setIsLedgerOpen(true)}
-            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="p-2.5 bg-emerald-100/90 text-emerald-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
-              <BookOpen className="w-5 h-5 text-emerald-700" />
-            </div>
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
-                  Kisan Bahi Khata
-                </h3>
-                <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase">
-                  Ledger
-                </span>
+        {/* Frosted Glass Overlay Container */}
+        <div className="relative z-10 p-4 sm:p-6 lg:p-8 space-y-6 bg-slate-950/55 backdrop-blur-[2px] text-white">
+          
+          {/* Top Welcome Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-emerald-500/30 backdrop-blur-md shadow-xl">
+            <div className="flex items-center gap-3">
+              <KrishakaryaLogo size={46} />
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-['Outfit',sans-serif] font-black text-2xl sm:text-3xl tracking-tight leading-none bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
+                    Krishakarya
+                  </span>
+                </div>
+                <p className="text-emerald-100/90 text-xs sm:text-sm leading-tight max-w-xl">
+                  {t('heroSubtitle')}
+                </p>
               </div>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                Record farm income, labor costs, seed purchases & sync bookings.
-              </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Manage Ledger (<AnimatedCounter value={ledgerEntries.length} /> Records) <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </span>
             </div>
-          </button>
 
-          {/* Tool 5: Land Acreage & Seed Calculator */}
-          <button
-            onClick={() => setIsCalculatorOpen(true)}
-            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="p-2.5 bg-emerald-100/90 text-emerald-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
-              <Calculator className="w-5 h-5 text-emerald-700" />
-            </div>
-            <div className="space-y-0.5">
-              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
-                Acre & Seed Calculator
-              </h3>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                Convert Bigha/Katha to Acres, seed rates & fertilizer schedules.
-              </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Open Calculator <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </div>
-          </button>
+            <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:flex-nowrap">
+              <button
+                onClick={() => onNavigate('sahyogi')}
+                className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[36px] btn-futuristic pulse-glow-cta cursor-pointer"
+              >
+                <Users className="w-4 h-4 icon-micro-rotate" /> {t('hireSahyogi')}
+              </button>
 
-          {/* Tool 6: User Profile & Details */}
-          <button
-            onClick={() => onNavigate('profile')}
-            className="group glass-card p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="p-2.5 bg-slate-100 text-slate-800 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs">
-              <UserIcon className="w-5 h-5 text-slate-700" />
+              <button
+                onClick={() => onNavigate('machinery')}
+                className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[36px] btn-futuristic cursor-pointer"
+              >
+                <Tractor className="w-4 h-4 text-amber-400 icon-micro-rotate" /> {t('rentMachinery')}
+              </button>
+
+              <button
+                onClick={() => setIsInboxOpen(true)}
+                className="px-3.5 py-2 bg-emerald-600/90 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs border border-emerald-400/30 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[36px] shadow-sm btn-futuristic cursor-pointer"
+              >
+                <MessageSquare className="w-4 h-4 text-amber-300 icon-micro-rotate" /> Inbox
+              </button>
             </div>
-            <div className="space-y-0.5">
-              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
-                {t('editProfile')}
-              </h3>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                View & update post, district, pincode & farm details.
-              </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-0.5">
-                Open Profile <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </span>
+          </div>
+
+          {/* Quick Tools Header & Cards Layer */}
+          <div className="space-y-3.5">
+            <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2.5">
+              <div>
+                <h2 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-emerald-400" /> Quick Tools
+                </h2>
+                <p className="text-[11px] text-emerald-100/70 mt-0.5 font-medium">
+                  Instant access to agricultural utilities and quick booking tools
+                </p>
+              </div>
             </div>
-          </button>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {/* Tool 1: Find Sahyogi */}
+              <button
+                onClick={() => onNavigate('sahyogi')}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+              >
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30">
+                  <Users className="w-5 h-5 text-emerald-300" />
+                </div>
+                <div className="space-y-0.5">
+                  <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-emerald-300 transition-colors">
+                    {t('hireSahyogi')}
+                  </h3>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    Search verified labor workers for harvesting & sowing.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
+                    Browse <AnimatedCounter value={sahyogis.length} /> Sahyogis <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+
+              {/* Tool 2: Rent Machinery */}
+              <button
+                onClick={() => onNavigate('machinery')}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+              >
+                <div className="p-2.5 bg-amber-500/20 text-amber-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-amber-500/30">
+                  <Tractor className="w-5 h-5 text-amber-300" />
+                </div>
+                <div className="space-y-0.5">
+                  <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-amber-300 transition-colors">
+                    {t('rentMachinery')}
+                  </h3>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    Rent tractors, harvesters, spray drones & pumps.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 pt-0.5">
+                    Browse <AnimatedCounter value={machineries.length} /> Machines <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+
+              {/* Tool 3: List Service / Machinery */}
+              <button
+                onClick={onOpenAddListing}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+              >
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30">
+                  <PlusCircle className="w-5 h-5 text-emerald-300" />
+                </div>
+                <div className="space-y-0.5">
+                  <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-emerald-300 transition-colors">
+                    {t('addListing')}
+                  </h3>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    Register labor profile or list machinery for income.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
+                    Publish Listing <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+
+              {/* Tool 4: Kisan Bahi Khata (Digital Ledger) */}
+              <button
+                onClick={() => setIsLedgerOpen(true)}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+              >
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30">
+                  <BookOpen className="w-5 h-5 text-emerald-300" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-emerald-300 transition-colors">
+                      Kisan Bahi Khata
+                    </h3>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase">
+                      Ledger
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    Record farm income, labor costs, seed purchases & sync bookings.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
+                    Manage Ledger (<AnimatedCounter value={ledgerEntries.length} /> Records) <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+
+              {/* Tool 5: Land Acreage & Seed Calculator */}
+              <button
+                onClick={() => setIsCalculatorOpen(true)}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+              >
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30">
+                  <Calculator className="w-5 h-5 text-emerald-300" />
+                </div>
+                <div className="space-y-0.5">
+                  <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-emerald-300 transition-colors">
+                    Acre & Seed Calculator
+                  </h3>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    Convert Bigha/Katha to Acres, seed rates & fertilizer schedules.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
+                    Open Calculator <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+
+              {/* Tool 6: User Profile & Details */}
+              <button
+                onClick={() => onNavigate('profile')}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+              >
+                <div className="p-2.5 bg-slate-800 text-slate-200 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-slate-700">
+                  <UserIcon className="w-5 h-5 text-slate-300" />
+                </div>
+                <div className="space-y-0.5">
+                  <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-emerald-300 transition-colors">
+                    {t('editProfile')}
+                  </h3>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    View & update post, district, pincode & farm details.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
+                    Open Profile <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
+
         </div>
       </motion.div>
 

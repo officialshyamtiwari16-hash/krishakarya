@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krishakarya - Farming Scene Hero Banner</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .banner-wrapper {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .farming-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      aspect-ratio: 12 / 5;
+    }
+
+    /* ------------------------------------
+       KEYFRAME ANIMATIONS
+    ------------------------------------ */
+
+    /* 1. Sun Glow Pulse */
+    @keyframes sunPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.85;
+      }
+      50% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+    }
+
+    .sun-glow {
+      transform-origin: 1050px 90px;
+      animation: sunPulse 4s ease-in-out infinite;
+    }
+
+    /* 2. Slow Drifting Clouds */
+    @keyframes floatCloud1 {
+      0% { transform: translateX(-200px); }
+      100% { transform: translateX(1300px); }
+    }
+
+    @keyframes floatCloud2 {
+      0% { transform: translateX(-300px); }
+      100% { transform: translateX(1300px); }
+    }
+
+    .cloud-1 {
+      animation: floatCloud1 42s linear infinite;
+    }
+
+    .cloud-2 {
+      animation: floatCloud2 65s linear infinite;
+      animation-delay: -20s;
+    }
+
+    .cloud-3 {
+      animation: floatCloud1 50s linear infinite;
+      animation-delay: -10s;
+    }
+
+    /* 3. Birds Flying V-Formation Loop */
+    @keyframes birdsFly {
+      0% {
+        transform: translate(-100px, 20px) scale(0.8);
+      }
+      50% {
+        transform: translate(600px, -15px) scale(0.9);
+      }
+      100% {
+        transform: translate(1300px, 10px) scale(0.8);
+      }
+    }
+
+    @keyframes birdWingFlap {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.3); }
+    }
+
+    .birds-group {
+      animation: birdsFly 28s linear infinite;
+    }
+
+    .wing-flap {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: birdWingFlap 0.6s ease-in-out infinite;
+    }
+
+    /* 4. Crop Swaying in the Wind */
+    @keyframes windSwayLeft {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-5deg); }
+    }
+
+    @keyframes windSwayRight {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(6deg); }
+    }
+
+    .crop-sway-1 {
+      transform-box: fill-box;
+      transform-origin: bottom center;
+      animation: windSwayLeft 3.2s ease-in-out infinite;
+    }
+
+    .crop-sway-2 {
+      transform-box: fill-box;
+      transform-origin: bottom center;
+      animation: windSwayRight 2.8s ease-in-out infinite;
+      animation-delay: -0.9s;
+    }
+
+    .crop-sway-3 {
+      transform-box: fill-box;
+      transform-origin: bottom center;
+      animation: windSwayLeft 3.6s ease-in-out infinite;
+      animation-delay: -1.8s;
+    }
+
+    /* 5. Tractor Driving Loop */
+    @keyframes tractorDrive {
+      0% {
+        transform: translateX(-220px);
+      }
+      100% {
+        transform: translateX(1300px);
+      }
+    }
+
+    .tractor-container {
+      animation: tractorDrive 18s linear infinite;
+    }
+
+    /* 6. Wheel Rotation */
+    @keyframes wheelRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .wheel-spin {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: wheelRotate 1.2s linear infinite;
+    }
+
+    /* 7. Dust Puffs Trailing Behind Tractor */
+    @keyframes dustPuff {
+      0% {
+        opacity: 0.8;
+        transform: translate(0, 0) scale(0.4);
+      }
+      50% {
+        opacity: 0.5;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-35px, -15px) scale(1.6);
+      }
+    }
+
+    .dust-1 {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: dustPuff 0.9s ease-out infinite;
+    }
+
+    .dust-2 {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: dustPuff 0.9s ease-out infinite;
+      animation-delay: -0.3s;
+    }
+
+    .dust-3 {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: dustPuff 0.9s ease-out infinite;
+      animation-delay: -0.6s;
+    }
+
+    /* 8. Farmer Waving Animation */
+    @keyframes farmerArmWave {
+      0%, 100% {
+        transform: rotate(0deg);
+      }
+      25% {
+        transform: rotate(-18deg);
+      }
+      75% {
+        transform: rotate(12deg);
+      }
+    }
+
+    .farmer-arm {
+      transform-box: fill-box;
+      transform-origin: bottom right;
+      animation: farmerArmWave 2.5s ease-in-out infinite;
+    }
+
+    /* Accessibility Safeguard */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="banner-wrapper">
+    <svg viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" class="farming-svg" xmlns="http://www.w3.org/2000/svg">
+      
+      <!-- DEFINITIONS: GRADIENTS & PATTERNS -->
+      <defs>
+        <!-- Sky Sunrise Gradient -->
+        <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#2563eb" />
+          <stop offset="40%" stop-color="#60a5fa" />
+          <stop offset="75%" stop-color="#fdba74" />
+          <stop offset="100%" stop-color="#f97316" />
+        </linearGradient>
+
+        <!-- Sun Glow Radial Gradient -->
+        <radialGradient id="sunGlowGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fef08a" stop-opacity="1" />
+          <stop offset="40%" stop-color="#fde047" stop-opacity="0.8" />
+          <stop offset="80%" stop-color="#f97316" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="#f97316" stop-opacity="0" />
+        </radialGradient>
+
+        <!-- Distance Hill Gradients -->
+        <linearGradient id="hillDistantGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#15803d" />
+          <stop offset="100%" stop-color="#166534" />
+        </linearGradient>
+
+        <linearGradient id="hillMidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#16a34a" />
+          <stop offset="100%" stop-color="#15803d" />
+        </linearGradient>
+
+        <!-- Foreground Field Soil Gradient -->
+        <linearGradient id="fieldSoilGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#854d0e" />
+          <stop offset="100%" stop-color="#713f12" />
+        </linearGradient>
+
+        <!-- Wheat Crop Gradient -->
+        <linearGradient id="wheatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#fef08a" />
+          <stop offset="50%" stop-color="#eab308" />
+          <stop offset="100%" stop-color="#ca8a04" />
+        </linearGradient>
+
+        <!-- Rice Crop Gradient -->
+        <linearGradient id="riceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#86efac" />
+          <stop offset="100%" stop-color="#16a34a" />
+        </linearGradient>
+
+        <!-- Single Wheat Stalk Definition -->
+        <g id="wheatStalk">
+          <!-- Main stem -->
+          <path d="M 0,0 C -2,-25 -1,-50 0,-70" stroke="#ca8a04" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- Grains -->
+          <ellipse cx="-4" cy="-55" rx="3.5" ry="7" fill="url(#wheatGrad)" transform="rotate(-25 -4 -55)" />
+          <ellipse cx="4" cy="-50" rx="3.5" ry="7" fill="url(#wheatGrad)" transform="rotate(25 4 -50)" />
+          <ellipse cx="-5" cy="-40" rx="3.5" ry="7" fill="url(#wheatGrad)" transform="rotate(-25 -5 -40)" />
+          <ellipse cx="5" cy="-35" rx="3.5" ry="7" fill="url(#wheatGrad)" transform="rotate(25 5 -35)" />
+          <ellipse cx="-4" cy="-25" rx="3" ry="6" fill="url(#wheatGrad)" transform="rotate(-20 -4 -25)" />
+          <ellipse cx="4" cy="-20" rx="3" ry="6" fill="url(#wheatGrad)" transform="rotate(20 4 -20)" />
+          <!-- Top awn -->
+          <ellipse cx="0" cy="-68" rx="3" ry="8" fill="url(#wheatGrad)" />
+        </g>
+      </defs>
+
+      <!-- 1. SKY BACKGROUND -->
+      <rect width="1200" height="500" fill="url(#skyGradient)" />
+
+      <!-- 2. PULSING SUN -->
+      <g class="sun-glow">
+        <circle cx="1050" cy="90" r="90" fill="url(#sunGlowGrad)" />
+        <circle cx="1050" cy="90" r="35" fill="#fef08a" />
+      </g>
+
+      <!-- 3. SLOW DRIFTING CLOUDS -->
+      <!-- Cloud 1 -->
+      <g class="cloud-1" opacity="0.85">
+        <path d="M 50 110 Q 65 90 90 95 Q 110 80 135 90 Q 155 85 165 100 Q 180 110 170 125 Q 155 135 120 135 L 60 135 Q 40 125 50 110 Z" fill="#ffffff" />
+      </g>
+      <!-- Cloud 2 -->
+      <g class="cloud-2" opacity="0.7">
+        <path d="M 200 70 Q 215 50 240 55 Q 260 40 285 50 Q 305 45 315 60 Q 330 70 320 85 Q 305 95 270 95 L 210 95 Q 190 85 200 70 Z" fill="#ffffff" />
+      </g>
+      <!-- Cloud 3 -->
+      <g class="cloud-3" opacity="0.8">
+        <path d="M 700 130 Q 715 110 740 115 Q 760 100 785 110 Q 805 105 815 120 Q 830 130 820 145 L 710 145 Q 690 135 700 130 Z" fill="#ffffff" />
+      </g>
+
+      <!-- 4. BIRDS V-FORMATION -->
+      <g class="birds-group">
+        <!-- Bird 1 (Leader) -->
+        <path class="wing-flap" d="M 100,80 Q 105,72 112,80 Q 119,72 124,80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" />
+        <!-- Bird 2 -->
+        <path class="wing-flap" d="M 85,92 Q 90,85 96,92 Q 102,85 107,92" fill="none" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" />
+        <!-- Bird 3 -->
+        <path class="wing-flap" d="M 72,104 Q 77,98 82,104 Q 87,98 92,104" fill="none" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" />
+        <!-- Bird 4 -->
+        <path class="wing-flap" d="M 115,94 Q 120,88 125,94 Q 130,88 135,94" fill="none" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" />
+        <!-- Bird 5 -->
+        <path class="wing-flap" d="M 128,107 Q 133,101 138,107 Q 143,101 147,107" fill="none" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" />
+      </g>
+
+      <!-- 5. DISTANT HILLS & MOUNTAINS -->
+      <path d="M 0 260 Q 250 200 500 250 T 1000 230 Q 1120 210 1200 240 L 1200 500 L 0 500 Z" fill="url(#hillDistantGrad)" opacity="0.9" />
+      <path d="M 0 280 Q 350 230 700 270 T 1200 260 L 1200 500 L 0 500 Z" fill="url(#hillMidGrad)" />
+
+      <!-- 6. CROP FIELD ROWS (GREEN & BROWN TERRACES) -->
+      <!-- Terraced Field Rows -->
+      <path d="M 0 310 Q 400 295 800 320 T 1200 300 L 1200 500 L 0 500 Z" fill="url(#fieldSoilGrad)" />
+      <path d="M 0 340 C 300 330 600 350 1200 330 L 1200 500 L 0 500 Z" fill="#15803d" />
+      <path d="M 0 380 C 400 365 800 390 1200 370 L 1200 500 L 0 500 Z" fill="#166534" />
+      <path d="M 0 425 C 350 410 750 435 1200 415 L 1200 500 L 0 500 Z" fill="#14532d" />
+
+      <!-- 7. SWAYING CROPS (WHEAT & RICE STALKS) -->
+      <!-- Back Row Crops (Smaller) -->
+      <g transform="translate(0, 345)">
+        <!-- Repeats across field -->
+        <g class="crop-sway-1" transform="translate(60, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(110, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(160, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(210, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(260, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(310, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(360, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(410, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(460, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(510, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(560, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(610, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(660, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(710, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(760, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(810, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(860, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(910, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(960, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(1010, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(1060, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(1110, 0) scale(0.65)"><use href="#wheatStalk"/></g>
+      </g>
+
+      <!-- Front Row Crops (Larger, Detailed) -->
+      <g transform="translate(0, 475)">
+        <g class="crop-sway-1" transform="translate(40, 0) scale(1.1)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(100, 0) scale(1.15)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(160, 0) scale(1.05)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(220, 0) scale(1.2)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(280, 0) scale(1.1)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(340, 0) scale(1.15)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(400, 0) scale(1.05)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(460, 0) scale(1.2)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(520, 0) scale(1.1)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(580, 0) scale(1.15)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(640, 0) scale(1.05)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(700, 0) scale(1.2)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(760, 0) scale(1.1)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(820, 0) scale(1.15)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(880, 0) scale(1.05)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(940, 0) scale(1.2)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-2" transform="translate(1000, 0) scale(1.1)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-3" transform="translate(1060, 0) scale(1.15)"><use href="#wheatStalk"/></g>
+        <g class="crop-sway-1" transform="translate(1120, 0) scale(1.05)"><use href="#wheatStalk"/></g>
+      </g>
+
+
+      <!-- 8. DRIVING TRACTOR & DUST ANIMATION -->
+      <g class="tractor-container" transform="translate(0, 325)">
+        <!-- Dust Puffs behind tractor back wheel -->
+        <g transform="translate(15, 38)">
+          <circle class="dust-1" cx="0" cy="0" r="10" fill="#d97706" opacity="0.6" />
+          <circle class="dust-2" cx="-8" cy="-5" r="8" fill="#f59e0b" opacity="0.5" />
+          <circle class="dust-3" cx="-16" cy="2" r="12" fill="#b45309" opacity="0.4" />
+        </g>
+
+        <!-- Tractor Body -->
+        <!-- Exhaust Pipe & Smoke -->
+        <rect x="108" y="0" width="5" height="22" fill="#334155" rx="1.5" />
+        <!-- Engine Hood (Green) -->
+        <path d="M 75 20 L 115 20 Q 122 20 122 28 L 122 45 L 75 45 Z" fill="#15803d" />
+        <!-- Yellow Stripe -->
+        <rect x="75" y="32" width="47" height="4" fill="#facc15" />
+        <!-- Front Grill -->
+        <rect x="118" y="24" width="4" height="18" fill="#1e293b" rx="1" />
+        <!-- Headlight (Glowing Yellow) -->
+        <circle cx="120" cy="28" r="3.5" fill="#fef08a" />
+
+        <!-- Driver Cabin (Green & Glass Window) -->
+        <path d="M 32 10 L 72 10 Q 76 10 76 16 L 76 45 L 32 45 Z" fill="#166534" />
+        <!-- Roof Cap (Red accent) -->
+        <path d="M 28 6 L 76 6 Q 78 6 78 10 L 28 10 Z" fill="#dc2626" />
+        <!-- Glass Window -->
+        <path d="M 40 15 L 68 15 L 68 32 L 40 32 Z" fill="#93c5fd" opacity="0.85" />
+
+        <!-- Seat & Steering Wheel Inside -->
+        <rect x="42" y="26" width="10" height="12" fill="#1e293b" rx="1" />
+        <line x1="60" y1="28" x2="54" y2="22" stroke="#0f172a" stroke-width="2.5" />
+
+        <!-- Rear Fender (Green Mudguard) -->
+        <path d="M 20 28 A 28 28 0 0 1 68 28 L 68 40 L 20 40 Z" fill="#15803d" />
+
+        <!-- WHEELS -->
+        <!-- Big Rear Wheel (Radius ~24) -->
+        <g class="wheel-spin" transform="translate(42, 42)">
+          <circle cx="0" cy="0" r="24" fill="#1e293b" />
+          <circle cx="0" cy="0" r="16" fill="#facc15" />
+          <circle cx="0" cy="0" r="6" fill="#475569" />
+          <!-- Tread Rim details -->
+          <line x1="-16" y1="0" x2="16" y2="0" stroke="#1e293b" stroke-width="3" />
+          <line x1="0" y1="-16" x2="0" y2="16" stroke="#1e293b" stroke-width="3" />
+          <line x1="-11" y1="-11" x2="11" y2="11" stroke="#1e293b" stroke-width="2.5" />
+          <line x1="-11" y1="11" x2="11" y2="-11" stroke="#1e293b" stroke-width="2.5" />
+        </g>
+
+        <!-- Small Front Wheel (Radius ~13) -->
+        <g class="wheel-spin" transform="translate(108, 48)">
+          <circle cx="0" cy="0" r="13" fill="#1e293b" />
+          <circle cx="0" cy="0" r="8" fill="#facc15" />
+          <circle cx="0" cy="0" r="3.5" fill="#475569" />
+          <line x1="-8" y1="0" x2="8" y2="0" stroke="#1e293b" stroke-width="2" />
+          <line x1="0" y1="-8" x2="0" y2="8" stroke="#1e293b" stroke-width="2" />
+        </g>
+      </g>
+
+
+      <!-- 9. FARMER CHARACTER (STANDING & WAVING) -->
+      <g transform="translate(980, 315)">
+        <!-- Shadow -->
+        <ellipse cx="25" cy="112" rx="20" ry="5" fill="#0f172a" opacity="0.3" />
+
+        <!-- Legs (Blue Jeans) -->
+        <rect x="16" y="70" width="8" height="42" fill="#1d4ed8" rx="3" />
+        <rect x="26" y="70" width="8" height="42" fill="#1e40af" rx="3" />
+
+        <!-- Boots (Brown) -->
+        <path d="M 12 108 L 24 108 L 24 114 L 10 114 Z" fill="#78350f" />
+        <path d="M 26 108 L 38 108 L 38 114 L 24 114 Z" fill="#451a03" />
+
+        <!-- Torso / Shirt (Red Plaid / Emerald Vest) -->
+        <rect x="14" y="32" width="22" height="40" fill="#dc2626" rx="4" />
+        <!-- Overalls Straps -->
+        <rect x="17" y="32" width="4" height="40" fill="#15803d" />
+        <rect x="29" y="32" width="4" height="40" fill="#15803d" />
+
+        <!-- Left Arm (Static on hip) -->
+        <path d="M 14 36 L 6 52 L 14 58" fill="none" stroke="#dc2626" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+
+        <!-- Head & Skin Tone -->
+        <circle cx="25" cy="20" r="9" fill="#fde047" /> <!-- Skin tone base -->
+        <circle cx="25" cy="20" r="8" fill="#fbcfe8" opacity="0.3" />
+
+        <!-- Farmer Hat (Straw Hat - Yellow/Brown) -->
+        <path d="M 5 18 Q 25 10 45 18 L 41 18 Q 25 2 9 18 Z" fill="#d97706" />
+        <ellipse cx="25" cy="18" rx="20" ry="4" fill="#f59e0b" />
+        <rect x="18" y="13" width="14" height="3" fill="#dc2626" /> <!-- Red Hat Band -->
+
+        <!-- Right Arm (Waving Loop) -->
+        <g class="farmer-arm" transform="translate(36, 36)">
+          <path d="M 0 0 L 14 -16 L 24 -28" fill="none" stroke="#dc2626" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+          <!-- Hand -->
+          <circle cx="25" cy="-29" r="4" fill="#fde047" />
+        </g>
+      </g>
+
+    </svg>
+  </div>
+
+</body>
+</html>
