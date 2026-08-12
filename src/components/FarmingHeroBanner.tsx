@@ -38,9 +38,7 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
         .anim-sun-rise {
           transform-box: fill-box;
           transform-origin: center;
-          animation: sunRiseFromHorizon 3.2s cubic-bezier(0.16, 1, 0.3, 1) forwards,
-                     sunGlowPulse 4s ease-in-out infinite 3.2s;
-          will-change: transform, opacity, filter;
+          animation: sunRiseFromHorizon 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         /* Sunlight Rays Rotation */
@@ -51,7 +49,7 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
         .anim-sun-rays {
           transform-box: fill-box;
           transform-origin: center;
-          animation: sunRaysRotate 45s linear infinite;
+          animation: sunRaysRotate 50s linear infinite;
         }
 
         /* Clouds Drifting */
@@ -63,9 +61,9 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
           0% { transform: translate3d(-320px, 0, 0); }
           100% { transform: translate3d(1280px, 0, 0); }
         }
-        .anim-cloud-1 { animation: cloudDrift1 38s linear infinite; will-change: transform; }
-        .anim-cloud-2 { animation: cloudDrift2 56s linear infinite; animation-delay: -20s; will-change: transform; }
-        .anim-cloud-3 { animation: cloudDrift1 44s linear infinite; animation-delay: -12s; will-change: transform; }
+        .anim-cloud-1 { animation: cloudDrift1 38s linear infinite; }
+        .anim-cloud-2 { animation: cloudDrift2 56s linear infinite; animation-delay: -20s; }
+        .anim-cloud-3 { animation: cloudDrift1 44s linear infinite; animation-delay: -12s; }
 
         /* Birds Flying V-Formation */
         @keyframes birdsFlyV {
@@ -77,12 +75,11 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
           0%, 100% { transform: scaleY(1); }
           50% { transform: scaleY(0.2); }
         }
-        .anim-birds-v { animation: birdsFlyV 24s linear infinite; will-change: transform; }
+        .anim-birds-v { animation: birdsFlyV 24s linear infinite; }
         .anim-wing-flap {
           transform-box: fill-box;
           transform-origin: center;
           animation: wingFlapMotion 0.45s ease-in-out infinite;
-          will-change: transform;
         }
 
         /* Initial Crop Growth/Sprout on Load */
@@ -99,38 +96,35 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
 
         /* Continuous Crop Wind Swaying */
         @keyframes cropSwayA {
-          0%, 100% { transform: scaleY(1) rotate(-4deg); }
-          50% { transform: scaleY(1) rotate(4deg); }
+          0%, 100% { transform: scaleY(1) rotate(-3.5deg); }
+          50% { transform: scaleY(1) rotate(3.5deg); }
         }
         @keyframes cropSwayB {
-          0%, 100% { transform: scaleY(1) rotate(5deg); }
-          50% { transform: scaleY(1) rotate(-5deg); }
+          0%, 100% { transform: scaleY(1) rotate(4deg); }
+          50% { transform: scaleY(1) rotate(-4deg); }
         }
         @keyframes cropSwayC {
-          0%, 100% { transform: scaleY(1) rotate(-3deg); }
-          50% { transform: scaleY(1) rotate(3deg); }
+          0%, 100% { transform: scaleY(1) rotate(-2.5deg); }
+          50% { transform: scaleY(1) rotate(2.5deg); }
         }
 
         .center-crop-grow-a {
           transform-box: fill-box;
           transform-origin: bottom center;
-          animation: cropSproutUp 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards,
-                     cropSwayA 3.8s ease-in-out infinite 2.5s;
-          will-change: transform;
+          animation: cropSproutUp 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards,
+                     cropSwayA 3.8s ease-in-out infinite 2.2s;
         }
         .center-crop-grow-b {
           transform-box: fill-box;
           transform-origin: bottom center;
-          animation: cropSproutUp 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards,
-                     cropSwayB 3.4s ease-in-out infinite 2.8s;
-          will-change: transform;
+          animation: cropSproutUp 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards,
+                     cropSwayB 3.4s ease-in-out infinite 2.5s;
         }
         .center-crop-grow-c {
           transform-box: fill-box;
           transform-origin: bottom center;
-          animation: cropSproutUp 3.1s cubic-bezier(0.25, 1, 0.5, 1) forwards,
-                     cropSwayC 4.2s ease-in-out infinite 3.1s;
-          will-change: transform;
+          animation: cropSproutUp 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards,
+                     cropSwayC 4.2s ease-in-out infinite 2.8s;
         }
 
         /* Water Sprinkler Drops */
@@ -300,16 +294,16 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
           <circle className="water-drop-4" cx="0" cy="-6" r="3" fill="#bfdbfe" />
         </g>
 
-        {/* 8. CROPS GROWING ALL OVER THE ENTIRE FIELD (5 DENSE STAGGERED ROWS) */}
+        {/* 8. CROPS GROWING ALL OVER THE ENTIRE FIELD (OPTIMIZED DENSE ROWS) */}
 
         {/* Row 1: Distant Upper Hilltop Terrace Crops (y = 285) */}
         <g transform="translate(0, 285)">
-          {Array.from({ length: 38 }).map((_, i) => {
-            const x = 15 + i * 31;
+          {Array.from({ length: 24 }).map((_, i) => {
+            const x = 15 + i * 50;
             const animClass = i % 3 === 0 ? 'center-crop-grow-a' : i % 3 === 1 ? 'center-crop-grow-b' : 'center-crop-grow-c';
             const plantType = i % 2 === 0 ? '#greenPlant' : '#wheatStalk';
             return (
-              <g key={`r1-${i}`} transform={`translate(${x}, 0) scale(0.5)`}>
+              <g key={`r1-${i}`} transform={`translate(${x}, 0) scale(0.55)`}>
                 <g className={animClass}>
                   <use href={plantType} />
                 </g>
@@ -320,12 +314,12 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
 
         {/* Row 2: Upper Soil Terrace Crops (y = 325) */}
         <g transform="translate(0, 325)">
-          {Array.from({ length: 35 }).map((_, i) => {
-            const x = 10 + i * 34;
+          {Array.from({ length: 22 }).map((_, i) => {
+            const x = 12 + i * 54;
             const animClass = i % 3 === 0 ? 'center-crop-grow-b' : i % 3 === 1 ? 'center-crop-grow-c' : 'center-crop-grow-a';
             const plantType = i % 3 === 0 ? '#greenPlant' : i % 3 === 1 ? '#wheatStalk' : '#cornStalk';
             return (
-              <g key={`r2-${i}`} transform={`translate(${x}, 0) scale(0.72)`}>
+              <g key={`r2-${i}`} transform={`translate(${x}, 0) scale(0.75)`}>
                 <g className={animClass}>
                   <use href={plantType} />
                 </g>
@@ -336,12 +330,12 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
 
         {/* Row 3: Mid-Terrace Dense Crops (y = 365) */}
         <g transform="translate(0, 365)">
-          {Array.from({ length: 32 }).map((_, i) => {
-            const x = 5 + i * 37.5;
+          {Array.from({ length: 20 }).map((_, i) => {
+            const x = 10 + i * 60;
             const animClass = i % 3 === 0 ? 'center-crop-grow-c' : i % 3 === 1 ? 'center-crop-grow-a' : 'center-crop-grow-b';
             const plantType = i % 3 === 0 ? '#wheatStalk' : i % 3 === 1 ? '#cornStalk' : '#greenPlant';
             return (
-              <g key={`r3-${i}`} transform={`translate(${x}, 0) scale(0.9)`}>
+              <g key={`r3-${i}`} transform={`translate(${x}, 0) scale(0.95)`}>
                 <g className={animClass}>
                   <use href={plantType} />
                 </g>
@@ -352,12 +346,12 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
 
         {/* Row 4: Lower Field Crops (y = 415) */}
         <g transform="translate(0, 415)">
-          {Array.from({ length: 28 }).map((_, i) => {
-            const x = 8 + i * 42;
+          {Array.from({ length: 18 }).map((_, i) => {
+            const x = 15 + i * 66;
             const animClass = i % 3 === 0 ? 'center-crop-grow-a' : i % 3 === 1 ? 'center-crop-grow-b' : 'center-crop-grow-c';
             const plantType = i % 3 === 0 ? '#cornStalk' : i % 3 === 1 ? '#greenPlant' : '#wheatStalk';
             return (
-              <g key={`r4-${i}`} transform={`translate(${x}, 0) scale(1.1)`}>
+              <g key={`r4-${i}`} transform={`translate(${x}, 0) scale(1.15)`}>
                 <g className={animClass}>
                   <use href={plantType} />
                 </g>
@@ -368,12 +362,12 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
 
         {/* Row 5: Foreground High-Impact Bountiful Harvest Crops (y = 470) */}
         <g transform="translate(0, 470)">
-          {Array.from({ length: 25 }).map((_, i) => {
-            const x = 12 + i * 48;
+          {Array.from({ length: 16 }).map((_, i) => {
+            const x = 20 + i * 75;
             const animClass = i % 3 === 0 ? 'center-crop-grow-b' : i % 3 === 1 ? 'center-crop-grow-c' : 'center-crop-grow-a';
             const plantType = i % 3 === 0 ? '#wheatStalk' : i % 3 === 1 ? '#cornStalk' : '#greenPlant';
             return (
-              <g key={`r5-${i}`} transform={`translate(${x}, 0) scale(1.3)`}>
+              <g key={`r5-${i}`} transform={`translate(${x}, 0) scale(1.35)`}>
                 <g className={animClass}>
                   <use href={plantType} />
                 </g>
