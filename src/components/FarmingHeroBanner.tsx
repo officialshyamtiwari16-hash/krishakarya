@@ -99,16 +99,16 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
 
         /* Continuous Crop Wind Swaying */
         @keyframes cropSwayA {
-          0%, 100% { transform: rotate(-4deg); }
-          50% { transform: rotate(4deg); }
+          0%, 100% { transform: scaleY(1) rotate(-4deg); }
+          50% { transform: scaleY(1) rotate(4deg); }
         }
         @keyframes cropSwayB {
-          0%, 100% { transform: rotate(5deg); }
-          50% { transform: rotate(-5deg); }
+          0%, 100% { transform: scaleY(1) rotate(5deg); }
+          50% { transform: scaleY(1) rotate(-5deg); }
         }
         @keyframes cropSwayC {
-          0%, 100% { transform: rotate(-3deg); }
-          50% { transform: rotate(3deg); }
+          0%, 100% { transform: scaleY(1) rotate(-3deg); }
+          50% { transform: scaleY(1) rotate(3deg); }
         }
 
         .center-crop-grow-a {
@@ -143,28 +143,6 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
         .water-drop-2 { animation: waterArcSpray 1.6s ease-out infinite; animation-delay: -0.4s; transform-box: fill-box; }
         .water-drop-3 { animation: waterArcSpray 1.6s ease-out infinite; animation-delay: -0.8s; transform-box: fill-box; }
         .water-drop-4 { animation: waterArcSpray 1.6s ease-out infinite; animation-delay: -1.2s; transform-box: fill-box; }
-
-        /* Farmer Breathing & Looking Pose Animation */
-        @keyframes farmerBreatheLook {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-3px) rotate(0.8deg); }
-        }
-        .anim-farmer-stand {
-          transform-box: fill-box;
-          transform-origin: bottom center;
-          animation: farmerBreatheLook 4s ease-in-out infinite;
-        }
-
-        /* Farmer Hand Gesture / Shielding Sun */
-        @keyframes farmerHandGesture {
-          0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(-8deg); }
-        }
-        .anim-farmer-hand {
-          transform-box: fill-box;
-          transform-origin: top right;
-          animation: farmerHandGesture 3.5s ease-in-out infinite;
-        }
       `}</style>
 
       {/* Embedded SVG Responsive Banner View */}
@@ -322,69 +300,86 @@ export const FarmingHeroBanner: React.FC<FarmingHeroBannerProps> = ({
           <circle className="water-drop-4" cx="0" cy="-6" r="3" fill="#bfdbfe" />
         </g>
 
-        {/* 8. CROPS GROWING ALL OVER THE FIELD */}
+        {/* 8. CROPS GROWING ALL OVER THE ENTIRE FIELD (5 DENSE STAGGERED ROWS) */}
 
-        {/* Background Row 1: Growing Rice & Green Paddy Plants (x = 30 to 1170) */}
+        {/* Row 1: Distant Upper Hilltop Terrace Crops (y = 285) */}
+        <g transform="translate(0, 285)">
+          {Array.from({ length: 38 }).map((_, i) => {
+            const x = 15 + i * 31;
+            const animClass = i % 3 === 0 ? 'center-crop-grow-a' : i % 3 === 1 ? 'center-crop-grow-b' : 'center-crop-grow-c';
+            const plantType = i % 2 === 0 ? '#greenPlant' : '#wheatStalk';
+            return (
+              <g key={`r1-${i}`} transform={`translate(${x}, 0) scale(0.5)`}>
+                <g className={animClass}>
+                  <use href={plantType} />
+                </g>
+              </g>
+            );
+          })}
+        </g>
+
+        {/* Row 2: Upper Soil Terrace Crops (y = 325) */}
         <g transform="translate(0, 325)">
-          <g className="center-crop-grow-a" transform="translate(40, 0) scale(0.65)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-b" transform="translate(110, 0) scale(0.7)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(180, 0) scale(0.72)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-a" transform="translate(250, 0) scale(0.75)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-b" transform="translate(320, 0) scale(0.78)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(390, 0) scale(0.8)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-a" transform="translate(460, 0) scale(0.82)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-b" transform="translate(530, 0) scale(0.85)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(600, 0) scale(0.85)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-a" transform="translate(670, 0) scale(0.82)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-b" transform="translate(740, 0) scale(0.8)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(810, 0) scale(0.78)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-a" transform="translate(880, 0) scale(0.75)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-b" transform="translate(950, 0) scale(0.72)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(1020, 0) scale(0.7)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-a" transform="translate(1090, 0) scale(0.68)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-b" transform="translate(1160, 0) scale(0.65)"><use href="#greenPlant"/></g>
+          {Array.from({ length: 35 }).map((_, i) => {
+            const x = 10 + i * 34;
+            const animClass = i % 3 === 0 ? 'center-crop-grow-b' : i % 3 === 1 ? 'center-crop-grow-c' : 'center-crop-grow-a';
+            const plantType = i % 3 === 0 ? '#greenPlant' : i % 3 === 1 ? '#wheatStalk' : '#cornStalk';
+            return (
+              <g key={`r2-${i}`} transform={`translate(${x}, 0) scale(0.72)`}>
+                <g className={animClass}>
+                  <use href={plantType} />
+                </g>
+              </g>
+            );
+          })}
         </g>
 
-        {/* Midground Row 2: Alternating Golden Wheat & Corn Stalks (x = 20 to 1180) */}
-        <g transform="translate(0, 385)">
-          <g className="center-crop-grow-b" transform="translate(30, 0) scale(0.85)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-c" transform="translate(90, 0) scale(0.9)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(160, 0) scale(0.92)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(230, 0) scale(0.95)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-c" transform="translate(300, 0) scale(1.0)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(370, 0) scale(1.05)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(440, 0) scale(1.1)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-c" transform="translate(510, 0) scale(1.15)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(580, 0) scale(1.15)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(650, 0) scale(1.1)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-c" transform="translate(720, 0) scale(1.05)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(790, 0) scale(1.0)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(860, 0) scale(0.95)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-c" transform="translate(930, 0) scale(0.92)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(1000, 0) scale(0.88)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(1070, 0) scale(0.85)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-c" transform="translate(1140, 0) scale(0.82)"><use href="#wheatStalk"/></g>
+        {/* Row 3: Mid-Terrace Dense Crops (y = 365) */}
+        <g transform="translate(0, 365)">
+          {Array.from({ length: 32 }).map((_, i) => {
+            const x = 5 + i * 37.5;
+            const animClass = i % 3 === 0 ? 'center-crop-grow-c' : i % 3 === 1 ? 'center-crop-grow-a' : 'center-crop-grow-b';
+            const plantType = i % 3 === 0 ? '#wheatStalk' : i % 3 === 1 ? '#cornStalk' : '#greenPlant';
+            return (
+              <g key={`r3-${i}`} transform={`translate(${x}, 0) scale(0.9)`}>
+                <g className={animClass}>
+                  <use href={plantType} />
+                </g>
+              </g>
+            );
+          })}
         </g>
 
-        {/* Foreground Row 3: Lush Bountiful Harvest Crops Across Entire Lower Field */}
-        <g transform="translate(0, 460)">
-          <g className="center-crop-grow-a" transform="translate(20, 0) scale(1.1)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(90, 0) scale(1.15)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(160, 0) scale(1.2)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(230, 0) scale(1.25)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(300, 0) scale(1.25)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(370, 0) scale(1.3)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(440, 0) scale(1.3)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(510, 0) scale(1.35)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(580, 0) scale(1.35)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(650, 0) scale(1.3)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(720, 0) scale(1.28)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(790, 0) scale(1.25)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(860, 0) scale(1.2)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(930, 0) scale(1.18)"><use href="#greenPlant"/></g>
-          <g className="center-crop-grow-c" transform="translate(1000, 0) scale(1.15)"><use href="#cornStalk"/></g>
-          <g className="center-crop-grow-a" transform="translate(1070, 0) scale(1.12)"><use href="#wheatStalk"/></g>
-          <g className="center-crop-grow-b" transform="translate(1140, 0) scale(1.1)"><use href="#greenPlant"/></g>
+        {/* Row 4: Lower Field Crops (y = 415) */}
+        <g transform="translate(0, 415)">
+          {Array.from({ length: 28 }).map((_, i) => {
+            const x = 8 + i * 42;
+            const animClass = i % 3 === 0 ? 'center-crop-grow-a' : i % 3 === 1 ? 'center-crop-grow-b' : 'center-crop-grow-c';
+            const plantType = i % 3 === 0 ? '#cornStalk' : i % 3 === 1 ? '#greenPlant' : '#wheatStalk';
+            return (
+              <g key={`r4-${i}`} transform={`translate(${x}, 0) scale(1.1)`}>
+                <g className={animClass}>
+                  <use href={plantType} />
+                </g>
+              </g>
+            );
+          })}
+        </g>
+
+        {/* Row 5: Foreground High-Impact Bountiful Harvest Crops (y = 470) */}
+        <g transform="translate(0, 470)">
+          {Array.from({ length: 25 }).map((_, i) => {
+            const x = 12 + i * 48;
+            const animClass = i % 3 === 0 ? 'center-crop-grow-b' : i % 3 === 1 ? 'center-crop-grow-c' : 'center-crop-grow-a';
+            const plantType = i % 3 === 0 ? '#wheatStalk' : i % 3 === 1 ? '#cornStalk' : '#greenPlant';
+            return (
+              <g key={`r5-${i}`} transform={`translate(${x}, 0) scale(1.3)`}>
+                <g className={animClass}>
+                  <use href={plantType} />
+                </g>
+              </g>
+            );
+          })}
         </g>
       </svg>
     </div>
