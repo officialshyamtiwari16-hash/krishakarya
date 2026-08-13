@@ -1,4 +1,3 @@
-import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -14,24 +13,28 @@ if (!fs.existsSync(outputDir)) {
 }
 
 async function generateIcons() {
-  console.log(`Reading source logo from: ${logoPath}`);
+  try {
+    const sharpModule = await import('sharp');
+    const sharp = sharpModule.default || sharpModule;
+    console.log(`Reading source logo from: ${logoPath}`);
 
-  // Generate icon-192.png
-  await sharp(logoPath)
-    .resize(192, 192)
-    .png()
-    .toFile(path.join(outputDir, 'icon-192.png'));
-  console.log('Generated /public/icons/icon-192.png');
+    // Generate icon-192.png
+    await sharp(logoPath)
+      .resize(192, 192)
+      .png()
+      .toFile(path.join(outputDir, 'icon-192.png'));
+    console.log('Generated /public/icons/icon-192.png');
 
-  // Generate icon-512.png
-  await sharp(logoPath)
-    .resize(512, 512)
-    .png()
-    .toFile(path.join(outputDir, 'icon-512.png'));
-  console.log('Generated /public/icons/icon-512.png');
+    // Generate icon-512.png
+    await sharp(logoPath)
+      .resize(512, 512)
+      .png()
+      .toFile(path.join(outputDir, 'icon-512.png'));
+    console.log('Generated /public/icons/icon-512.png');
+  } catch (err) {
+    console.warn('Sharp icon generation notice (using existing icons in /public/icons):', err?.message || err);
+  }
 }
 
-generateIcons().catch((err) => {
-  console.error('Error generating icons:', err);
-  process.exit(1);
-});
+generateIcons();
+

@@ -1,14 +1,12 @@
 // Service Worker for Krishakarya PWA
-const CACHE_NAME = 'krishakarya-pwa-v1';
+const CACHE_NAME = 'krishakarya-pwa-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/logo.svg',
-  '/logo-192.png',
-  '/logo-512.png',
-  '/pwa-192.png',
-  '/pwa-512.png'
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
 // Install Event: Cache essential assets
@@ -37,43 +35,57 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Event: Cache first, fallback to network for assets; Network first for documents
+// Fetch Event: Network-first for HTML pages; Cache-first for static assets
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
 
-  // Ignore browser extensions or external non-http scheme requests
+  // Ignore non-http requests or browser extensions
   if (!url.protocol.startsWith('http')) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch fresh in background for cached assets
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {/* ignore network errors */});
-        return cachedResponse;
-      }
+  const isNavigation = event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html');
 
-      return fetch(event.request)
+  if (isNavigation) {
+    // Network-first for HTML pages so Vercel updates load immediately
+    event.respondWith(
+      fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', responseToCache));
           }
           return networkResponse;
         })
         .catch(() => {
-          // If offline and requesting navigation/HTML, return cached index.html
-          if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/index.html');
-          }
-        });
+          return caches.match('/index.html').then((cached) => cached || Response.error());
+        })
+    );
+    return;
+  }
+
+  // Cache-first with background revalidation for other assets
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
+            }
+          })
+          .catch(() => {/* ignore network errors when offline */});
+        return cachedResponse;
+      }
+
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+        }
+        return networkResponse;
+      });
     })
   );
 });
+
