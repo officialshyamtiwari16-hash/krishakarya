@@ -20,7 +20,6 @@ import { SeedCalculatorModal } from './SeedCalculatorModal';
 import { LedgerModal } from './LedgerModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
 import { AnimatedCounter } from './AnimatedCounter';
-import { FarmingHeroBanner } from './FarmingHeroBanner';
 
 interface HomePageProps {
   currentUser: User | null;
@@ -83,18 +82,19 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Master Hero Block with Animated Farming Background */}
+      {/* Master Hero Block with Clean High-Performance Gradient Background */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-slate-950 min-h-[420px]"
+        transition={{ duration: 0.5 }}
+        className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-gradient-to-br from-slate-950 via-emerald-950/90 to-slate-900 min-h-[420px]"
       >
-        {/* Animated Farming Scene Background */}
-        <FarmingHeroBanner isBackgroundOverlay={true} />
+        {/* Subtle Static Ambient Glow Accents (0ms render overhead) */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Frosted Glass Overlay Container */}
-        <div className="relative z-10 p-4 sm:p-6 lg:p-8 space-y-6 bg-slate-950/55 backdrop-blur-[2px] text-white">
+        {/* Hero Card Content Container */}
+        <div className="relative z-10 p-4 sm:p-6 lg:p-8 space-y-6 text-white">
           
           {/* Top Welcome Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-emerald-500/30 backdrop-blur-md shadow-xl">
