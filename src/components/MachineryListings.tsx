@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Machinery, MachineryCategory, User, Booking } from '../types';
 import { 
   Tractor, 
@@ -10,7 +10,8 @@ import {
   Filter, 
   X, 
   Plus, 
-  Zap
+  Zap,
+  CheckCircle2
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { AnimatedCounter } from './AnimatedCounter';
@@ -23,6 +24,13 @@ interface MachineryListingsProps {
   onAddReview: (machineryId: string, rating: number, comment: string) => void;
   onOpenAddListing: () => void;
 }
+
+const formatLocalDate = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
 export const MachineryListings: React.FC<MachineryListingsProps> = ({
   machineries = [],
@@ -38,13 +46,16 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
   const [selectedDistrict, setSelectedDistrict] = useState<string>('All');
   const [maxRate, setMaxRate] = useState<number>(10000);
   const [selectedMachine, setSelectedMachine] = useState<Machinery | null>(null);
+  const [bookingToast, setBookingToast] = useState<string | null>(null);
 
   // Booking Modal state
   const [isRentModalOpen, setIsRentModalOpen] = useState(false);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(
-    new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
-  );
+  const [startDate, setStartDate] = useState(() => formatLocalDate(new Date()));
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    return formatLocalDate(d);
+  });
   const [rentalUnit, setRentalUnit] = useState<'days' | 'hours'>('days');
   const [hoursOrDays, setHoursOrDays] = useState('2');
   const [deliveryNeeded, setDeliveryNeeded] = useState(true);
@@ -126,13 +137,17 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
       renterId: currentUser.id,
       renterName: currentUser.name,
       renterPhone: currentUser.phone,
+      ownerId: selectedMachine.ownerId,
+      ownerName: selectedMachine.ownerName,
+      ownerPhone: selectedMachine.ownerPhone,
       startDate: startDate,
       endDate: endDate,
       unit: rentalUnit,
       quantity: rentalUnit === 'days' ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) || 1 : parseInt(hoursOrDays) || 1,
       dailyRate: selectedMachine.ratePerDay,
       totalAmount: total,
-      status: 'Confirmed',
+      totalCost: total,
+      status: 'Pending',
       createdAt: new Date().toISOString(),
       notes: `${rentNotes} ${deliveryNeeded ? '(Farm Delivery Requested)' : ''}`,
       location: `${selectedMachine.village}, ${selectedMachine.district}`,
@@ -140,7 +155,8 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
 
     onBookMachinery(booking);
     setIsRentModalOpen(false);
-    alert(`Success! Machinery rental confirmed for ${selectedMachine.title}. Owner contact phone: ${selectedMachine.ownerPhone}`);
+    setBookingToast(`Machinery rental request submitted with status Pending for ${selectedMachine.title}! Check your Bookings tab.`);
+    setTimeout(() => setBookingToast(null), 5000);
   };
 
   const handleSubmitReview = (e: React.FormEvent) => {
@@ -153,7 +169,21 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      <AnimatePresence>
+        {bookingToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 right-4 z-50 max-w-md bg-amber-900 text-white p-4 rounded-2xl shadow-2xl border border-amber-500/40 flex items-center gap-3"
+          >
+            <CheckCircle2 className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <p className="text-xs font-bold leading-relaxed">{bookingToast}</p>
+            <button onClick={() => setBookingToast(null)} className="text-amber-300 hover:text-white text-xs font-bold ml-auto">✕</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Hero Banner */}
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
@@ -492,8 +522,64 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
 
                     {rentalUnit === 'days' ? (
                       <>
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Quick Booking Dates</label>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const t = new Date().toISOString().split('T')[0];
+                                setStartDate(t);
+                                setEndDate(t);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-amber-100 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer"
+                            >
+                              Today (1 Day)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const tom = new Date();
+                                tom.setDate(tom.getDate() + 1);
+                                const tomStr = tom.toISOString().split('T')[0];
+                                setStartDate(tomStr);
+                                setEndDate(tomStr);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-amber-100 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer"
+                            >
+                              Tomorrow
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const s = new Date();
+                                const e = new Date();
+                                e.setDate(e.getDate() + 2);
+                                setStartDate(s.toISOString().split('T')[0]);
+                                setEndDate(e.toISOString().split('T')[0]);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-amber-100 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer"
+                            >
+                              Next 3 Days
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const s = new Date();
+                                const e = new Date();
+                                e.setDate(e.getDate() + 6);
+                                setStartDate(s.toISOString().split('T')[0]);
+                                setEndDate(e.toISOString().split('T')[0]);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-amber-100 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer"
+                            >
+                              1 Full Week
+                            </button>
+                          </div>
+                        </div>
+
                         <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Start Date</label>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Calendar Start Date</label>
                           <input
                             type="date"
                             value={startDate}
@@ -502,7 +588,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">End Date</label>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Calendar End Date</label>
                           <input
                             type="date"
                             value={endDate}

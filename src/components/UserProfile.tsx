@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { User, Sahyogi, Machinery, Booking, LedgerEntry } from '../types';
+import { User, Sahyogi, Machinery, Booking, BookingStatus, LedgerEntry } from '../types';
 import { 
   User as UserIcon, 
   MapPin, 
@@ -34,10 +34,11 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { checkUsernameAvailability, normalizeUsername, saveUserToFirestore } from '../lib/firestoreService';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, updatePassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, googleAuthProvider } from '../lib/firebase';
 import { KisanKhatabook } from './KisanKhatabook';
 import { AnimatedCounter } from './AnimatedCounter';
+import { BookingCalendar } from './BookingCalendar';
 
 interface UserProfileProps {
   currentUser: User | null;
@@ -46,6 +47,7 @@ interface UserProfileProps {
   onLogout?: () => void;
   onOpenAuthModal?: (initialTab?: 'login' | 'signup') => void;
   myBookings: Booking[];
+  onUpdateBookingStatus?: (bookingId: string, status: BookingStatus, declineReason?: string) => void;
   sahyogis: Sahyogi[];
   machineries: Machinery[];
   ledgerEntries?: LedgerEntry[];
@@ -66,6 +68,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   onLogout,
   onOpenAuthModal,
   myBookings,
+  onUpdateBookingStatus = () => {},
   sahyogis,
   machineries,
   ledgerEntries = [],
@@ -120,6 +123,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   const [generated2FAOtp, setGenerated2FAOtp] = useState('');
   const [backupCodes, setBackupCodes] = useState<string[]>(currentUser?.backupCodes || []);
   const [copiedBackupCodes, setCopiedBackupCodes] = useState(false);
+  const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
+  const [profileSaveError, setProfileSaveError] = useState('');
 
   // Keep state in sync if currentUser changes
   useEffect(() => {
@@ -183,8 +188,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
+    setProfileSaveError('');
+    setProfileSuccessMessage('');
+
     if (!isProfileUsernameValid || profileUsernameError) {
-      alert('Please enter a valid & unique username handle before saving.');
+      setProfileSaveError('Please enter a valid & unique username handle before saving.');
       return;
     }
 
@@ -207,10 +215,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       profileImage,
     };
 
-    await saveUserToFirestore(updated);
-    onUpdateUser(updated);
-    setIsEditing(false);
-    alert('User Profile details & unique handle updated successfully!');
+    try {
+      await saveUserToFirestore(updated);
+      onUpdateUser(updated);
+      setIsEditing(false);
+      setProfileSuccessMessage('Profile and handle successfully updated!');
+      setTimeout(() => setProfileSuccessMessage(''), 4000);
+    } catch (err: any) {
+      setProfileSaveError(err.message || 'Failed to update profile.');
+    }
   };
 
   const toggleSahyogiStatus = (s: Sahyogi) => {
@@ -283,75 +296,83 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
     setIsUpdatingPassword(true);
     try {
-      const updatedUser: User = {
-        ...currentUser!,
-        password: newPasswordInput,
-      };
-      await saveUserToFirestore(updatedUser);
-      onUpdateUser(updatedUser);
-      setSecuritySuccess('Password successfully updated and encrypted!');
+      if (auth.currentUser) {
+        await updatePassword(auth.currentUser, newPasswordInput);
+        setSecuritySuccess('Password successfully updated with Firebase Authentication!');
+      } else if (currentUser?.email) {
+        await sendPasswordResetEmail(auth, currentUser.email);
+        setSecuritySuccess(`A password reset link has been dispatched to ${currentUser.email}.`);
+      } else {
+        throw new Error('Please sign in with email and password to change your password.');
+      }
       setCurrentPasswordInput('');
       setNewPasswordInput('');
       setConfirmPasswordInput('');
     } catch (err: any) {
-      setSecurityError(err.message || 'Failed to update password.');
+      if (err.code === 'auth/requires-recent-login' && currentUser?.email) {
+        try {
+          await sendPasswordResetEmail(auth, currentUser.email);
+          setSecuritySuccess(`For security, a password reset link has been sent to ${currentUser.email}.`);
+        } catch (resetErr: any) {
+          setSecurityError('Please sign in again to update your password.');
+        }
+      } else {
+        setSecurityError(err.message || 'Failed to update password.');
+      }
     } finally {
       setIsUpdatingPassword(false);
     }
   };
 
-  const handleInitiate2FASetup = () => {
+  const handleInitiate2FASetup = async () => {
     setSecurityError('');
     setSecuritySuccess('');
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGenerated2FAOtp(code);
-    setTwoFactorOtpCode('');
-    setTwoFactorStep('verify');
-  };
-
-  const handleVerifyAndActivate2FA = async () => {
-    setSecurityError('');
-    if (twoFactorOtpCode.trim() !== generated2FAOtp) {
-      setSecurityError('Invalid 2FA verification code. Please check and try again.');
-      return;
-    }
-
-    const generatedBackupCodes = Array.from({ length: 4 }, () => 
-      'KBK-' + Math.floor(1000 + Math.random() * 9000).toString()
-    );
-
     try {
       const updatedUser: User = {
         ...currentUser!,
         twoFactorEnabled: true,
         twoFactorMethod: twoFactorMethod,
-        backupCodes: generatedBackupCodes,
       };
       await saveUserToFirestore(updatedUser);
       onUpdateUser(updatedUser);
       setTwoFactorEnabled(true);
-      setBackupCodes(generatedBackupCodes);
       setTwoFactorStep('idle');
-      setSecuritySuccess('2-Step Verification is now ACTIVE on your profile! Save your emergency backup codes below.');
+      setSecuritySuccess('2-Step Verification is now active on your account profile.');
+    } catch (err: any) {
+      setSecurityError('Failed to activate 2-Step Verification.');
+    }
+  };
+
+  const handleVerifyAndActivate2FA = async () => {
+    setSecurityError('');
+    try {
+      const updatedUser: User = {
+        ...currentUser!,
+        twoFactorEnabled: true,
+        twoFactorMethod: twoFactorMethod,
+      };
+      await saveUserToFirestore(updatedUser);
+      onUpdateUser(updatedUser);
+      setTwoFactorEnabled(true);
+      setTwoFactorStep('idle');
+      setSecuritySuccess('2-Step Verification is now active on your account profile.');
     } catch (err: any) {
       setSecurityError('Failed to activate 2-Step Verification.');
     }
   };
 
   const handleDisable2FA = async () => {
-    if (!window.confirm('Are you sure you want to disable 2-Step Verification? Your account security level will be reduced.')) {
+    if (!window.confirm('Are you sure you want to disable 2-Step Verification?')) {
       return;
     }
     try {
       const updatedUser: User = {
         ...currentUser!,
         twoFactorEnabled: false,
-        backupCodes: [],
       };
       await saveUserToFirestore(updatedUser);
       onUpdateUser(updatedUser);
       setTwoFactorEnabled(false);
-      setBackupCodes([]);
       setTwoFactorStep('idle');
       setSecuritySuccess('2-Step Verification disabled.');
     } catch (err: any) {
@@ -489,21 +510,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({
             </button>
 
             <button
-              onClick={() => {
-                setActiveSubTab('profile');
-                setIsEditing(true);
-              }}
-              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
-                activeSubTab === 'profile' || activeSubTab === 'security'
-                  ? 'bg-emerald-700 text-white shadow-sm'
-                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
-              }`}
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>Edit Profile</span>
-            </button>
-
-            <button
               onClick={() => setActiveSubTab('bookings')}
               className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
                 activeSubTab === 'bookings'
@@ -525,6 +531,21 @@ export const UserProfile: React.FC<UserProfileProps> = ({
             >
               <Users className="w-3.5 h-3.5" />
               <span>Listings (<AnimatedCounter value={mySahyogiListings.length + myMachineryListings.length} />)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveSubTab('profile');
+                setIsEditing(true);
+              }}
+              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
+                activeSubTab === 'profile' || activeSubTab === 'security'
+                  ? 'bg-emerald-700 text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Edit Profile</span>
             </button>
           </div>
         </div>
@@ -586,7 +607,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveSubTab('khatabook')}
-                className="px-3 py-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-xl hover:bg-amber-300 transition-all"
+                className="px-3 py-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-xl hover:bg-amber-300 transition-all cursor-pointer"
               >
                 Open Full Khatabook →
               </button>
@@ -628,6 +649,20 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                 Step 1: Basic Info
               </span>
             </div>
+
+            {profileSuccessMessage && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span>{profileSuccessMessage}</span>
+              </div>
+            )}
+
+            {profileSaveError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
+                <Shield className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                <span>{profileSaveError}</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -893,60 +928,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                   </select>
                 </div>
 
-                {/* Step 1: Initiate Setup */}
-                {twoFactorStep === 'idle' && !twoFactorEnabled && (
+                {/* Step 1: Toggle Setup */}
+                {!twoFactorEnabled ? (
                   <button
                     onClick={handleInitiate2FASetup}
                     className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <ShieldCheck className="w-4 h-4" /> Enable 2-Step Verification
                   </button>
-                )}
-
-                {/* Step 2: Verification Flow */}
-                {twoFactorStep === 'verify' && (
-                  <div className="p-3.5 bg-slate-900 text-white rounded-xl space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-300 flex items-center gap-1">
-                        <Lock className="w-3.5 h-3.5" /> Confirm 2FA OTP Code
-                      </span>
-                      <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full">
-                        TEST CODE: {generated2FAOtp}
-                      </span>
-                    </div>
-
-                    <p className="text-[11px] text-slate-300">
-                      Enter the 6-digit code sent to your preferred channel to activate extra protection:
-                    </p>
-
-                    <input
-                      type="text"
-                      maxLength={6}
-                      value={twoFactorOtpCode}
-                      onChange={(e) => setTwoFactorOtpCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="6-digit OTP code"
-                      className="w-full px-3 py-2 bg-slate-950 border border-emerald-500 rounded-xl font-mono text-center text-sm font-black text-amber-300 tracking-widest"
-                    />
-
-                    <div className="flex items-center gap-2 pt-1">
-                      <button
-                        onClick={handleVerifyAndActivate2FA}
-                        className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-lg shadow-sm cursor-pointer"
-                      >
-                        Verify & Activate 2FA
-                      </button>
-                      <button
-                        onClick={() => setTwoFactorStep('idle')}
-                        className="px-3 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg hover:bg-slate-700"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Active Status Actions & Backup Codes */}
-                {twoFactorEnabled && (
+                ) : (
                   <div className="space-y-3 pt-2">
                     <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
                       <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
@@ -960,31 +950,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                         Disable 2FA
                       </button>
                     </div>
-
-                    {backupCodes.length > 0 && (
-                      <div className="p-3.5 bg-slate-900 text-white rounded-xl space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
-                            <Key className="w-3.5 h-3.5" /> Emergency Backup Codes
-                          </span>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(backupCodes.join('\n'));
-                              setCopiedBackupCodes(true);
-                              setTimeout(() => setCopiedBackupCodes(false), 2000);
-                            }}
-                            className="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-200 cursor-pointer"
-                          >
-                            {copiedBackupCodes ? 'Copied!' : 'Copy Codes'}
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1.5 font-mono text-center text-xs text-emerald-400 bg-slate-950 p-2 rounded-lg">
-                          {backupCodes.map((code, idx) => (
-                            <span key={idx} className="bg-slate-900 py-1 rounded border border-slate-800">{code}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -996,29 +961,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
       {/* SUBTAB 3: BOOKINGS */}
       {activeSubTab === 'bookings' && (
-        <div className="space-y-4">
-          <h3 className="font-extrabold text-slate-900 text-lg">My Confirmed Bookings</h3>
-          {myBookings.length === 0 ? (
-            <div className="bg-white p-8 rounded-2xl text-center border text-slate-500 text-xs">
-              No active bookings found. Browse Sahyogi labor or Machinery to book.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {myBookings.map((b) => (
-                <div key={b.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-emerald-800 uppercase">{b.type} BOOKING</span>
-                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
-                      {b.status}
-                    </span>
-                  </div>
-                  <h4 className="font-bold text-slate-900 text-sm">{b.itemName}</h4>
-                  <p className="text-xs text-slate-600">Start Date: {b.startDate} | Rate: ₹{b.totalCost}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <BookingCalendar
+          bookings={myBookings}
+          currentUser={currentUser}
+          onUpdateBookingStatus={onUpdateBookingStatus}
+        />
       )}
 
       {/* SUBTAB 4: LISTINGS */}

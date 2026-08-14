@@ -13,12 +13,12 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentLanguage, setCurrentLanguageState] = useState<string>(() => {
-    return localStorage.getItem('krishikulture_language') || 'en';
+    return localStorage.getItem('krishakarya_language') || localStorage.getItem('krishikulture_language') || 'en';
   });
 
   const setLanguage = (code: string) => {
     setCurrentLanguageState(code);
-    localStorage.setItem('krishikulture_language', code);
+    localStorage.setItem('krishakarya_language', code);
   };
 
   useEffect(() => {

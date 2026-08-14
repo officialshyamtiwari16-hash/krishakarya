@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Sahyogi, User, Booking } from '../types';
 import { 
   Users, 
@@ -10,7 +10,8 @@ import {
   Plus, 
   Filter, 
   X, 
-  UserCheck
+  UserCheck,
+  CheckCircle2
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { AnimatedCounter } from './AnimatedCounter';
@@ -23,6 +24,13 @@ interface SahyogiListingsProps {
   onAddReview: (sahyogiId: string, rating: number, comment: string) => void;
   onOpenAddListing: () => void;
 }
+
+const formatLocalDate = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
 export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
   sahyogis = [],
@@ -38,13 +46,16 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
   const [selectedDistrict, setSelectedDistrict] = useState<string>('All');
   const [maxRate, setMaxRate] = useState<number>(1000);
   const [selectedSahyogi, setSelectedSahyogi] = useState<Sahyogi | null>(null);
+  const [bookingToast, setBookingToast] = useState<string | null>(null);
 
   // Booking Modal State
   const [isHireModalOpen, setIsHireModalOpen] = useState(false);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(
-    new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0]
-  );
+  const [startDate, setStartDate] = useState(() => formatLocalDate(new Date()));
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    return formatLocalDate(d);
+  });
   const [acresOrHours, setAcresOrHours] = useState('3');
   const [hireUnit, setHireUnit] = useState<'days' | 'hours' | 'acres'>('days');
   const [hireNotes, setHireNotes] = useState('');
@@ -115,13 +126,17 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
       renterId: currentUser.id,
       renterName: currentUser.name,
       renterPhone: currentUser.phone,
+      ownerId: selectedSahyogi.userId || selectedSahyogi.id,
+      ownerName: selectedSahyogi.name,
+      ownerPhone: selectedSahyogi.phone,
       startDate: startDate,
       endDate: endDate,
       unit: hireUnit,
       quantity: hireUnit === 'days' ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) || 1 : parseFloat(acresOrHours) || 1,
       dailyRate: selectedSahyogi.dailyRate,
       totalAmount: total,
-      status: 'Confirmed',
+      totalCost: total,
+      status: 'Pending',
       createdAt: new Date().toISOString(),
       notes: hireNotes,
       location: `${selectedSahyogi.village}, ${selectedSahyogi.district}`,
@@ -129,7 +144,8 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
 
     onBookSahyogi(booking);
     setIsHireModalOpen(false);
-    alert(`Success! Booking request confirmed for ${selectedSahyogi.name}. Contact phone: ${selectedSahyogi.phone}`);
+    setBookingToast(`Booking request sent with status Pending for ${selectedSahyogi.name}! Check your Bookings tab.`);
+    setTimeout(() => setBookingToast(null), 5000);
   };
 
   const handleSubmitReview = (e: React.FormEvent) => {
@@ -142,7 +158,21 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      <AnimatePresence>
+        {bookingToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 right-4 z-50 max-w-md bg-emerald-900 text-white p-4 rounded-2xl shadow-2xl border border-emerald-500/40 flex items-center gap-3"
+          >
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            <p className="text-xs font-bold leading-relaxed">{bookingToast}</p>
+            <button onClick={() => setBookingToast(null)} className="text-emerald-300 hover:text-white text-xs font-bold ml-auto">✕</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Hero Banner */}
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
@@ -482,8 +512,64 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
 
                     {hireUnit === 'days' ? (
                       <>
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Quick Booking Dates</label>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const t = new Date().toISOString().split('T')[0];
+                                setStartDate(t);
+                                setEndDate(t);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer"
+                            >
+                              Today (1 Day)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const tom = new Date();
+                                tom.setDate(tom.getDate() + 1);
+                                const tomStr = tom.toISOString().split('T')[0];
+                                setStartDate(tomStr);
+                                setEndDate(tomStr);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer"
+                            >
+                              Tomorrow
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const s = new Date();
+                                const e = new Date();
+                                e.setDate(e.getDate() + 2);
+                                setStartDate(s.toISOString().split('T')[0]);
+                                setEndDate(e.toISOString().split('T')[0]);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer"
+                            >
+                              Next 3 Days
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const s = new Date();
+                                const e = new Date();
+                                e.setDate(e.getDate() + 6);
+                                setStartDate(s.toISOString().split('T')[0]);
+                                setEndDate(e.toISOString().split('T')[0]);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer"
+                            >
+                              1 Full Week
+                            </button>
+                          </div>
+                        </div>
+
                         <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Start Date</label>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Calendar Start Date</label>
                           <input
                             type="date"
                             value={startDate}
@@ -492,7 +578,7 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">End Date</label>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Calendar End Date</label>
                           <input
                             type="date"
                             value={endDate}

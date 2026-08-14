@@ -9,7 +9,7 @@ import {
   query,
   where
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { handleFirestoreError, OperationType } from './firebaseErrors';
 import { User, Sahyogi, Machinery, Booking, LedgerEntry } from '../types';
 
@@ -30,6 +30,18 @@ export function normalizeUsername(raw: string): string {
   // Keep only alphanumeric and underscores
   cleaned = cleaned.replace(/[^a-z0-9_]/g, '');
   return cleaned ? `@${cleaned}` : '';
+}
+
+// Security: Sanitize string to prevent script injection and bound length
+export function sanitizeString(val: string | undefined, maxLen = 200): string {
+  if (!val) return '';
+  const trimmed = val.trim().slice(0, maxLen);
+  return trimmed.replace(/[<>]/g, ''); // Strip potential script/html brackets
+}
+
+// Security: Verify valid entity ID format
+export function isValidId(id: string): boolean {
+  return typeof id === 'string' && id.length > 0 && id.length <= 128 && /^[a-zA-Z0-9_-]+$/.test(id);
 }
 
 // Check if username is available in Firestore
@@ -101,6 +113,11 @@ export async function checkUsernameAvailability(
 
 // Reserve/Claim username in Firestore
 export async function claimUsername(rawUsername: string, userId: string): Promise<boolean> {
+  if (!auth.currentUser || auth.currentUser.uid !== userId) {
+    console.warn('Unauthorized attempt to claim handle: auth mismatch');
+    return false;
+  }
+
   const formatted = normalizeUsername(rawUsername);
   if (!formatted) return false;
   const cleanHandle = formatted.substring(1);
@@ -248,10 +265,27 @@ export async function findUserInFirestoreByIdentifier(identifier: string): Promi
 
 export async function saveUserToFirestore(user: User): Promise<void> {
   saveUserToLocalAccountsDb(user);
+  
+  // Security Gate: Ensure client is authenticated and matches target user ID
+  if (!auth.currentUser || auth.currentUser.uid !== user.id) {
+    console.warn('Blocked unauthorized saveUserToFirestore: user mismatch or unauthenticated');
+    return;
+  }
+
   try {
-    await setDoc(doc(db, USERS_COL, user.id), user, { merge: true });
-    if (user.username) {
-      await claimUsername(user.username, user.id);
+    const cleanUser: User = {
+      ...user,
+      name: sanitizeString(user.name, 100),
+      phone: sanitizeString(user.phone, 20),
+      village: sanitizeString(user.village, 100),
+      district: sanitizeString(user.district, 100),
+      state: sanitizeString(user.state, 100),
+      bio: sanitizeString(user.bio, 500),
+    };
+
+    await setDoc(doc(db, USERS_COL, cleanUser.id), cleanUser, { merge: true });
+    if (cleanUser.username) {
+      await claimUsername(cleanUser.username, cleanUser.id);
     }
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, `${USERS_COL}/${user.id}`);
@@ -260,14 +294,36 @@ export async function saveUserToFirestore(user: User): Promise<void> {
 
 // Sahyogi Operations
 export async function saveSahyogiToFirestore(sahyogi: Sahyogi): Promise<void> {
+  // Security Gate: Auth and ownership verification
+  if (!auth.currentUser || auth.currentUser.uid !== sahyogi.userId) {
+    console.warn('Blocked unauthorized saveSahyogiToFirestore: user mismatch or unauthenticated');
+    throw new Error('Unauthorized: You must be logged in to create or edit your Sahyogi listing.');
+  }
+
+  const cleanSahyogi: Sahyogi = {
+    ...sahyogi,
+    name: sanitizeString(sahyogi.name, 100),
+    phone: sanitizeString(sahyogi.phone, 20),
+    village: sanitizeString(sahyogi.village, 100),
+    district: sanitizeString(sahyogi.district, 100),
+    state: sanitizeString(sahyogi.state, 100),
+    bio: sanitizeString(sahyogi.bio, 500),
+    dailyRate: Math.max(1, Math.round(sahyogi.dailyRate || 500)),
+    hourlyRate: Math.max(1, Math.round(sahyogi.hourlyRate || 80)),
+  };
+
   try {
-    await setDoc(doc(db, SAHYOGIS_COL, sahyogi.id), sahyogi, { merge: true });
+    await setDoc(doc(db, SAHYOGIS_COL, cleanSahyogi.id), cleanSahyogi, { merge: true });
   } catch (err) {
-    handleFirestoreError(err, OperationType.WRITE, `${SAHYOGIS_COL}/${sahyogi.id}`);
+    handleFirestoreError(err, OperationType.WRITE, `${SAHYOGIS_COL}/${cleanSahyogi.id}`);
   }
 }
 
 export async function deleteSahyogiFromFirestore(id: string): Promise<void> {
+  if (!auth.currentUser) {
+    throw new Error('Unauthorized: You must be signed in to delete listings.');
+  }
+
   try {
     await deleteDoc(doc(db, SAHYOGIS_COL, id));
   } catch (err) {
@@ -293,14 +349,38 @@ export function subscribeSahyogis(onData: (sahyogis: Sahyogi[]) => void) {
 
 // Machinery Operations
 export async function saveMachineryToFirestore(machinery: Machinery): Promise<void> {
+  // Security Gate: Auth and ownership verification
+  if (!auth.currentUser || auth.currentUser.uid !== machinery.ownerId) {
+    console.warn('Blocked unauthorized saveMachineryToFirestore: user mismatch or unauthenticated');
+    throw new Error('Unauthorized: You must be logged in as the equipment owner to create or edit this machinery.');
+  }
+
+  const cleanMachinery: Machinery = {
+    ...machinery,
+    title: sanitizeString(machinery.title, 150),
+    brandModel: sanitizeString(machinery.brandModel, 100),
+    ownerName: sanitizeString(machinery.ownerName, 100),
+    ownerPhone: sanitizeString(machinery.ownerPhone, 20),
+    village: sanitizeString(machinery.village, 100),
+    district: sanitizeString(machinery.district, 100),
+    state: sanitizeString(machinery.state, 100),
+    description: sanitizeString(machinery.description, 500),
+    ratePerDay: Math.max(1, Math.round(machinery.ratePerDay || 1000)),
+    ratePerHour: Math.max(1, Math.round(machinery.ratePerHour || 200)),
+  };
+
   try {
-    await setDoc(doc(db, MACHINERY_COL, machinery.id), machinery, { merge: true });
+    await setDoc(doc(db, MACHINERY_COL, cleanMachinery.id), cleanMachinery, { merge: true });
   } catch (err) {
-    handleFirestoreError(err, OperationType.WRITE, `${MACHINERY_COL}/${machinery.id}`);
+    handleFirestoreError(err, OperationType.WRITE, `${MACHINERY_COL}/${cleanMachinery.id}`);
   }
 }
 
 export async function deleteMachineryFromFirestore(id: string): Promise<void> {
+  if (!auth.currentUser) {
+    throw new Error('Unauthorized: You must be signed in to delete machinery listings.');
+  }
+
   try {
     await deleteDoc(doc(db, MACHINERY_COL, id));
   } catch (err) {
@@ -326,39 +406,144 @@ export function subscribeMachineries(onData: (items: Machinery[]) => void) {
 
 // Booking Operations
 export async function saveBookingToFirestore(booking: Booking): Promise<void> {
+  if (!auth.currentUser || auth.currentUser.uid !== booking.renterId) {
+    console.warn('Blocked unauthorized saveBookingToFirestore: user mismatch or unauthenticated');
+    throw new Error('Unauthorized: You must be logged in to place a booking request.');
+  }
+
+  const cleanBooking: Booking = {
+    ...booking,
+    itemName: sanitizeString(booking.itemName, 150),
+    renterName: sanitizeString(booking.renterName, 100),
+    renterPhone: sanitizeString(booking.renterPhone, 20),
+    ownerName: sanitizeString(booking.ownerName, 100),
+    ownerPhone: sanitizeString(booking.ownerPhone, 20),
+    location: sanitizeString(booking.location, 150),
+    notes: sanitizeString(booking.notes, 500),
+    totalAmount: Math.max(0, booking.totalAmount || booking.totalCost || 0),
+  };
+
   try {
-    await setDoc(doc(db, BOOKINGS_COL, booking.id), booking, { merge: true });
+    await setDoc(doc(db, BOOKINGS_COL, cleanBooking.id), cleanBooking, { merge: true });
   } catch (err) {
-    handleFirestoreError(err, OperationType.WRITE, `${BOOKINGS_COL}/${booking.id}`);
+    handleFirestoreError(err, OperationType.WRITE, `${BOOKINGS_COL}/${cleanBooking.id}`);
   }
 }
 
-export function subscribeBookings(onData: (items: Booking[]) => void) {
-  return onSnapshot(
-    collection(db, BOOKINGS_COL),
+export async function updateBookingStatusInFirestore(
+  bookingId: string,
+  status: Booking['status'],
+  declineReason?: string
+): Promise<void> {
+  if (!auth.currentUser) {
+    throw new Error('Unauthorized: You must be logged in to update booking status.');
+  }
+
+  try {
+    const updatePayload: Record<string, any> = { status };
+    if (declineReason !== undefined) {
+      updatePayload.declineReason = sanitizeString(declineReason, 300);
+    }
+    await setDoc(doc(db, BOOKINGS_COL, bookingId), updatePayload, { merge: true });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.UPDATE, `${BOOKINGS_COL}/${bookingId}`);
+  }
+}
+
+export async function deleteBookingFromFirestore(bookingId: string): Promise<void> {
+  if (!auth.currentUser) {
+    throw new Error('Unauthorized: You must be logged in to delete a booking.');
+  }
+
+  try {
+    await deleteDoc(doc(db, BOOKINGS_COL, bookingId));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, `${BOOKINGS_COL}/${bookingId}`);
+  }
+}
+
+export function subscribeBookings(userId: string | undefined, onData: (items: Booking[]) => void) {
+  if (!userId || !auth.currentUser) {
+    onData([]);
+    return () => {};
+  }
+
+  const renterMap = new Map<string, Booking>();
+  const ownerMap = new Map<string, Booking>();
+
+  const emitCombined = () => {
+    const combined = new Map<string, Booking>([...renterMap, ...ownerMap]);
+    const list = Array.from(combined.values()).sort((a, b) => {
+      return new Date(b.createdAt || b.startDate).getTime() - new Date(a.createdAt || a.startDate).getTime();
+    });
+    onData(list);
+  };
+
+  const qRenter = query(collection(db, BOOKINGS_COL), where('renterId', '==', userId));
+  const unsubRenter = onSnapshot(
+    qRenter,
     (snapshot) => {
-      const items: Booking[] = [];
+      renterMap.clear();
       snapshot.forEach((docSnap) => {
-        items.push(docSnap.data() as Booking);
+        renterMap.set(docSnap.id, docSnap.data() as Booking);
       });
-      onData(items);
+      emitCombined();
     },
     (err) => {
       handleFirestoreError(err, OperationType.GET, BOOKINGS_COL);
     }
   );
+
+  const qOwner = query(collection(db, BOOKINGS_COL), where('ownerId', '==', userId));
+  const unsubOwner = onSnapshot(
+    qOwner,
+    (snapshot) => {
+      ownerMap.clear();
+      snapshot.forEach((docSnap) => {
+        ownerMap.set(docSnap.id, docSnap.data() as Booking);
+      });
+      emitCombined();
+    },
+    (err) => {
+      // Owner query might have zero results or note error
+      handleFirestoreError(err, OperationType.GET, BOOKINGS_COL);
+    }
+  );
+
+  return () => {
+    unsubRenter();
+    unsubOwner();
+  };
 }
 
 // Ledger Khatabook Operations
 export async function saveLedgerEntryToFirestore(entry: LedgerEntry): Promise<void> {
+  if (!auth.currentUser || auth.currentUser.uid !== entry.userId) {
+    console.warn('Blocked unauthorized saveLedgerEntryToFirestore: user mismatch or unauthenticated');
+    throw new Error('Unauthorized: You must be logged in to save private Khatabook entries.');
+  }
+
+  const cleanEntry: LedgerEntry = {
+    ...entry,
+    title: sanitizeString(entry.title, 150),
+    notes: sanitizeString(entry.notes, 500),
+    partyName: sanitizeString(entry.partyName, 100),
+    cropName: sanitizeString(entry.cropName, 80),
+    amount: Math.max(0.01, entry.amount || 0),
+  };
+
   try {
-    await setDoc(doc(db, LEDGER_COL, entry.id), entry, { merge: true });
+    await setDoc(doc(db, LEDGER_COL, cleanEntry.id), cleanEntry, { merge: true });
   } catch (err) {
-    handleFirestoreError(err, OperationType.WRITE, `${LEDGER_COL}/${entry.id}`);
+    handleFirestoreError(err, OperationType.WRITE, `${LEDGER_COL}/${cleanEntry.id}`);
   }
 }
 
 export async function deleteLedgerEntryFromFirestore(id: string): Promise<void> {
+  if (!auth.currentUser) {
+    throw new Error('Unauthorized: You must be logged in to delete Khatabook records.');
+  }
+
   try {
     await deleteDoc(doc(db, LEDGER_COL, id));
   } catch (err) {
@@ -366,8 +551,8 @@ export async function deleteLedgerEntryFromFirestore(id: string): Promise<void> 
   }
 }
 
-export function subscribeLedgerEntries(userId: string, onData: (entries: LedgerEntry[]) => void) {
-  if (!userId) {
+export function subscribeLedgerEntries(userId: string | undefined, onData: (entries: LedgerEntry[]) => void) {
+  if (!userId || !auth.currentUser) {
     onData([]);
     return () => {};
   }

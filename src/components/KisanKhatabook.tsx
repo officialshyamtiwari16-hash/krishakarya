@@ -59,13 +59,20 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [syncSuccessMsg, setSyncSuccessMsg] = useState('');
+  const [entryError, setEntryError] = useState('');
 
   // Form States
   const [entryTitle, setEntryTitle] = useState('');
   const [entryType, setEntryType] = useState<'income' | 'expense'>('expense');
   const [entryCategory, setEntryCategory] = useState<LedgerCategory>('seed_fertilizer');
   const [entryAmount, setEntryAmount] = useState('');
-  const [entryDate, setEntryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [entryDate, setEntryDate] = useState(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  });
   const [entryCrop, setEntryCrop] = useState('');
   const [entryParty, setEntryParty] = useState('');
   const [entryPaymentMode, setEntryPaymentMode] = useState<'cash' | 'online' | 'bank_transfer' | 'credit_udhar'>('cash');
@@ -104,14 +111,15 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
 
   const handleSaveEntry = (e: React.FormEvent) => {
     e.preventDefault();
+    setEntryError('');
     if (!currentUser) {
-      alert('Please sign in to save records to your Kisan Khatabook.');
+      setEntryError('Please sign in to save records to your Kisan Khatabook.');
       return;
     }
 
     const amt = parseFloat(entryAmount);
     if (isNaN(amt) || amt <= 0) {
-      alert('Please enter a valid positive amount.');
+      setEntryError('Please enter a valid positive amount.');
       return;
     }
 
@@ -139,6 +147,7 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
     setEntryCrop('');
     setEntryParty('');
     setEntryNotes('');
+    setEntryError('');
     setIsAddModalOpen(false);
   };
 
@@ -459,6 +468,11 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
             </div>
 
             <form onSubmit={handleSaveEntry} className="space-y-3.5 text-xs">
+              {entryError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
+                  <span>{entryError}</span>
+                </div>
+              )}
               
               {/* Type Toggle */}
               <div>

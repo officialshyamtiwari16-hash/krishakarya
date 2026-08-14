@@ -1,46 +1,135 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Connection test document
-    match /test/{testId} {
-      allow read, write: if true;
-    }
 
-    // Users Collection
-    match /users/{userId} {
-      allow read, write: if true;
-    }
-
-    // Unique Username Registry
-    match /usernames/{usernameId} {
-      allow read, write: if true;
-    }
-
-    // Sahyogi Labor Listings
-    match /sahyogis/{sahyogiId} {
-      allow read, write: if true;
-    }
-
-    // Machinery Equipment Listings
-    match /machineries/{machineryId} {
-      allow read, write: if true;
-    }
-
-    // Booking Records
-    match /bookings/{bookingId} {
-      allow read, write: if true;
-    }
-
-    // Ledger Khatabook Entries
-    match /ledger_entries/{entryId} {
-      allow read, write: if true;
-    }
-
-    // Default catch-all
+    // Default Deny Catch-All
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
+    }
+
+    // Core Security Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity Validators
+    function isValidUser(data) {
+      return data.id is string &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.phone is string && data.phone.size() <= 20;
+    }
+
+    function isValidUsername(data) {
+      return data.handle is string && data.handle.size() > 1 && data.handle.size() <= 25 &&
+             data.userId is string && data.userId.size() > 0;
+    }
+
+    function isValidSahyogi(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.phone is string && data.phone.size() <= 20 &&
+             data.dailyRate is number && data.dailyRate > 0;
+    }
+
+    function isValidMachinery(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.ownerId is string && data.ownerId == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+             data.category is string &&
+             data.ratePerDay is number && data.ratePerDay > 0;
+    }
+
+    function isValidBooking(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.type in ['sahyogi', 'machinery'] &&
+             data.itemId is string &&
+             data.renterId is string && data.renterId == request.auth.uid &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.status in ['Pending', 'Confirmed', 'Declined', 'Completed', 'Cancelled'];
+    }
+
+    function isValidBookingStatusUpdate() {
+      return incoming().status in ['Pending', 'Confirmed', 'Declined', 'Completed', 'Cancelled'] &&
+             incoming().renterId == existing().renterId &&
+             incoming().id == existing().id &&
+             incoming().type == existing().type &&
+             incoming().itemId == existing().itemId;
+    }
+
+    function isValidLedgerEntry(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.type in ['income', 'expense'] &&
+             data.amount is number && data.amount > 0 &&
+             data.date is string;
+    }
+
+    // 1. User Profiles Collection
+    match /users/{userId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming()) && incoming().id == userId;
+      allow update: if isOwner(userId) && isValidUser(incoming()) && incoming().id == userId;
+      allow delete: if isOwner(userId);
+    }
+
+    // 2. Unique Username Registry Collection
+    match /usernames/{usernameId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isSignedIn() && isValidId(usernameId) && incoming().userId == request.auth.uid && isValidUsername(incoming());
+      allow update, delete: if isSignedIn() && existing().userId == request.auth.uid && incoming().userId == request.auth.uid;
+    }
+
+    // 3. Sahyogi Helper Listings Collection
+    match /sahyogis/{sahyogiId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(sahyogiId) && incoming().userId == request.auth.uid && isValidSahyogi(incoming());
+      allow update: if isSignedIn() && existing().userId == request.auth.uid && incoming().userId == request.auth.uid && isValidSahyogi(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // 4. Machinery Listings Collection
+    match /machineries/{machineryId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(machineryId) && incoming().ownerId == request.auth.uid && isValidMachinery(incoming());
+      allow update: if isSignedIn() && existing().ownerId == request.auth.uid && incoming().ownerId == request.auth.uid && isValidMachinery(incoming());
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+    }
+
+    // 5. Protected Booking Records Collection
+    match /bookings/{bookingId} {
+      allow get: if isSignedIn() && (existing().renterId == request.auth.uid || ('ownerId' in existing() && existing().ownerId == request.auth.uid));
+      allow list: if isSignedIn() && (resource.data.renterId == request.auth.uid || ('ownerId' in resource.data && resource.data.ownerId == request.auth.uid));
+      allow create: if isSignedIn() && isValidId(bookingId) && incoming().renterId == request.auth.uid && isValidBooking(incoming());
+      allow update: if isSignedIn() && (existing().renterId == request.auth.uid || ('ownerId' in existing() && existing().ownerId == request.auth.uid)) && isValidBookingStatusUpdate();
+      allow delete: if isSignedIn() && (existing().renterId == request.auth.uid || ('ownerId' in existing() && existing().ownerId == request.auth.uid));
+    }
+
+    // 6. Private Kisan Khatabook Ledger Entries Collection
+    match /ledger_entries/{entryId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(entryId) && incoming().userId == request.auth.uid && isValidLedgerEntry(incoming());
+      allow update: if isSignedIn() && existing().userId == request.auth.uid && incoming().userId == request.auth.uid && isValidLedgerEntry(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
     }
   }
 }
-

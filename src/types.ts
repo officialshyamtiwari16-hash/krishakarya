@@ -19,10 +19,8 @@ export interface User {
   isSahyogi: boolean;
   isMachineryOwner: boolean;
   bio?: string;
-  password?: string;
   twoFactorEnabled?: boolean;
   twoFactorMethod?: 'sms' | 'email' | 'app';
-  backupCodes?: string[];
 }
 
 export interface Review {
@@ -101,6 +99,8 @@ export interface Machinery {
   includesOperator: boolean;
 }
 
+export type BookingStatus = 'Pending' | 'Confirmed' | 'Declined' | 'Completed' | 'Cancelled';
+
 export interface Booking {
   id: string;
   type: 'sahyogi' | 'machinery';
@@ -110,13 +110,18 @@ export interface Booking {
   renterId: string;
   renterName: string;
   renterPhone: string;
+  ownerId?: string;
+  ownerName?: string;
+  ownerPhone?: string;
   startDate: string;
   endDate: string;
   unit: 'days' | 'hours' | 'acres';
   quantity: number;
   dailyRate: number;
   totalAmount: number;
-  status: 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
+  totalCost?: number;
+  status: BookingStatus;
+  declineReason?: string;
   createdAt: string;
   notes?: string;
   location: string;

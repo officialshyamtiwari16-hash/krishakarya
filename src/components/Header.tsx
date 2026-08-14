@@ -1,20 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { 
   Home, 
   Users, 
   Tractor, 
   User as UserIcon, 
-  LogOut,
-  Globe,
-  ChevronDown,
-  MessageSquare,
-  Share2,
-  Check
+  LogOut, 
+  Globe, 
+  ChevronDown, 
+  MessageSquare, 
+  Share2, 
+  Check,
+  Bell
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
+import { NotificationModal } from './NotificationModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
+import { isNotificationPermissionGranted } from '../lib/notificationService';
 
 interface HeaderProps {
   activeTab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms';
@@ -38,7 +41,13 @@ export const Header: React.FC<HeaderProps> = ({
   const { currentLanguage, setLanguage, languages, t, getLanguageInfo } = useLanguage();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [hasNotifPermission, setHasNotifPermission] = useState(false);
+
+  useEffect(() => {
+    setHasNotifPermission(isNotificationPermissionGranted());
+  }, [isNotifOpen]);
 
   const selectedLang = getLanguageInfo(currentLanguage);
 
@@ -61,7 +70,9 @@ export const Header: React.FC<HeaderProps> = ({
         setCopiedLink(true);
         setTimeout(() => setCopiedLink(false), 3000);
       } catch (e) {
-        alert(`Copy link to share: ${window.location.href}`);
+        console.warn('Clipboard write failed:', e);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 3000);
       }
     }
   };
@@ -73,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Top Row: Left Utilities | Top Center Krishakarya Heading | Right Controls */}
           <div className="flex items-center justify-between gap-2">
             {/* Left Utility Actions */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               {/* Share Website Button */}
               <button
                 onClick={handleShareWebsite}
@@ -90,6 +101,21 @@ export const Header: React.FC<HeaderProps> = ({
                     <Share2 className="w-3.5 h-3.5 text-emerald-700" />
                     <span className="hidden sm:inline">Share</span>
                   </>
+                )}
+              </button>
+
+              {/* Notification Alerts Center Button */}
+              <button
+                onClick={() => setIsNotifOpen(true)}
+                title="Notifications & Alerts"
+                aria-label="Notifications & Alerts"
+                className="relative flex items-center justify-center p-2 bg-slate-100 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 rounded-xl border border-slate-200 transition-all min-h-[36px] min-w-[36px] shrink-0 cursor-pointer"
+              >
+                <Bell className="w-4 h-4 text-emerald-700" />
+                {hasNotifPermission ? (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" title="Notifications Enabled" />
+                ) : (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 animate-ping" title="Click to enable notifications" />
                 )}
               </button>
             </div>
@@ -318,6 +344,12 @@ export const Header: React.FC<HeaderProps> = ({
         isOpen={isInboxOpen}
         onClose={() => setIsInboxOpen(false)}
         currentUser={currentUser}
+      />
+
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={isNotifOpen}
+        onClose={() => setIsNotifOpen(false)}
       />
 
       {/* Mobile Bottom Navigation Bar */}

@@ -126,7 +126,6 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
       };
 
       onAddSahyogi(newSahyogi);
-      alert('Sahyogi listing published successfully!');
     } else {
       const newMachine: Machinery = {
         id: `mac_${Date.now()}`,
@@ -167,7 +166,6 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
       };
 
       onAddMachinery(newMachine);
-      alert('Machinery rental listing published successfully!');
     }
 
     onClose();

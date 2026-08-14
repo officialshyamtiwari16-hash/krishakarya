@@ -75,7 +75,9 @@ export const HomePage: React.FC<HomePageProps> = ({
         setCopiedLink(true);
         setTimeout(() => setCopiedLink(false), 3000);
       } catch (e) {
-        alert(`Copy link to share: ${window.location.href}`);
+        console.warn('Clipboard copy failed:', e);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 3000);
       }
     }
   };

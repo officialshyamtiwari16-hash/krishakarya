@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, 
   Sahyogi, 
   Machinery, 
   Booking,
+  BookingStatus,
   LedgerEntry 
 } from './types';
 import { 
@@ -21,6 +22,7 @@ import {
   deleteMachineryFromFirestore,
   subscribeMachineries,
   saveBookingToFirestore,
+  updateBookingStatusInFirestore,
   subscribeBookings,
   saveLedgerEntryToFirestore,
   deleteLedgerEntryFromFirestore,
@@ -28,6 +30,14 @@ import {
   findUserInFirestoreByIdentifier,
   saveUserToLocalAccountsDb
 } from './lib/firestoreService';
+
+import {
+  sendBrowserNotification,
+  getBookingStatusNotificationDetails,
+  requestBrowserNotificationPermission,
+  isNotificationPermissionGranted
+} from './lib/notificationService';
+import { NotificationToast, ActiveNotificationToast } from './components/NotificationToast';
 
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
@@ -50,12 +60,29 @@ export default function App() {
 
   // Application Data States (with LocalStorage fallback persistence)
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('krishikulture_user') || localStorage.getItem('krishilink_user');
+    const saved = localStorage.getItem('krishakarya_user') || localStorage.getItem('krishikulture_user') || localStorage.getItem('krishilink_user');
     return saved ? JSON.parse(saved) : null;
   });
 
+  // In-app interactive notification toast
+  const [activeToast, setActiveToast] = useState<ActiveNotificationToast | null>(null);
+
+  // References for tracking previous bookings to detect live status transitions
+  const previousBookingsRef = useRef<Map<string, Booking>>(new Map());
+  const isInitialBookingsLoadRef = useRef<boolean>(true);
+
+  // Auto-dismiss in-app notification toast after 7 seconds
+  useEffect(() => {
+    if (activeToast) {
+      const timer = setTimeout(() => {
+        setActiveToast(null);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeToast]);
+
   const [sahyogis, setSahyogis] = useState<Sahyogi[]>(() => {
-    const saved = localStorage.getItem('krishikulture_sahyogis') || localStorage.getItem('krishilink_sahyogis');
+    const saved = localStorage.getItem('krishakarya_sahyogis') || localStorage.getItem('krishikulture_sahyogis') || localStorage.getItem('krishilink_sahyogis');
     if (saved) {
       try {
         const parsed: Sahyogi[] = JSON.parse(saved);
@@ -68,7 +95,7 @@ export default function App() {
   });
 
   const [machineries, setMachineries] = useState<Machinery[]>(() => {
-    const saved = localStorage.getItem('krishikulture_machinery') || localStorage.getItem('krishilink_machinery');
+    const saved = localStorage.getItem('krishakarya_machinery') || localStorage.getItem('krishikulture_machinery') || localStorage.getItem('krishilink_machinery');
     if (saved) {
       try {
         const parsed: Machinery[] = JSON.parse(saved);
@@ -81,18 +108,19 @@ export default function App() {
   });
 
   const [myBookings, setMyBookings] = useState<Booking[]>(() => {
-    const saved = localStorage.getItem('krishikulture_bookings') || localStorage.getItem('krishilink_bookings');
+    const saved = localStorage.getItem('krishakarya_bookings') || localStorage.getItem('krishikulture_bookings') || localStorage.getItem('krishilink_bookings');
     return saved ? JSON.parse(saved) : [];
   });
 
   const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>(() => {
-    const saved = localStorage.getItem('krishikulture_ledger') || localStorage.getItem('krishilink_ledger');
+    const saved = localStorage.getItem('krishakarya_ledger') || localStorage.getItem('krishikulture_ledger') || localStorage.getItem('krishilink_ledger');
     return saved ? JSON.parse(saved) : [];
   });
 
   // Enforce Light Theme (Dark Mode Removed)
   useEffect(() => {
     document.documentElement.classList.remove('dark');
+    localStorage.removeItem('krishakarya_theme');
     localStorage.removeItem('krishikulture_theme');
   }, []);
 
@@ -100,6 +128,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'signup' | 'forgot'>('login');
   const [isAddListingOpen, setIsAddListingOpen] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   const handleOpenAuthModal = (tab: 'login' | 'signup' | 'forgot' = 'login') => {
     setAuthModalTab(tab);
@@ -122,19 +151,108 @@ export default function App() {
         setMachineries(initialMachinery);
       }
     });
-    const unsubBookings = subscribeBookings((items) => {
-      if (items) {
-        setMyBookings(items);
-      }
-    });
 
+    let unsubBookings = () => {};
     let unsubLedger = () => {};
-    if (currentUser?.id) {
-      unsubLedger = subscribeLedgerEntries(currentUser.id, (items) => {
+
+    if (isAuthReady && auth.currentUser && currentUser?.id === auth.currentUser.uid) {
+      // Reset tracker on user switch
+      isInitialBookingsLoadRef.current = true;
+      previousBookingsRef.current.clear();
+
+      unsubBookings = subscribeBookings(auth.currentUser.uid, (items) => {
+        if (items) {
+          if (isInitialBookingsLoadRef.current) {
+            // First snapshot load - populate state & map without firing duplicate notifications
+            const map = new Map<string, Booking>();
+            items.forEach((b) => map.set(b.id, b));
+            previousBookingsRef.current = map;
+            isInitialBookingsLoadRef.current = false;
+            setMyBookings(items);
+          } else {
+            // Subsequent live updates from Firestore
+            const prevMap = previousBookingsRef.current;
+            const nextMap = new Map<string, Booking>();
+
+            items.forEach((newB) => {
+              nextMap.set(newB.id, newB);
+              const prevB = prevMap.get(newB.id);
+
+              if (prevB) {
+                // 1. Existing booking status changed (e.g. Confirmed, Declined, Completed, Cancelled)
+                if (prevB.status !== newB.status) {
+                  const notifDetails = getBookingStatusNotificationDetails(
+                    newB,
+                    prevB.status,
+                    currentUser?.id
+                  );
+                  if (notifDetails) {
+                    sendBrowserNotification(notifDetails.title, {
+                      body: notifDetails.body,
+                      soundType: notifDetails.soundType,
+                      tag: `booking-status-${newB.id}-${newB.status}`,
+                      onClick: () => {
+                        setActiveTab('profile');
+                      },
+                    });
+
+                    setActiveToast({
+                      id: `toast_${Date.now()}_${newB.id}`,
+                      title: notifDetails.title,
+                      body: notifDetails.body,
+                      status: newB.status,
+                      bookingType: newB.type,
+                      bookingId: newB.id,
+                      timestamp: Date.now(),
+                    });
+                  }
+                }
+              } else {
+                // 2. New incoming booking request received in real-time
+                const notifDetails = getBookingStatusNotificationDetails(
+                  newB,
+                  undefined,
+                  currentUser?.id
+                );
+                if (notifDetails) {
+                  sendBrowserNotification(notifDetails.title, {
+                    body: notifDetails.body,
+                    soundType: notifDetails.soundType,
+                    tag: `booking-new-${newB.id}`,
+                    onClick: () => {
+                      setActiveTab('profile');
+                    },
+                  });
+
+                  setActiveToast({
+                    id: `toast_${Date.now()}_${newB.id}`,
+                    title: notifDetails.title,
+                    body: notifDetails.body,
+                    status: newB.status,
+                    bookingType: newB.type,
+                    bookingId: newB.id,
+                    timestamp: Date.now(),
+                  });
+                }
+              }
+            });
+
+            previousBookingsRef.current = nextMap;
+            setMyBookings(items);
+          }
+        }
+      });
+
+      unsubLedger = subscribeLedgerEntries(auth.currentUser.uid, (items) => {
         if (items) {
           setLedgerEntries(items);
         }
       });
+    } else if (isAuthReady && !auth.currentUser) {
+      setMyBookings([]);
+      setLedgerEntries([]);
+      previousBookingsRef.current.clear();
+      isInitialBookingsLoadRef.current = true;
     }
 
     return () => {
@@ -143,12 +261,13 @@ export default function App() {
       unsubBookings();
       unsubLedger();
     };
-  }, [currentUser?.id]);
+  }, [isAuthReady, currentUser?.id]);
 
 
   // Sync Firebase Auth State
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (fbUser) => {
+      setIsAuthReady(true);
       if (fbUser) {
         try {
           let dbUser = await getUserFromFirestore(fbUser.uid);
@@ -185,6 +304,10 @@ export default function App() {
         } catch (err) {
           console.warn('Firebase user sync note:', err);
         }
+      } else {
+        // If unauthenticated on Firebase, clear currentUser if it's not active in auth
+        setCurrentUser(null);
+        localStorage.removeItem('krishakarya_user');
       }
     });
 
@@ -194,27 +317,27 @@ export default function App() {
   // Sync to LocalStorage
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('krishikulture_user', JSON.stringify(currentUser));
+      localStorage.setItem('krishakarya_user', JSON.stringify(currentUser));
       saveUserToFirestore(currentUser).catch(console.error);
     } else {
-      localStorage.removeItem('krishikulture_user');
+      localStorage.removeItem('krishakarya_user');
     }
   }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem('krishikulture_sahyogis', JSON.stringify(sahyogis));
+    localStorage.setItem('krishakarya_sahyogis', JSON.stringify(sahyogis));
   }, [sahyogis]);
 
   useEffect(() => {
-    localStorage.setItem('krishikulture_machinery', JSON.stringify(machineries));
+    localStorage.setItem('krishakarya_machinery', JSON.stringify(machineries));
   }, [machineries]);
 
   useEffect(() => {
-    localStorage.setItem('krishikulture_bookings', JSON.stringify(myBookings));
+    localStorage.setItem('krishakarya_bookings', JSON.stringify(myBookings));
   }, [myBookings]);
 
   useEffect(() => {
-    localStorage.setItem('krishikulture_ledger', JSON.stringify(ledgerEntries));
+    localStorage.setItem('krishakarya_ledger', JSON.stringify(ledgerEntries));
   }, [ledgerEntries]);
 
   // Ledger Operations
@@ -245,7 +368,7 @@ export default function App() {
           title: `${isSahyogi ? 'Sahyogi Labor' : 'Machinery Rent'} - ${b.itemName}`,
           type: 'expense',
           category: isSahyogi ? 'sahyogi_labor' : 'machinery_rental',
-          amount: b.totalAmount || 0,
+          amount: b.totalAmount || b.totalCost || 0,
           bookingId: b.id,
           partyName: b.itemName,
           paymentMode: 'online',
@@ -280,29 +403,121 @@ export default function App() {
       console.warn('Firebase signout warning:', e);
     }
     setCurrentUser(null);
+    localStorage.removeItem('krishakarya_user');
     localStorage.removeItem('krishikulture_user');
+    localStorage.removeItem('krishilink_user');
   };
 
-  const triggerPushAlert = (title: string, body: string) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(title, { body, icon: '/favicon.ico' });
-      } catch (e) {
-        console.log('Push notification trigger error:', e);
-      }
-    }
+  const triggerPushAlert = (
+    title: string, 
+    body: string, 
+    soundType: 'success' | 'alert' | 'info' = 'info',
+    status?: BookingStatus,
+    bookingType?: 'sahyogi' | 'machinery',
+    bookingId?: string
+  ) => {
+    sendBrowserNotification(title, {
+      body,
+      soundType,
+      tag: bookingId ? `booking-${bookingId}-${status || 'alert'}` : undefined,
+      onClick: () => {
+        setActiveTab('profile');
+      },
+    });
+
+    setActiveToast({
+      id: `toast_${Date.now()}_${bookingId || 'gen'}`,
+      title,
+      body,
+      status,
+      bookingType,
+      bookingId,
+      timestamp: Date.now(),
+    });
   };
 
   const handleBookSahyogi = (booking: Booking) => {
     setMyBookings((prev) => [booking, ...prev]);
     saveBookingToFirestore(booking).catch(console.error);
-    triggerPushAlert('Sahyogi Labor Booking Confirmed!', `Booking for ${booking.itemName} on ${booking.startDate} has been placed.`);
+    triggerPushAlert(
+      'Sahyogi Labor Booking Placed! 🌾',
+      `Booking for ${booking.itemName} on ${booking.startDate} is submitted (Status: ${booking.status}). You will receive an instant notification once confirmed!`,
+      'info',
+      booking.status,
+      'sahyogi',
+      booking.id
+    );
   };
 
   const handleBookMachinery = (booking: Booking) => {
     setMyBookings((prev) => [booking, ...prev]);
     saveBookingToFirestore(booking).catch(console.error);
-    triggerPushAlert('Machinery Rental Confirmed!', `Rental for ${booking.itemName} starting on ${booking.startDate} has been scheduled.`);
+    triggerPushAlert(
+      'Machinery Rental Placed! 🚜',
+      `Rental for ${booking.itemName} starting on ${booking.startDate} is submitted (Status: ${booking.status}). You will receive an instant notification once confirmed!`,
+      'info',
+      booking.status,
+      'machinery',
+      booking.id
+    );
+  };
+
+  const handleUpdateBookingStatus = (bookingId: string, status: BookingStatus, declineReason?: string) => {
+    setMyBookings((prev) =>
+      prev.map((b) => {
+        if (b.id === bookingId) {
+          return {
+            ...b,
+            status,
+            declineReason: declineReason !== undefined ? declineReason : b.declineReason,
+          };
+        }
+        return b;
+      })
+    );
+
+    updateBookingStatusInFirestore(bookingId, status, declineReason).catch(console.error);
+
+    const booking = myBookings.find((b) => b.id === bookingId);
+    const itemName = booking?.itemName || 'Booking';
+
+    if (status === 'Confirmed') {
+      triggerPushAlert(
+        'Booking Confirmed! ✅',
+        `Booking for "${itemName}" has been confirmed.`,
+        'success',
+        'Confirmed',
+        booking?.type,
+        bookingId
+      );
+    } else if (status === 'Declined') {
+      triggerPushAlert(
+        'Booking Request Declined ❌',
+        `Booking request for "${itemName}" was declined.${declineReason ? ` Note: ${declineReason}` : ''}`,
+        'alert',
+        'Declined',
+        booking?.type,
+        bookingId
+      );
+    } else if (status === 'Cancelled') {
+      triggerPushAlert(
+        'Booking Cancelled',
+        `Booking for "${itemName}" has been cancelled.`,
+        'info',
+        'Cancelled',
+        booking?.type,
+        bookingId
+      );
+    } else if (status === 'Completed') {
+      triggerPushAlert(
+        'Work Completed! 🌾',
+        `Booking for "${itemName}" marked as completed.`,
+        'success',
+        'Completed',
+        booking?.type,
+        bookingId
+      );
+    }
   };
 
   const handleAddSahyogiReview = (sahyogiId: string, rating: number, comment: string) => {
@@ -471,6 +686,7 @@ export default function App() {
             onLogout={handleLogout}
             onOpenAuthModal={handleOpenAuthModal}
             myBookings={myBookings}
+            onUpdateBookingStatus={handleUpdateBookingStatus}
             sahyogis={sahyogis}
             machineries={machineries}
             ledgerEntries={ledgerEntries}
@@ -514,6 +730,18 @@ export default function App() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onAddSahyogi={handleAddSahyogiListing}
         onAddMachinery={handleAddMachineryListing}
+      />
+
+      {/* Real-time Notification Toast Banner */}
+      <NotificationToast
+        toast={activeToast}
+        onDismiss={() => setActiveToast(null)}
+        onViewBooking={() => {
+          setActiveTab('profile');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onRequestPermission={requestBrowserNotificationPermission}
+        isPermissionGranted={isNotificationPermissionGranted()}
       />
     </div>
   );
