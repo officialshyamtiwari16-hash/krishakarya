@@ -51,11 +51,13 @@ import { UserProfile } from './components/UserProfile';
 import { TermsModal } from './components/TermsModal';
 import { AuthModal } from './components/AuthModal';
 import { AddListingModal } from './components/AddListingModal';
+import { ModernFarmingQA } from './components/ModernFarmingQA';
+import { InboxModal } from './components/InboxModal';
 
 export default function App() {
-  // Navigation State: home, sahyogi, machinery, profile, terms
+  // Navigation State: home, sahyogi, machinery, profile, terms, modern-farming
   const [activeTab, setActiveTab] = useState<
-    'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms'
+    'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming'
   >('home');
 
   // Application Data States (with LocalStorage fallback persistence)
@@ -63,6 +65,15 @@ export default function App() {
     const saved = localStorage.getItem('krishakarya_user') || localStorage.getItem('krishikulture_user') || localStorage.getItem('krishilink_user');
     return saved ? JSON.parse(saved) : null;
   });
+
+  // Global Inbox modal & preset prompt state
+  const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [inboxPresetPrompt, setInboxPresetPrompt] = useState<string | null>(null);
+
+  const handleOpenInboxWithAi = (prompt?: string) => {
+    if (prompt) setInboxPresetPrompt(prompt);
+    setIsInboxOpen(true);
+  };
 
   // In-app interactive notification toast
   const [activeToast, setActiveToast] = useState<ActiveNotificationToast | null>(null);
@@ -279,17 +290,32 @@ export default function App() {
             setCurrentUser(matchedUser);
             saveUserToFirestore(matchedUser).catch(console.error);
           } else {
+            // If newly signed up, check if localStorage already has the profile being saved
+            const localSaved = localStorage.getItem('krishakarya_user');
+            let fallbackName = fbUser.displayName || 'Farmer Member';
+            let fallbackUsername = `@${(fbUser.displayName || 'user').toLowerCase().replace(/\s+/g, '_')}_${Date.now().toString().slice(-4)}`;
+            let fallbackPhone = fbUser.phoneNumber || '+91 9876543210';
+            
+            if (localSaved) {
+              try {
+                const parsed = JSON.parse(localSaved);
+                if (parsed && parsed.name) fallbackName = parsed.name;
+                if (parsed && parsed.username) fallbackUsername = parsed.username;
+                if (parsed && parsed.phone) fallbackPhone = parsed.phone;
+              } catch {}
+            }
+
             const newUser: User = {
               id: fbUser.uid,
-              name: fbUser.displayName || 'Farmer Member',
-              username: `@${(fbUser.displayName || 'user').toLowerCase().replace(/\s+/g, '_')}_${Date.now().toString().slice(-4)}`,
-              phone: fbUser.phoneNumber || '+91 XXXXXXXXXX',
+              name: fallbackName,
+              username: fallbackUsername,
+              phone: fallbackPhone,
               email: fbUser.email || `${fbUser.uid}@krishakarya.app`,
               profileImage: fbUser.photoURL || '',
               village: 'Krishakarya Village',
               post: 'Head Post Office',
-              district: 'Main District',
-              pincode: '208001',
+              district: 'Barabanki',
+              pincode: '225001',
               state: 'Uttar Pradesh',
               farmSizeAcres: 0,
               primaryCrops: ['Wheat', 'Paddy'],
@@ -305,7 +331,17 @@ export default function App() {
           console.warn('Firebase user sync note:', err);
         }
       } else {
-        // If unauthenticated on Firebase, clear currentUser if it's not active in auth
+        // If unauthenticated on Firebase, check if user is in an active demo session
+        const localRaw = localStorage.getItem('krishakarya_user');
+        if (localRaw) {
+          try {
+            const parsed = JSON.parse(localRaw);
+            if (parsed && typeof parsed.id === 'string' && parsed.id.startsWith('demo_')) {
+              setCurrentUser(parsed);
+              return;
+            }
+          } catch {}
+        }
         setCurrentUser(null);
         localStorage.removeItem('krishakarya_user');
       }
@@ -625,6 +661,7 @@ export default function App() {
             setIsAddListingOpen(true);
           }
         }}
+        onOpenInbox={() => setIsInboxOpen(true)}
         onLogout={handleLogout}
         bookingCount={myBookings.length}
       />
@@ -647,6 +684,7 @@ export default function App() {
             onAddLedgerEntry={handleAddLedgerEntry}
             onDeleteLedgerEntry={handleDeleteLedgerEntry}
             onSyncBookingsToLedger={handleSyncBookingsToLedger}
+            onOpenInboxWithPrompt={handleOpenInboxWithAi}
           />
         )}
 
@@ -701,6 +739,13 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'modern-farming' && (
+          <ModernFarmingQA
+            currentUser={currentUser}
+            onOpenInboxWithAi={handleOpenInboxWithAi}
+          />
+        )}
+
         {activeTab === 'terms' && <TermsModal />}
       </main>
 
@@ -711,6 +756,17 @@ export default function App() {
           if (!currentUser) handleOpenAuthModal('login');
           else setIsAddListingOpen(true);
         }}
+      />
+
+      {/* Global Inbox Modal (Accessible with preset AI prompts) */}
+      <InboxModal
+        isOpen={isInboxOpen}
+        onClose={() => {
+          setIsInboxOpen(false);
+          setInboxPresetPrompt(null);
+        }}
+        currentUser={currentUser}
+        presetPrompt={inboxPresetPrompt}
       />
 
       {/* Auth Modal */}

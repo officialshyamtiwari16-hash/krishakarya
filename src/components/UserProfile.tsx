@@ -126,6 +126,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
   const [profileSaveError, setProfileSaveError] = useState('');
 
+  // Confirmation Modals
+  const [isConfirmingDisable2FA, setIsConfirmingDisable2FA] = useState(false);
+  const [sahyogiToDelete, setSahyogiToDelete] = useState<Sahyogi | null>(null);
+  const [machineToDelete, setMachineToDelete] = useState<Machinery | null>(null);
+
   // Keep state in sync if currentUser changes
   useEffect(() => {
     if (currentUser) {
@@ -362,9 +367,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   const handleDisable2FA = async () => {
-    if (!window.confirm('Are you sure you want to disable 2-Step Verification?')) {
-      return;
-    }
     try {
       const updatedUser: User = {
         ...currentUser!,
@@ -374,9 +376,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       onUpdateUser(updatedUser);
       setTwoFactorEnabled(false);
       setTwoFactorStep('idle');
-      setSecuritySuccess('2-Step Verification disabled.');
+      setIsConfirmingDisable2FA(false);
+      setSecuritySuccess('2-Step Verification disabled successfully.');
     } catch (err: any) {
       setSecurityError('Failed to disable 2-Step Verification.');
+      setIsConfirmingDisable2FA(false);
     }
   };
 
@@ -944,7 +948,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                         2FA Active via {twoFactorMethod.toUpperCase()}
                       </span>
                       <button
-                        onClick={handleDisable2FA}
+                        onClick={() => setIsConfirmingDisable2FA(true)}
                         className="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:underline cursor-pointer"
                       >
                         Disable 2FA
@@ -996,10 +1000,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                         </button>
                         {onDeleteSahyogi && (
                           <button
-                            onClick={() => {
-                              if (window.confirm('Delete this Sahyogi listing?')) onDeleteSahyogi(s.id);
-                            }}
-                            className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg"
+                            onClick={() => setSahyogiToDelete(s)}
+                            className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                            title="Delete Sahyogi"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1038,10 +1041,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                         </button>
                         {onDeleteMachinery && (
                           <button
-                            onClick={() => {
-                              if (window.confirm('Delete this Machinery listing?')) onDeleteMachinery(m.id);
-                            }}
-                            className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg"
+                            onClick={() => setMachineToDelete(m)}
+                            className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                            title="Delete Machinery"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1054,6 +1056,147 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Disable 2FA Modal */}
+      {isConfirmingDisable2FA && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2 text-rose-600">
+                <Shield className="w-5 h-5" />
+                <h4 className="font-black text-slate-900 text-sm">Disable 2FA Protection</h4>
+              </div>
+              <button
+                onClick={() => setIsConfirmingDisable2FA(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              Are you sure you want to disable 2-Step Verification on your account? This lowers the sign-in security level.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsConfirmingDisable2FA(false)}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Keep 2FA Active
+              </button>
+              <button
+                type="button"
+                onClick={handleDisable2FA}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Disable 2FA
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Delete Sahyogi Modal */}
+      {sahyogiToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2 text-rose-600">
+                <Trash2 className="w-5 h-5" />
+                <h4 className="font-black text-slate-900 text-sm">Delete Sahyogi Listing</h4>
+              </div>
+              <button
+                onClick={() => setSahyogiToDelete(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              Are you sure you want to remove the Sahyogi profile listing for <strong className="text-slate-900">"{sahyogiToDelete.name}"</strong>?
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setSahyogiToDelete(null)}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onDeleteSahyogi) onDeleteSahyogi(sahyogiToDelete.id);
+                  setSahyogiToDelete(null);
+                }}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Delete Machinery Modal */}
+      {machineToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2 text-rose-600">
+                <Trash2 className="w-5 h-5" />
+                <h4 className="font-black text-slate-900 text-sm">Delete Machinery Listing</h4>
+              </div>
+              <button
+                onClick={() => setMachineToDelete(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              Are you sure you want to remove the machinery listing <strong className="text-slate-900">"{machineToDelete.title}"</strong>?
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setMachineToDelete(null)}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onDeleteMachinery) onDeleteMachinery(machineToDelete.id);
+                  setMachineToDelete(null);
+                }}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

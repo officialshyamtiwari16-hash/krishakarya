@@ -10,8 +10,10 @@ import {
   ChevronDown, 
   MessageSquare, 
   Share2, 
-  Check,
-  Bell
+  Check, 
+  Bell,
+  Sparkles,
+  Bot
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
@@ -20,11 +22,12 @@ import { KrishakaryaLogo } from './KrishakaryaLogo';
 import { isNotificationPermissionGranted } from '../lib/notificationService';
 
 interface HeaderProps {
-  activeTab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms';
-  setActiveTab: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms') => void;
+  activeTab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming';
+  setActiveTab: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming') => void;
   currentUser: User | null;
   onOpenAuth: () => void;
   onOpenAddListing: () => void;
+  onOpenInbox?: () => void;
   onLogout: () => void;
   bookingCount: number;
 }
@@ -35,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onOpenAuth,
   onOpenAddListing,
+  onOpenInbox,
   onLogout,
   bookingCount,
 }) => {
@@ -44,6 +48,14 @@ export const Header: React.FC<HeaderProps> = ({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [hasNotifPermission, setHasNotifPermission] = useState(false);
+
+  const handleTriggerInbox = () => {
+    if (onOpenInbox) {
+      onOpenInbox();
+    } else {
+      setIsInboxOpen(true);
+    }
+  };
 
   useEffect(() => {
     setHasNotifPermission(isNotificationPermissionGranted());
@@ -307,12 +319,32 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
 
               <button
-                onClick={() => setIsInboxOpen(true)}
+                onClick={() => {
+                  setActiveTab('modern-farming');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap ${
+                  activeTab === 'modern-farming'
+                    ? 'bg-gradient-to-r from-emerald-800 to-teal-800 text-amber-300 shadow-xs border border-amber-400/40'
+                    : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+                <span>Modern Farming Q&A</span>
+              </button>
+
+              <button
+                onClick={handleTriggerInbox}
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60"
-                title="Message Inbox"
+                title="Message Inbox & Krishak A.I"
               >
                 <MessageSquare className="w-4 h-4 text-emerald-700" />
-                <span>Inbox</span>
+                <span className="flex items-center gap-1">
+                  Inbox
+                  <span className="px-1.5 py-0.2 bg-emerald-600 text-white text-[9px] font-black rounded-md">
+                    AI
+                  </span>
+                </span>
               </button>
 
               <button
@@ -339,12 +371,14 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </header>
 
-      {/* Message Inbox Modal */}
-      <InboxModal
-        isOpen={isInboxOpen}
-        onClose={() => setIsInboxOpen(false)}
-        currentUser={currentUser}
-      />
+      {/* Message Inbox Modal (Fallback if not mounted at root) */}
+      {!onOpenInbox && (
+        <InboxModal
+          isOpen={isInboxOpen}
+          onClose={() => setIsInboxOpen(false)}
+          currentUser={currentUser}
+        />
+      )}
 
       {/* Notification Modal */}
       <NotificationModal
@@ -393,7 +427,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Inbox Option Right of Rent Machinery */}
           <button
-            onClick={() => setIsInboxOpen(true)}
+            onClick={handleTriggerInbox}
             className="flex flex-col items-center justify-center py-1.5 rounded-xl transition-all min-h-[48px] text-slate-600 font-semibold hover:bg-slate-50 relative"
           >
             <MessageSquare className="w-5 h-5 text-emerald-700" />

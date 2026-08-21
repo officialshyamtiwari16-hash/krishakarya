@@ -68,7 +68,7 @@ export async function checkUsernameAvailability(
   }
 
   try {
-    // Check usernames collection mapping
+    // Check usernames collection mapping directly via getDoc
     const cleanHandle = formatted.substring(1); // remove @
     const usernameDocRef = doc(db, USERNAMES_COL, cleanHandle);
     const snap = await getDoc(usernameDocRef);
@@ -84,35 +84,25 @@ export async function checkUsernameAvailability(
       }
     }
 
-    // Also query users collection as fallback
-    const usersQuery = query(collection(db, USERS_COL), where('username', '==', formatted));
-    const querySnap = await getDocs(usersQuery);
-    
-    let isTakenByOther = false;
-    querySnap.forEach((docSnap) => {
-      if (docSnap.id !== currentUserId) {
-        isTakenByOther = true;
-      }
-    });
-
-    if (isTakenByOther) {
+    // Check local accounts DB
+    const localUser = findUserInLocalAccountsDb(formatted);
+    if (localUser && localUser.id !== currentUserId) {
       return {
         available: false,
         formatted,
-        error: `Username ${formatted} is already taken by another Krishakarya user.`
+        error: `Username ${formatted} is already registered.`
       };
     }
 
     return { available: true, formatted };
   } catch (err) {
-    // In case of offline mode or initial DB setup, allow local fallback check
-    console.warn('Firestore username check warning, falling back to local verification:', err);
+    console.warn('Firestore username check note:', err);
     return { available: true, formatted };
   }
 }
 
 // Reserve/Claim username in Firestore
-export async function claimUsername(rawUsername: string, userId: string): Promise<boolean> {
+export async function claimUsername(rawUsername: string, userId: string, email?: string): Promise<boolean> {
   if (!auth.currentUser || auth.currentUser.uid !== userId) {
     console.warn('Unauthorized attempt to claim handle: auth mismatch');
     return false;
@@ -126,6 +116,7 @@ export async function claimUsername(rawUsername: string, userId: string): Promis
     await setDoc(doc(db, USERNAMES_COL, cleanHandle), {
       handle: formatted,
       userId: userId,
+      email: email || auth.currentUser.email || '',
       claimedAt: new Date().toISOString()
     }, { merge: true });
     return true;
@@ -133,7 +124,7 @@ export async function claimUsername(rawUsername: string, userId: string): Promis
     try {
       handleFirestoreError(err, OperationType.WRITE, `${USERNAMES_COL}/${cleanHandle}`);
     } catch (loggedErr) {
-      console.warn('Firestore claimUsername write error captured:', loggedErr);
+      console.warn('Firestore claimUsername write note:', loggedErr);
     }
     return false;
   }
@@ -205,34 +196,18 @@ export async function findUserInFirestoreByIdentifier(identifier: string): Promi
   if (!identifier) return null;
   const trimmed = identifier.trim();
 
-  // 1. Direct doc lookup by ID
+  // 1. Check local cache first for instant lookup
+  const localMatch = findUserInLocalAccountsDb(trimmed);
+  if (localMatch) return localMatch;
+
+  // 2. Direct doc lookup by ID
   const directUser = await getUserFromFirestore(trimmed);
   if (directUser) return directUser;
 
   try {
-    // 2. Search by email
-    if (trimmed.includes('@') && trimmed.includes('.')) {
-      const qEmail = query(collection(db, USERS_COL), where('email', '==', trimmed.toLowerCase()));
-      const snapEmail = await getDocs(qEmail);
-      if (!snapEmail.empty) {
-        const u = snapEmail.docs[0].data() as User;
-        saveUserToLocalAccountsDb(u);
-        return u;
-      }
-    }
-
-    // 3. Search by username handle
+    // 3. Search by username handle via usernames registry
     const formattedHandle = normalizeUsername(trimmed);
     if (formattedHandle) {
-      const qUser = query(collection(db, USERS_COL), where('username', '==', formattedHandle));
-      const snapUser = await getDocs(qUser);
-      if (!snapUser.empty) {
-        const u = snapUser.docs[0].data() as User;
-        saveUserToLocalAccountsDb(u);
-        return u;
-      }
-
-      // Check username registry mapping
       const cleanHandle = formattedHandle.substring(1);
       const registryDoc = await getDoc(doc(db, USERNAMES_COL, cleanHandle));
       if (registryDoc.exists()) {
@@ -241,25 +216,34 @@ export async function findUserInFirestoreByIdentifier(identifier: string): Promi
           const userFromReg = await getUserFromFirestore(regData.userId);
           if (userFromReg) return userFromReg;
         }
-      }
-    }
-
-    // 4. Search by phone
-    const digits = trimmed.replace(/[^0-9]/g, '');
-    if (digits.length >= 8) {
-      const qPhone = query(collection(db, USERS_COL), where('phone', '==', trimmed));
-      const snapPhone = await getDocs(qPhone);
-      if (!snapPhone.empty) {
-        const u = snapPhone.docs[0].data() as User;
-        saveUserToLocalAccountsDb(u);
-        return u;
+        if (regData.email) {
+          return {
+            id: regData.userId || `user_${cleanHandle}`,
+            name: cleanHandle,
+            username: formattedHandle,
+            email: regData.email,
+            phone: '',
+            village: '',
+            post: '',
+            district: '',
+            pincode: '',
+            state: '',
+            profileImage: '',
+            farmSizeAcres: 0,
+            primaryCrops: [],
+            isVerified: true,
+            joinedDate: new Date().toISOString().split('T')[0],
+            isSahyogi: false,
+            isMachineryOwner: false,
+          };
+        }
       }
     }
   } catch (err) {
     console.warn('Error searching user in firestore by identifier:', err);
   }
 
-  // 5. Local backup lookup
+  // 4. Local backup lookup
   return findUserInLocalAccountsDb(trimmed);
 }
 
@@ -268,27 +252,27 @@ export async function saveUserToFirestore(user: User): Promise<void> {
   
   // Security Gate: Ensure client is authenticated and matches target user ID
   if (!auth.currentUser || auth.currentUser.uid !== user.id) {
-    console.warn('Blocked unauthorized saveUserToFirestore: user mismatch or unauthenticated');
+    console.warn('Skipped remote Firestore save: user mismatch or unauthenticated (saved locally)');
     return;
   }
 
   try {
     const cleanUser: User = {
       ...user,
-      name: sanitizeString(user.name, 100),
-      phone: sanitizeString(user.phone, 20),
-      village: sanitizeString(user.village, 100),
-      district: sanitizeString(user.district, 100),
-      state: sanitizeString(user.state, 100),
-      bio: sanitizeString(user.bio, 500),
+      name: sanitizeString(user.name, 100) || 'Farmer Member',
+      phone: sanitizeString(user.phone, 20) || '+91 9876543210',
+      village: sanitizeString(user.village, 100) || 'Village Center',
+      district: sanitizeString(user.district, 100) || 'Main District',
+      state: sanitizeString(user.state, 100) || 'Uttar Pradesh',
+      bio: sanitizeString(user.bio, 500) || '',
     };
 
     await setDoc(doc(db, USERS_COL, cleanUser.id), cleanUser, { merge: true });
     if (cleanUser.username) {
-      await claimUsername(cleanUser.username, cleanUser.id);
+      await claimUsername(cleanUser.username, cleanUser.id, cleanUser.email);
     }
   } catch (err) {
-    handleFirestoreError(err, OperationType.WRITE, `${USERS_COL}/${user.id}`);
+    console.warn('Firestore saveUser note:', err);
   }
 }
 

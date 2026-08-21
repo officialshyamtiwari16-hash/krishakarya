@@ -6,13 +6,14 @@ import {
   Tractor, 
   PlusCircle, 
   Calculator, 
-  User as UserIcon,
+  User as UserIcon, 
   ArrowRight, 
   Sparkles,
   Share2,
   Check,
   MessageSquare,
-  BookOpen
+  BookOpen,
+  Bot
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
@@ -20,6 +21,7 @@ import { SeedCalculatorModal } from './SeedCalculatorModal';
 import { LedgerModal } from './LedgerModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
 import { AnimatedCounter } from './AnimatedCounter';
+import { LocalWeatherWidget } from './LocalWeatherWidget';
 
 interface HomePageProps {
   currentUser: User | null;
@@ -27,8 +29,9 @@ interface HomePageProps {
   machineries: Machinery[];
   ledgerEntries?: LedgerEntry[];
   myBookings?: Booking[];
-  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile') => void;
+  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'modern-farming') => void;
   onOpenAddListing: () => void;
+  onOpenInboxWithPrompt?: (prompt?: string) => void;
   onAddToLedger?: (entry: any) => void;
   onAddLedgerEntry?: (entry: LedgerEntry) => void;
   onDeleteLedgerEntry?: (id: string) => void;
@@ -43,6 +46,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   myBookings = [],
   onNavigate,
   onOpenAddListing,
+  onOpenInboxWithPrompt,
   onAddToLedger,
   onAddLedgerEntry,
   onDeleteLedgerEntry,
@@ -51,6 +55,16 @@ export const HomePage: React.FC<HomePageProps> = ({
   const { t } = useLanguage();
   const [copiedLink, setCopiedLink] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [presetPrompt, setPresetPrompt] = useState<string | null>(null);
+
+  const handleOpenAiInbox = (promptText?: string) => {
+    if (onOpenInboxWithPrompt) {
+      onOpenInboxWithPrompt(promptText);
+    } else {
+      if (promptText) setPresetPrompt(promptText);
+      setIsInboxOpen(true);
+    }
+  };
 
   // Quick Tool Modals State
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -117,24 +131,84 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => onNavigate('sahyogi')}
-                className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[36px] btn-futuristic pulse-glow-cta cursor-pointer"
+                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[38px] btn-futuristic pulse-glow-cta cursor-pointer"
               >
                 <Users className="w-4 h-4 icon-micro-rotate" /> {t('hireSahyogi')}
               </button>
 
               <button
                 onClick={() => onNavigate('machinery')}
-                className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[36px] btn-futuristic cursor-pointer"
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[38px] btn-futuristic cursor-pointer"
               >
                 <Tractor className="w-4 h-4 text-amber-400 icon-micro-rotate" /> {t('rentMachinery')}
               </button>
+            </div>
+          </div>
 
-              <button
-                onClick={() => setIsInboxOpen(true)}
-                className="px-3.5 py-2 bg-emerald-600/90 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs border border-emerald-400/30 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[36px] shadow-sm btn-futuristic cursor-pointer"
-              >
-                <MessageSquare className="w-4 h-4 text-amber-300 icon-micro-rotate" /> Inbox
-              </button>
+          {/* Live Local Farm Weather Forecast & Activity Planning Widget (Positioned above Krishak A.I Inbox) */}
+          <div className="w-full">
+            <LocalWeatherWidget
+              currentUser={currentUser}
+              onAskAiWithPrompt={handleOpenAiInbox}
+            />
+          </div>
+
+          {/* Compact & Good-Looking Krishak A.I Inbox Banner (Down in the line) */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950/95 via-slate-900/90 to-teal-950/95 border border-emerald-500/30 hover:border-emerald-400/50 backdrop-blur-md p-3.5 sm:p-4 shadow-xl transition-all">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+              
+              {/* Left: Compact Bot Identity */}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative shrink-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-slate-950 font-black shadow-md border border-emerald-300/40">
+                    <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 animate-pulse" />
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full animate-ping opacity-75"></span>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full"></span>
+                </div>
+                
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-black text-sm sm:text-base text-white flex items-center gap-1.5 tracking-tight">
+                      Krishak A.I Inbox <span className="text-emerald-400 text-xs font-semibold">(कृषक ए.आई)</span>
+                    </h3>
+                    <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black rounded-full uppercase tracking-wider">
+                      24/7 Agro Advisory
+                    </span>
+                  </div>
+                  <p className="text-slate-300 text-xs mt-0.5 truncate">
+                    Ask pest diagnosis, fertilizer dose, seed rates, rental benchmarks & govt schemes.
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Quick Action Chips & Open Button */}
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                <div className="hidden lg:flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  {[
+                    { label: '🌾 Wheat Dosage', prompt: 'गेहूँ में नैनो यूरिया और डीएपी की सही खुराक व छिड़काव समय बताएं।' },
+                    { label: '🐛 Pest Control', prompt: 'फसल में पत्ती लपेटक कीट और पीलापन का तुरंत उपचार बताएं।' },
+                    { label: '🚜 Machinery Rates', prompt: 'ट्रैक्टर और कंबाइन हार्वेस्टर का प्रति एकड़ सही किराया क्या है?' },
+                  ].map((chip, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleOpenAiInbox(chip.prompt)}
+                      className="px-2.5 py-1 bg-white/5 hover:bg-emerald-500/20 text-emerald-200 hover:text-white border border-emerald-500/20 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handleOpenAiInbox()}
+                  className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <MessageSquare className="w-4 h-4 fill-slate-950/20" />
+                  <span>Open Krishak A.I Inbox</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -262,7 +336,33 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </div>
               </button>
 
-              {/* Tool 6: User Profile & Details */}
+              {/* Tool 6: Krishak A.I & Modern Farming */}
+              <button
+                onClick={() => onNavigate('modern-farming')}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-gradient-to-br from-emerald-950/90 to-slate-900/90 hover:from-emerald-900/90 hover:to-slate-900 backdrop-blur-md border border-amber-400/40 hover:border-amber-400 transition-all shadow-md"
+              >
+                <div className="p-2.5 bg-amber-400/20 text-amber-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-amber-400/40">
+                  <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-extrabold text-amber-300 text-xs sm:text-sm group-hover:text-amber-200 transition-colors">
+                      Modern Farming & AI
+                    </h3>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase">
+                      AI 24/7
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    Instant AI pest diagnosis, crop questions & fertilizer dosage.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 pt-0.5">
+                    Open Modern Farming Q&A <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+
+              {/* Tool 7: User Profile & Details */}
               <button
                 onClick={() => onNavigate('profile')}
                 className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
@@ -417,8 +517,12 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* Message Inbox Modal */}
       <InboxModal
         isOpen={isInboxOpen}
-        onClose={() => setIsInboxOpen(false)}
+        onClose={() => {
+          setIsInboxOpen(false);
+          setPresetPrompt(null);
+        }}
         currentUser={currentUser}
+        presetPrompt={presetPrompt}
       />
     </div>
   );

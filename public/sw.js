@@ -41,8 +41,8 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Ignore non-http requests or browser extensions
-  if (!url.protocol.startsWith('http')) return;
+  // Ignore non-http requests, browser extensions, or API routes
+  if (!url.protocol.startsWith('http') || url.pathname.startsWith('/api/')) return;
 
   const isNavigation = event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html');
 
