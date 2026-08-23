@@ -1,6 +1,6 @@
 {
   "name": "Krishakarya",
-  "description": "Agriculture platform for hiring Sahyogi labor, renting agricultural machinery and tools, managing digital ledger book, and ratings.",
+  "description": "Smart agriculture platform with AI Crop Health Assistant & disease diagnosis, Sahyogi farm labor hiring, agricultural machinery rentals, and digital Kisan Khatabook.",
   "requestFramePermissions": [
     "camera",
     "microphone",

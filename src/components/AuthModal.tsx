@@ -23,7 +23,6 @@ import {
   ChevronLeft,
   Tractor,
   Users,
-  Sparkles,
   MapPin
 } from 'lucide-react';
 import { 
@@ -49,85 +48,6 @@ interface AuthModalProps {
   onLoginSuccess: (user: User) => void;
   initialTab?: 'login' | 'signup' | 'forgot';
 }
-
-// Preset Demo Profiles for instant testing
-const DEMO_PROFILES: { title: string; subtitle: string; icon: string; user: User }[] = [
-  {
-    title: 'Farmer Ramesh Patel',
-    subtitle: '5.5 Acres • Wheat & Mustard • Barabanki UP',
-    icon: '🌾',
-    user: {
-      id: 'demo_farmer_ramesh',
-      name: 'Ramesh Patel',
-      username: '@ramesh_farmer',
-      email: 'ramesh.farmer@krishakarya.app',
-      phone: '+91 98765 43210',
-      village: 'Fatehpur Village',
-      post: 'Barabanki Post',
-      district: 'Barabanki',
-      pincode: '225001',
-      state: 'Uttar Pradesh',
-      profileImage: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
-      farmSizeAcres: 5.5,
-      primaryCrops: ['Wheat', 'Mustard', 'Paddy'],
-      isVerified: true,
-      joinedDate: '2024-01-15',
-      isSahyogi: false,
-      isMachineryOwner: false,
-      bio: 'Progressive organic farmer actively hiring skilled Sahyogis and renting modern harvesters.',
-    },
-  },
-  {
-    title: 'Sunil Kumar (Sahyogi)',
-    subtitle: 'Paddy & Wheat Harvester • Lucknow UP',
-    icon: '🧑‍🌾',
-    user: {
-      id: 'demo_sahyogi_sunil',
-      name: 'Sunil Kumar',
-      username: '@sunil_sahyogi',
-      email: 'sunil.sahyogi@krishakarya.app',
-      phone: '+91 94150 12345',
-      village: 'Mohanlalganj',
-      post: 'Gosainganj',
-      district: 'Lucknow',
-      pincode: '226501',
-      state: 'Uttar Pradesh',
-      profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
-      farmSizeAcres: 0,
-      primaryCrops: ['Wheat', 'Paddy', 'Vegetables'],
-      isVerified: true,
-      joinedDate: '2024-02-10',
-      isSahyogi: true,
-      isMachineryOwner: false,
-      bio: 'Experienced agricultural labor specialist with 8+ years expertise in sowing, pesticide spraying, and crop harvesting.',
-    },
-  },
-  {
-    title: 'Gurpreet Singh (Machinery Owner)',
-    subtitle: 'John Deere 5050D & Rotavator • Kanpur UP',
-    icon: '🚜',
-    user: {
-      id: 'demo_owner_gurpreet',
-      name: 'Gurpreet Singh',
-      username: '@gurpreet_machines',
-      email: 'gurpreet.machines@krishakarya.app',
-      phone: '+91 98140 88899',
-      village: 'Kalyanpur',
-      post: 'Bithoor Road',
-      district: 'Kanpur Nagar',
-      pincode: '208017',
-      state: 'Uttar Pradesh',
-      profileImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
-      farmSizeAcres: 12,
-      primaryCrops: ['Sugarcane', 'Wheat'],
-      isVerified: true,
-      joinedDate: '2023-11-05',
-      isSahyogi: false,
-      isMachineryOwner: true,
-      bio: 'Farm machinery owner providing affordable, high-efficiency tractor and combine harvester rentals.',
-    },
-  },
-];
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
@@ -326,27 +246,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsUsernameValid(true);
     } finally {
       setIsCheckingUsername(false);
-    }
-  };
-
-  // One-Click Demo Sign In Handler
-  const handleDemoSignIn = async (demoUser: User) => {
-    setIsLoading(true);
-    setErrorMessage('');
-    setSuccessMessage(`Logging in as ${demoUser.name}...`);
-    try {
-      await saveUserToFirestore(demoUser);
-      onLoginSuccess(demoUser);
-      setSuccessMessage('Logged in successfully!');
-      setTimeout(() => {
-        onClose();
-      }, 400);
-    } catch (err: any) {
-      console.warn('Demo login note:', err);
-      onLoginSuccess(demoUser);
-      onClose();
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -909,35 +808,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   )}
                 </button>
               </form>
-
-              {/* Quick One-Click Demo Profiles Section */}
-              <div className={`pt-3 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-extrabold uppercase text-slate-500 flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Quick Demo Test Logins
-                  </span>
-                  <span className="text-[10px] text-slate-400">Instant Access</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {DEMO_PROFILES.map((dp) => (
-                    <button
-                      key={dp.user.id}
-                      type="button"
-                      onClick={() => handleDemoSignIn(dp.user)}
-                      className={`p-2.5 rounded-xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
-                        isDark 
-                          ? 'bg-slate-800/80 border-slate-700 hover:border-emerald-500' 
-                          : 'bg-slate-50 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50'
-                      }`}
-                    >
-                      <div className="text-base mb-1">{dp.icon}</div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{dp.title}</p>
-                      <p className="text-[10px] text-slate-500 truncate">{dp.user.district}, {dp.user.state}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               <div className={`text-center pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
                 <p className="text-xs text-slate-500">

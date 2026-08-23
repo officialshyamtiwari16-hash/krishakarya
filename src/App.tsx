@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { 
   User, 
   Sahyogi, 
@@ -45,20 +45,47 @@ import { auth } from './lib/firebase';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomePage } from './components/HomePage';
-import { SahyogiListings } from './components/SahyogiListings';
-import { MachineryListings } from './components/MachineryListings';
-import { UserProfile } from './components/UserProfile';
-import { TermsModal } from './components/TermsModal';
-import { AuthModal } from './components/AuthModal';
-import { AddListingModal } from './components/AddListingModal';
-import { ModernFarmingQA } from './components/ModernFarmingQA';
-import { InboxModal } from './components/InboxModal';
+import { SEOHead } from './components/SEOHead';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { OfflineBanner } from './components/OfflineBanner';
+import { PageLoadingSkeleton } from './components/Skeletons';
+import { OtpVerificationModal } from './components/OtpVerificationModal';
+
+// Code-split route components for bundle optimization
+const SahyogiListings = lazy(() =>
+  import('./components/SahyogiListings').then((m) => ({ default: m.SahyogiListings }))
+);
+const MachineryListings = lazy(() =>
+  import('./components/MachineryListings').then((m) => ({ default: m.MachineryListings }))
+);
+const UserProfile = lazy(() =>
+  import('./components/UserProfile').then((m) => ({ default: m.UserProfile }))
+);
+const TermsModal = lazy(() =>
+  import('./components/TermsModal').then((m) => ({ default: m.TermsModal }))
+);
+const ModernFarmingQA = lazy(() =>
+  import('./components/ModernFarmingQA').then((m) => ({ default: m.ModernFarmingQA }))
+);
+const CropHealthAssistant = lazy(() =>
+  import('./components/CropHealthAssistant').then((m) => ({ default: m.CropHealthAssistant }))
+);
+const AuthModal = lazy(() =>
+  import('./components/AuthModal').then((m) => ({ default: m.AuthModal }))
+);
+const AddListingModal = lazy(() =>
+  import('./components/AddListingModal').then((m) => ({ default: m.AddListingModal }))
+);
+const InboxModal = lazy(() =>
+  import('./components/InboxModal').then((m) => ({ default: m.InboxModal }))
+);
 
 export default function App() {
-  // Navigation State: home, sahyogi, machinery, profile, terms, modern-farming
+  // Navigation State: home, sahyogi, machinery, profile, terms, modern-farming, crop-health
   const [activeTab, setActiveTab] = useState<
-    'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming'
+    'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health'
   >('home');
+
 
   // Application Data States (with LocalStorage fallback persistence)
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -331,17 +358,6 @@ export default function App() {
           console.warn('Firebase user sync note:', err);
         }
       } else {
-        // If unauthenticated on Firebase, check if user is in an active demo session
-        const localRaw = localStorage.getItem('krishakarya_user');
-        if (localRaw) {
-          try {
-            const parsed = JSON.parse(localRaw);
-            if (parsed && typeof parsed.id === 'string' && parsed.id.startsWith('demo_')) {
-              setCurrentUser(parsed);
-              return;
-            }
-          } catch {}
-        }
         setCurrentUser(null);
         localStorage.removeItem('krishakarya_user');
       }
@@ -648,6 +664,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen min-h-[100dvh] w-full flex flex-col font-sans bg-mesh-animated bg-grid-pattern text-slate-900 transition-colors duration-200 overflow-x-hidden">
+      {/* Route-Specific SEO Meta Manager */}
+      <SEOHead activeTab={activeTab} />
+
+      {/* Accessible Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-emerald-800 text-white font-extrabold px-4 py-2 rounded-xl z-50 shadow-xl focus-visible:ring-2 focus-visible:ring-emerald-400"
+      >
+        Skip to main content
+      </a>
+
+      {/* Offline & Slow Network Resilience Banner */}
+      <OfflineBanner />
+
       {/* Header Bar */}
       <Header
         activeTab={activeTab}
@@ -666,87 +696,100 @@ export default function App() {
         bookingCount={myBookings.length}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-5 py-4 pb-28 sm:pb-32 md:pb-8">
-        {activeTab === 'home' && (
-          <HomePage
-            currentUser={currentUser}
-            sahyogis={sahyogis}
-            machineries={machineries}
-            ledgerEntries={ledgerEntries}
-            myBookings={myBookings}
-            onNavigate={setActiveTab}
-            onOpenAddListing={() => {
-              if (!currentUser) setIsAuthOpen(true);
-              else setIsAddListingOpen(true);
-            }}
-            onAddToLedger={handleAddLedgerEntry}
-            onAddLedgerEntry={handleAddLedgerEntry}
-            onDeleteLedgerEntry={handleDeleteLedgerEntry}
-            onSyncBookingsToLedger={handleSyncBookingsToLedger}
-            onOpenInboxWithPrompt={handleOpenInboxWithAi}
-          />
-        )}
+      {/* Main Container with Error Boundary & Suspense */}
+      <main id="main-content" className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-5 py-4 pb-28 sm:pb-32 md:pb-8">
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoadingSkeleton message="Loading agricultural data & listings..." />}>
+            {activeTab === 'home' && (
+              <HomePage
+                currentUser={currentUser}
+                sahyogis={sahyogis}
+                machineries={machineries}
+                ledgerEntries={ledgerEntries}
+                myBookings={myBookings}
+                onNavigate={setActiveTab}
+                onOpenAddListing={() => {
+                  if (!currentUser) setIsAuthOpen(true);
+                  else setIsAddListingOpen(true);
+                }}
+                onAddToLedger={handleAddLedgerEntry}
+                onAddLedgerEntry={handleAddLedgerEntry}
+                onDeleteLedgerEntry={handleDeleteLedgerEntry}
+                onSyncBookingsToLedger={handleSyncBookingsToLedger}
+                onOpenInboxWithPrompt={handleOpenInboxWithAi}
+              />
+            )}
 
-        {activeTab === 'sahyogi' && (
-          <SahyogiListings
-            sahyogis={sahyogis}
-            currentUser={currentUser}
-            onOpenAuth={() => setIsAuthOpen(true)}
-            onBookSahyogi={handleBookSahyogi}
-            onAddReview={handleAddSahyogiReview}
-            onOpenAddListing={() => {
-              if (!currentUser) setIsAuthOpen(true);
-              else setIsAddListingOpen(true);
-            }}
-          />
-        )}
+            {activeTab === 'sahyogi' && (
+              <SahyogiListings
+                sahyogis={sahyogis}
+                currentUser={currentUser}
+                onOpenAuth={() => setIsAuthOpen(true)}
+                onBookSahyogi={handleBookSahyogi}
+                onAddReview={handleAddSahyogiReview}
+                onOpenAddListing={() => {
+                  if (!currentUser) setIsAuthOpen(true);
+                  else setIsAddListingOpen(true);
+                }}
+              />
+            )}
 
-        {activeTab === 'machinery' && (
-          <MachineryListings
-            machineries={machineries}
-            currentUser={currentUser}
-            onOpenAuth={() => setIsAuthOpen(true)}
-            onBookMachinery={handleBookMachinery}
-            onAddReview={handleAddMachineryReview}
-            onOpenAddListing={() => {
-              if (!currentUser) setIsAuthOpen(true);
-              else setIsAddListingOpen(true);
-            }}
-          />
-        )}
+            {activeTab === 'machinery' && (
+              <MachineryListings
+                machineries={machineries}
+                currentUser={currentUser}
+                onOpenAuth={() => setIsAuthOpen(true)}
+                onBookMachinery={handleBookMachinery}
+                onAddReview={handleAddMachineryReview}
+                onOpenAddListing={() => {
+                  if (!currentUser) setIsAuthOpen(true);
+                  else setIsAddListingOpen(true);
+                }}
+              />
+            )}
 
-        {activeTab === 'profile' && (
-          <UserProfile
-            currentUser={currentUser}
-            onUpdateUser={setCurrentUser}
-            onLoginSuccess={handleLoginSuccess}
-            onLogout={handleLogout}
-            onOpenAuthModal={handleOpenAuthModal}
-            myBookings={myBookings}
-            onUpdateBookingStatus={handleUpdateBookingStatus}
-            sahyogis={sahyogis}
-            machineries={machineries}
-            ledgerEntries={ledgerEntries}
-            onAddLedgerEntry={handleAddLedgerEntry}
-            onDeleteLedgerEntry={handleDeleteLedgerEntry}
-            onSyncBookingsToLedger={handleSyncBookingsToLedger}
-            onUpdateSahyogi={handleUpdateSahyogi}
-            onUpdateMachinery={handleUpdateMachinery}
-            onDeleteSahyogi={handleDeleteSahyogi}
-            onDeleteMachinery={handleDeleteMachinery}
-            onNavigate={setActiveTab}
-          />
-        )}
+            {activeTab === 'profile' && (
+              <UserProfile
+                currentUser={currentUser}
+                onUpdateUser={setCurrentUser}
+                onLoginSuccess={handleLoginSuccess}
+                onLogout={handleLogout}
+                onOpenAuthModal={handleOpenAuthModal}
+                myBookings={myBookings}
+                onUpdateBookingStatus={handleUpdateBookingStatus}
+                sahyogis={sahyogis}
+                machineries={machineries}
+                ledgerEntries={ledgerEntries}
+                onAddLedgerEntry={handleAddLedgerEntry}
+                onDeleteLedgerEntry={handleDeleteLedgerEntry}
+                onSyncBookingsToLedger={handleSyncBookingsToLedger}
+                onUpdateSahyogi={handleUpdateSahyogi}
+                onUpdateMachinery={handleUpdateMachinery}
+                onDeleteSahyogi={handleDeleteSahyogi}
+                onDeleteMachinery={handleDeleteMachinery}
+                onNavigate={setActiveTab}
+              />
+            )}
 
-        {activeTab === 'modern-farming' && (
-          <ModernFarmingQA
-            currentUser={currentUser}
-            onOpenInboxWithAi={handleOpenInboxWithAi}
-          />
-        )}
+            {activeTab === 'modern-farming' && (
+              <ModernFarmingQA
+                currentUser={currentUser}
+                onOpenInboxWithAi={handleOpenInboxWithAi}
+              />
+            )}
 
-        {activeTab === 'terms' && <TermsModal />}
+            {activeTab === 'crop-health' && (
+              <CropHealthAssistant
+                currentUser={currentUser}
+                onNavigate={setActiveTab}
+                onOpenInboxWithPrompt={handleOpenInboxWithAi}
+                onAddToLedger={handleAddLedgerEntry}
+              />
+            )}
+
+            {activeTab === 'terms' && <TermsModal />}
+          </Suspense>
+        </ErrorBoundary>
       </main>
 
       {/* Footer */}
@@ -759,34 +802,40 @@ export default function App() {
       />
 
       {/* Global Inbox Modal (Accessible with preset AI prompts) */}
-      <InboxModal
-        isOpen={isInboxOpen}
-        onClose={() => {
-          setIsInboxOpen(false);
-          setInboxPresetPrompt(null);
-        }}
-        currentUser={currentUser}
-        presetPrompt={inboxPresetPrompt}
-      />
+      <Suspense fallback={null}>
+        <InboxModal
+          isOpen={isInboxOpen}
+          onClose={() => {
+            setIsInboxOpen(false);
+            setInboxPresetPrompt(null);
+          }}
+          currentUser={currentUser}
+          presetPrompt={inboxPresetPrompt}
+        />
+      </Suspense>
 
       {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        currentUser={currentUser}
-        onLoginSuccess={handleLoginSuccess}
-        initialTab={authModalTab}
-      />
+      <Suspense fallback={null}>
+        <AuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          currentUser={currentUser}
+          onLoginSuccess={handleLoginSuccess}
+          initialTab={authModalTab}
+        />
+      </Suspense>
 
       {/* Add Listing Modal */}
-      <AddListingModal
-        isOpen={isAddListingOpen}
-        onClose={() => setIsAddListingOpen(false)}
-        currentUser={currentUser}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onAddSahyogi={handleAddSahyogiListing}
-        onAddMachinery={handleAddMachineryListing}
-      />
+      <Suspense fallback={null}>
+        <AddListingModal
+          isOpen={isAddListingOpen}
+          onClose={() => setIsAddListingOpen(false)}
+          currentUser={currentUser}
+          onOpenAuth={() => setIsAuthOpen(true)}
+          onAddSahyogi={handleAddSahyogiListing}
+          onAddMachinery={handleAddMachineryListing}
+        />
+      </Suspense>
 
       {/* Real-time Notification Toast Banner */}
       <NotificationToast

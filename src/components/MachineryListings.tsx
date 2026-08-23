@@ -15,6 +15,11 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { AnimatedCounter } from './AnimatedCounter';
+import { ReviewModal } from './ReviewModal';
+import { EmptyState } from './EmptyState';
+import { CardSkeleton } from './Skeletons';
+import { sanitizeString } from '../lib/validation';
+import { rateLimiter } from '../lib/rateLimit';
 
 interface MachineryListingsProps {
   machineries: Machinery[];
@@ -315,23 +320,20 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
 
       {/* Grid of Machinery Cards */}
       {filteredMachinery.length === 0 ? (
-        <div className="glass-panel rounded-2xl p-8 text-center space-y-4">
-          <div className="w-16 h-16 bg-amber-50 text-amber-700 rounded-full flex items-center justify-center mx-auto">
-            <Tractor className="w-8 h-8 icon-micro-rotate" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-slate-900">No Machinery Listed for Rent Yet</h3>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Be the first to list your tractor, rotavator, harvester, or spray drone for rent to earn income from local farmers.
-            </p>
-          </div>
-          <button
-            onClick={onOpenAddListing}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-2 shadow-sm btn-futuristic cursor-pointer"
-          >
-            <Plus className="w-4 h-4" /> List Machinery for Rent
-          </button>
-        </div>
+        <EmptyState
+          icon={<Tractor className="w-8 h-8 text-emerald-800" />}
+          title="No Farm Machinery Found In This Location"
+          description="Try broadening your district or category filter, or list your tractor or farm equipment to start earning rental income."
+          actionText="Reset All Filters"
+          onAction={() => {
+            setSearchTerm('');
+            setSelectedCategory('All');
+            setSelectedDistrict('All');
+            setMaxRate(12000);
+          }}
+          secondaryActionText="List Machine for Rent"
+          onSecondaryAction={onOpenAddListing}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMachinery.map((machine, index) => (
@@ -348,7 +350,9 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
                   <div className="w-full h-40 bg-slate-100 overflow-hidden relative border-b border-slate-100">
                     <img
                       src={machine.image}
-                      alt={machine.title}
+                      alt={`${machine.title} - ${machine.brandModel || 'Agricultural Equipment'}`}
+                      loading="lazy"
+                      decoding="async"
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

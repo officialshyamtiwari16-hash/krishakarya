@@ -13,7 +13,9 @@ import {
   Check, 
   Bell,
   Sparkles,
-  Bot
+  Bot,
+  Leaf,
+  Camera
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
@@ -22,8 +24,8 @@ import { KrishakaryaLogo } from './KrishakaryaLogo';
 import { isNotificationPermissionGranted } from '../lib/notificationService';
 
 interface HeaderProps {
-  activeTab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming';
-  setActiveTab: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming') => void;
+  activeTab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health';
+  setActiveTab: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health') => void;
   currentUser: User | null;
   onOpenAuth: () => void;
   onOpenAddListing: () => void;
@@ -31,6 +33,7 @@ interface HeaderProps {
   onLogout: () => void;
   bookingCount: number;
 }
+
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
@@ -316,6 +319,27 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <Tractor className="w-4 h-4" />
                 <span>{t('navMachinery')}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('crop-health');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap ${
+                  activeTab === 'crop-health'
+                    ? 'bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-amber-300 shadow-xs border border-amber-400/40'
+                    : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60'
+                }`}
+                title="Crop Health Assistant - Photo & Camera AI Diagnosis"
+              >
+                <Camera className="w-4 h-4 text-emerald-600" />
+                <span className="flex items-center gap-1">
+                  Crop Health
+                  <span className="px-1.5 py-0.2 bg-amber-500/20 text-emerald-900 border border-emerald-500/30 text-[9px] font-black rounded-md">
+                    AI
+                  </span>
+                </span>
               </button>
 
               <button

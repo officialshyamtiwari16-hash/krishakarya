@@ -13,7 +13,9 @@ import {
   Check,
   MessageSquare,
   BookOpen,
-  Bot
+  Bot,
+  Camera,
+  Leaf
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
@@ -29,7 +31,7 @@ interface HomePageProps {
   machineries: Machinery[];
   ledgerEntries?: LedgerEntry[];
   myBookings?: Booking[];
-  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'modern-farming') => void;
+  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'modern-farming' | 'crop-health') => void;
   onOpenAddListing: () => void;
   onOpenInboxWithPrompt?: (prompt?: string) => void;
   onAddToLedger?: (entry: any) => void;
@@ -37,6 +39,7 @@ interface HomePageProps {
   onDeleteLedgerEntry?: (id: string) => void;
   onSyncBookingsToLedger?: () => void;
 }
+
 
 export const HomePage: React.FC<HomePageProps> = ({
   currentUser,
@@ -130,8 +133,16 @@ export const HomePage: React.FC<HomePageProps> = ({
 
             <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:flex-nowrap">
               <button
+                onClick={() => onNavigate('crop-health')}
+                className="px-4 py-2 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-300 hover:from-emerald-300 hover:to-teal-200 text-slate-950 font-black rounded-xl text-xs shadow-lg transition-all flex items-center gap-1.5 min-h-[38px] btn-futuristic pulse-glow-cta cursor-pointer ring-2 ring-emerald-400/40"
+              >
+                <Camera className="w-4 h-4 text-slate-950 icon-micro-rotate" />
+                <span>Crop Health AI</span>
+              </button>
+
+              <button
                 onClick={() => onNavigate('sahyogi')}
-                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[38px] btn-futuristic pulse-glow-cta cursor-pointer"
+                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[38px] btn-futuristic cursor-pointer"
               >
                 <Users className="w-4 h-4 icon-micro-rotate" /> {t('hireSahyogi')}
               </button>
@@ -226,6 +237,32 @@ export const HomePage: React.FC<HomePageProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {/* Tool 0: AI Crop Health Assistant & Photo Diagnostic */}
+              <button
+                onClick={() => onNavigate('crop-health')}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-gradient-to-br from-emerald-950/95 via-teal-950/90 to-slate-900/90 hover:from-emerald-900/95 hover:to-slate-900 backdrop-blur-md border border-emerald-400/50 hover:border-emerald-300 transition-all shadow-lg ring-1 ring-emerald-500/30"
+              >
+                <div className="p-2.5 bg-emerald-500/30 text-emerald-200 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-400/40">
+                  <Camera className="w-5 h-5 text-emerald-300 animate-pulse" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-black text-emerald-300 text-xs sm:text-sm group-hover:text-emerald-200 transition-colors">
+                      Crop Health Assistant
+                    </h3>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase">
+                      New AI
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    Take/upload crop photo for instant AI disease diagnosis & dosages.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 pt-0.5">
+                    Scan Crop Health <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+
               {/* Tool 1: Find Sahyogi */}
               <button
                 onClick={() => onNavigate('sahyogi')}

@@ -15,6 +15,11 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { AnimatedCounter } from './AnimatedCounter';
+import { ReviewModal } from './ReviewModal';
+import { EmptyState } from './EmptyState';
+import { CardSkeleton } from './Skeletons';
+import { sanitizeString } from '../lib/validation';
+import { rateLimiter } from '../lib/rateLimit';
 
 interface SahyogiListingsProps {
   sahyogis: Sahyogi[];
@@ -303,23 +308,20 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
 
       {/* Sahyogi Cards Grid */}
       {filteredSahyogis.length === 0 ? (
-        <div className="glass-panel rounded-2xl p-8 text-center space-y-4">
-          <div className="w-16 h-16 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
-            <Users className="w-8 h-8 icon-micro-rotate" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-slate-900">No Sahyogi Helpers Registered Yet</h3>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Be the first to list yourself or your team as a Sahyogi worker to offer agricultural labor services to local farmers.
-            </p>
-          </div>
-          <button
-            onClick={onOpenAddListing}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-2 shadow-sm btn-futuristic cursor-pointer"
-          >
-            <Plus className="w-4 h-4" /> Register as a Sahyogi Helper
-          </button>
-        </div>
+        <EmptyState
+          icon={<Users className="w-8 h-8 text-emerald-800" />}
+          title="No Sahyogi Helpers Found Near This Location"
+          description="Try broadening your district or skill search filter, or register as a Sahyogi worker to offer agricultural labor services to local farmers."
+          actionText="Reset All Filters"
+          onAction={() => {
+            setSearchTerm('');
+            setSelectedSkill('All');
+            setSelectedDistrict('All');
+            setMaxRate(1500);
+          }}
+          secondaryActionText="Register as Sahyogi"
+          onSecondaryAction={onOpenAddListing}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredSahyogis.map((sahyogi, index) => (

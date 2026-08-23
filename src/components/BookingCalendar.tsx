@@ -18,7 +18,13 @@ import {
   X, 
   Info,
   CalendarDays,
-  ListFilter
+  ListFilter,
+  Sparkles,
+  Users,
+  Layers,
+  ArrowRight,
+  TrendingUp,
+  RotateCcw
 } from 'lucide-react';
 import { Booking, BookingStatus, User as UserType } from '../types';
 import { AnimatedCounter } from './AnimatedCounter';
@@ -65,6 +71,8 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     return formatLocalDate(new Date());
   });
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'All'>('All');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'sahyogi' | 'machinery'>('all');
+  const [onlyUpcoming, setOnlyUpcoming] = useState<boolean>(false);
   const [roleFilter, setRoleFilter] = useState<'all' | 'renter' | 'owner'>('all');
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
 
@@ -99,6 +107,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   ];
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const todayStr = formatLocalDate(new Date());
 
   // Filter Bookings
   const filteredBookings = useMemo(() => {
@@ -108,11 +117,21 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
         if (roleFilter === 'renter' && b.renterId !== currentUser.id) return false;
         if (roleFilter === 'owner' && b.ownerId !== currentUser.id) return false;
       }
+      // Type filter (Labor vs Machinery)
+      if (typeFilter !== 'all' && b.type !== typeFilter) return false;
+
       // Status filter
       if (statusFilter !== 'All' && b.status !== statusFilter) return false;
+
+      // Upcoming only filter (end date or start date >= today)
+      if (onlyUpcoming) {
+        const endDateStr = b.endDate || b.startDate;
+        if (endDateStr < todayStr) return false;
+      }
+
       return true;
     });
-  }, [bookings, roleFilter, statusFilter, currentUser]);
+  }, [bookings, roleFilter, typeFilter, statusFilter, onlyUpcoming, currentUser, todayStr]);
 
   // Map of date string 'YYYY-MM-DD' -> Booking[]
   const bookingsByDate = useMemo(() => {
@@ -154,22 +173,27 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       dateStr: string;
       isCurrentMonth: boolean;
       isToday: boolean;
+      isUpcoming: boolean;
       bookings: Booking[];
+      laborCount: number;
+      machineryCount: number;
     }> = [];
-
-    const todayStr = formatLocalDate(new Date());
 
     // Leading days from previous month
     for (let i = firstDayOfMonth - 1; i >= 0; i--) {
       const d = daysInPrevMonth - i;
       const prevDate = new Date(year, month - 1, d);
       const dateStr = formatLocalDate(prevDate);
+      const dayBookings = bookingsByDate.get(dateStr) || [];
       days.push({
         dayNum: d,
         dateStr,
         isCurrentMonth: false,
         isToday: dateStr === todayStr,
-        bookings: bookingsByDate.get(dateStr) || []
+        isUpcoming: dateStr >= todayStr,
+        bookings: dayBookings,
+        laborCount: dayBookings.filter(b => b.type === 'sahyogi').length,
+        machineryCount: dayBookings.filter(b => b.type === 'machinery').length,
       });
     }
 
@@ -177,12 +201,16 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     for (let d = 1; d <= daysInCurrentMonth; d++) {
       const curDate = new Date(year, month, d);
       const dateStr = formatLocalDate(curDate);
+      const dayBookings = bookingsByDate.get(dateStr) || [];
       days.push({
         dayNum: d,
         dateStr,
         isCurrentMonth: true,
         isToday: dateStr === todayStr,
-        bookings: bookingsByDate.get(dateStr) || []
+        isUpcoming: dateStr >= todayStr,
+        bookings: dayBookings,
+        laborCount: dayBookings.filter(b => b.type === 'sahyogi').length,
+        machineryCount: dayBookings.filter(b => b.type === 'machinery').length,
       });
     }
 
@@ -191,26 +219,55 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     for (let d = 1; d <= remaining; d++) {
       const nextDate = new Date(year, month + 1, d);
       const dateStr = formatLocalDate(nextDate);
+      const dayBookings = bookingsByDate.get(dateStr) || [];
       days.push({
         dayNum: d,
         dateStr,
         isCurrentMonth: false,
         isToday: dateStr === todayStr,
-        bookings: bookingsByDate.get(dateStr) || []
+        isUpcoming: dateStr >= todayStr,
+        bookings: dayBookings,
+        laborCount: dayBookings.filter(b => b.type === 'sahyogi').length,
+        machineryCount: dayBookings.filter(b => b.type === 'machinery').length,
       });
     }
 
     return days;
-  }, [year, month, bookingsByDate]);
-
-  function dateKeyFromDate(d: Date): string {
-    return formatLocalDate(d);
-  }
+  }, [year, month, bookingsByDate, todayStr]);
 
   // Selected date's bookings
   const selectedDateBookings = useMemo(() => {
     return bookingsByDate.get(selectedDateStr) || [];
   }, [bookingsByDate, selectedDateStr]);
+
+  // Upcoming Bookings list sorted chronologically
+  const upcomingBookings = useMemo(() => {
+    return bookings
+      .filter((b) => {
+        const endDateStr = b.endDate || b.startDate;
+        return endDateStr >= todayStr && b.status !== 'Cancelled' && b.status !== 'Declined';
+      })
+      .sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
+  }, [bookings, todayStr]);
+
+  // Upcoming labor and machinery counts
+  const upcomingLaborCount = useMemo(() => {
+    return upcomingBookings.filter(b => b.type === 'sahyogi').length;
+  }, [upcomingBookings]);
+
+  const upcomingMachineryCount = useMemo(() => {
+    return upcomingBookings.filter(b => b.type === 'machinery').length;
+  }, [upcomingBookings]);
+
+  // Jump to next upcoming booking date
+  const jumpToNextBooking = () => {
+    if (upcomingBookings.length > 0) {
+      const nextDate = upcomingBookings[0].startDate || todayStr;
+      setSelectedDateStr(nextDate);
+      const parsed = parseLocalDate(nextDate);
+      setCurrentDate(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
+    }
+  };
 
   // Status badge style helper
   const getStatusBadge = (status: BookingStatus) => {
@@ -290,28 +347,124 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
   // Counts for filters
   const counts = useMemo(() => {
-    const res = {
+    return {
       all: bookings.length,
+      sahyogi: bookings.filter(b => b.type === 'sahyogi').length,
+      machinery: bookings.filter(b => b.type === 'machinery').length,
       pending: bookings.filter(b => b.status === 'Pending').length,
       confirmed: bookings.filter(b => b.status === 'Confirmed').length,
       declined: bookings.filter(b => b.status === 'Declined').length,
       completed: bookings.filter(b => b.status === 'Completed').length,
-      cancelled: bookings.filter(b => b.status === 'Cancelled').length
+      cancelled: bookings.filter(b => b.status === 'Cancelled').length,
+      upcoming: bookings.filter(b => (b.endDate || b.startDate) >= todayStr && b.status !== 'Cancelled').length
     };
-    return res;
-  }, [bookings]);
+  }, [bookings, todayStr]);
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Top Header Controls */}
+    <div className={`space-y-5 ${className}`}>
+      {/* 1. UPCOMING OVERVIEW STRIP: Quick Metric Cards for Labor & Machinery */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Labor Bookings Card */}
+        <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white p-4 rounded-2xl border border-emerald-800/80 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1">
+              <User className="w-3.5 h-3.5" /> Upcoming Labor
+            </span>
+            <p className="text-2xl font-black">
+              <AnimatedCounter value={upcomingLaborCount} /> <span className="text-xs font-normal text-emerald-200">Bookings</span>
+            </p>
+            <p className="text-[10px] text-emerald-300/80">Sahyogi Agri-Workers</p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-emerald-800/80 flex items-center justify-center text-emerald-200">
+            <Users className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Machinery Bookings Card */}
+        <div className="bg-gradient-to-br from-amber-950 to-amber-900 text-white p-4 rounded-2xl border border-amber-800/80 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
+              <Tractor className="w-3.5 h-3.5" /> Upcoming Machinery
+            </span>
+            <p className="text-2xl font-black">
+              <AnimatedCounter value={upcomingMachineryCount} /> <span className="text-xs font-normal text-amber-200">Rentals</span>
+            </p>
+            <p className="text-[10px] text-amber-300/80">Tractors, Harvesters & Tools</p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-amber-800/80 flex items-center justify-center text-amber-200">
+            <Tractor className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Pending Action Card */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-amber-600" /> Pending Action
+            </span>
+            <p className="text-2xl font-black text-slate-900">
+              <AnimatedCounter value={counts.pending} /> <span className="text-xs font-semibold text-slate-500">Requests</span>
+            </p>
+            <p className="text-[10px] text-amber-700 font-bold">Requires confirmation</p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Quick Next Jump Card */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <CalendarDays className="w-3.5 h-3.5 text-emerald-700" /> Next Schedule
+            </span>
+            {upcomingBookings.length > 0 && (
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full">
+                Active
+              </span>
+            )}
+          </div>
+
+          {upcomingBookings.length > 0 ? (
+            <div>
+              <p className="text-xs font-extrabold text-slate-900 truncate">
+                {upcomingBookings[0].itemName}
+              </p>
+              <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                <CalendarIcon className="w-3 h-3 text-slate-400" />
+                <span>Starts {upcomingBookings[0].startDate}</span>
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 font-medium">No upcoming bookings</p>
+          )}
+
+          <button
+            type="button"
+            onClick={jumpToNextBooking}
+            disabled={upcomingBookings.length === 0}
+            className="w-full py-1.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 font-bold text-[11px] rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>Jump to Next</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. TOP HEADER & VIEW MODE CONTROLS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl">
-            <CalendarDays className="w-5 h-5" />
+          <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl shadow-inner">
+            <CalendarDays className="w-5 h-5 text-emerald-700" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 text-base">Booking Calendar & Schedules</h3>
-            <p className="text-xs text-slate-500">Track labor & machinery rentals with real-time status & confirmations</p>
+            <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+              <span>Labor & Machinery Booking Calendar</span>
+              <span className="text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full">
+                Monthly Grid
+              </span>
+            </h3>
+            <p className="text-xs text-slate-500">Visualize labor commitments and equipment rental schedules seamlessly</p>
           </div>
         </div>
 
@@ -335,25 +488,121 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
-            <ListFilter className="w-3.5 h-3.5" /> All Bookings ({filteredBookings.length})
+            <ListFilter className="w-3.5 h-3.5" /> List View ({filteredBookings.length})
           </button>
         </div>
       </div>
 
-      {/* Filter Tabs Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
-        {/* Status Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full no-scrollbar">
-          {(['All', 'Pending', 'Confirmed', 'Declined', 'Completed', 'Cancelled'] as const).map((st) => {
+      {/* 3. MULTI-LEVEL FILTER CONTROLS BAR */}
+      <div className="space-y-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          {/* CATEGORY / TYPE TABS: All vs Labor vs Machinery */}
+          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setTypeFilter('all')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${
+                typeFilter === 'all'
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>All ({counts.all})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTypeFilter('sahyogi')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${
+                typeFilter === 'sahyogi'
+                  ? 'bg-emerald-700 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-emerald-800 hover:bg-emerald-50'
+              }`}
+            >
+              <User className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Labor / Sahyogi ({counts.sahyogi})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTypeFilter('machinery')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${
+                typeFilter === 'machinery'
+                  ? 'bg-amber-600 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-amber-800 hover:bg-amber-50'
+              }`}
+            >
+              <Tractor className="w-3.5 h-3.5 text-amber-500" />
+              <span>Machinery ({counts.machinery})</span>
+            </button>
+          </div>
+
+          {/* Quick Upcoming Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setOnlyUpcoming(!onlyUpcoming)}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
+                onlyUpcoming
+                  ? 'bg-emerald-100 text-emerald-900 border-emerald-400 font-extrabold shadow-2xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Upcoming Only ({counts.upcoming})</span>
+            </button>
+
+            {/* Role toggle (Farmer/Renter vs Provider/Owner) */}
+            {currentUser && (
+              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setRoleFilter('all')}
+                  className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
+                    roleFilter === 'all' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoleFilter('renter')}
+                  className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
+                    roleFilter === 'renter' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  As Farmer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoleFilter('owner')}
+                  className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
+                    roleFilter === 'owner' ? 'bg-amber-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  On My Listings
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Status Filter Row */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full no-scrollbar pt-1 border-t border-slate-200/80">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
+            <Filter className="w-3 h-3" /> Status:
+          </span>
+          {(['All', 'Pending', 'Confirmed', 'Completed', 'Declined', 'Cancelled'] as const).map((st) => {
             const count = st === 'All' ? counts.all : counts[st.toLowerCase() as keyof typeof counts];
             return (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
+                className={`px-2.5 py-0.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
                   statusFilter === st
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'bg-white text-slate-700 hover:bg-slate-200/60 border border-slate-200'
+                    ? 'bg-slate-800 text-white shadow-2xs'
+                    : 'bg-white text-slate-600 hover:bg-slate-200/60 border border-slate-200'
                 }`}
               >
                 <span>{st}</span>
@@ -366,53 +615,25 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             );
           })}
         </div>
-
-        {/* Role toggle (Farmer/Renter vs Provider/Owner) */}
-        {currentUser && (
-          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold">
-            <button
-              onClick={() => setRoleFilter('all')}
-              className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
-                roleFilter === 'all' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setRoleFilter('renter')}
-              className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
-                roleFilter === 'renter' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              As Farmer
-            </button>
-            <button
-              onClick={() => setRoleFilter('owner')}
-              className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
-                roleFilter === 'owner' ? 'bg-amber-600 text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              On My Listings
-            </button>
-          </div>
-        )}
       </div>
 
+      {/* 4. MAIN CALENDAR GRID VS LIST VIEW */}
       {viewMode === 'calendar' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Main Calendar View (7 cols on Desktop) */}
+          {/* Monthly Grid (7 cols on Desktop) */}
           <div className="lg:col-span-7 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             {/* Month Header Navigation */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h4 className="font-black text-slate-900 text-base sm:text-lg">
-                  {monthNames[month]} {year}
+                <h4 className="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
+                  <span>{monthNames[month]}</span>
+                  <span className="text-emerald-700">{year}</span>
                 </h4>
                 <button
                   onClick={goToToday}
-                  className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md hover:bg-emerald-100 transition-colors cursor-pointer"
+                  className="px-2.5 py-0.5 text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md hover:bg-emerald-100 transition-colors cursor-pointer flex items-center gap-1"
                 >
-                  Today
+                  <RotateCcw className="w-2.5 h-2.5" /> Today
                 </button>
               </div>
 
@@ -420,14 +641,14 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                 <button
                   onClick={prevMonth}
                   aria-label="Previous Month"
-                  className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer border border-slate-200"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={nextMonth}
                   aria-label="Next Month"
-                  className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer border border-slate-200"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -443,7 +664,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
               ))}
             </div>
 
-            {/* Calendar Grid */}
+            {/* Calendar Grid Cells */}
             <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
               {calendarDays.map((cell, idx) => {
                 const isSelected = cell.dateStr === selectedDateStr;
@@ -455,18 +676,19 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                   <button
                     key={`${cell.dateStr}-${idx}`}
                     onClick={() => setSelectedDateStr(cell.dateStr)}
-                    className={`min-h-[58px] sm:min-h-[66px] p-1 sm:p-1.5 rounded-xl flex flex-col justify-between text-left transition-all border cursor-pointer relative ${
+                    className={`min-h-[64px] sm:min-h-[74px] p-1 sm:p-1.5 rounded-xl flex flex-col justify-between text-left transition-all border cursor-pointer relative ${
                       isSelected
-                        ? 'border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-500/30'
+                        ? 'border-emerald-600 bg-emerald-50/80 ring-2 ring-emerald-500/40 shadow-xs'
                         : cell.isCurrentMonth
-                        ? 'border-slate-100 bg-slate-50/50 hover:bg-slate-100/70'
-                        : 'border-transparent bg-slate-50/20 text-slate-300'
-                    } ${cell.isToday ? 'font-black' : ''}`}
+                        ? 'border-slate-200/90 bg-white hover:bg-slate-50'
+                        : 'border-transparent bg-slate-50/40 text-slate-300'
+                    }`}
                   >
+                    {/* Top Row: Day Number & Total Day Count */}
                     <div className="flex items-center justify-between w-full">
                       <span className={`text-xs ${
                         cell.isToday
-                          ? 'bg-emerald-700 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black'
+                          ? 'bg-emerald-700 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black shadow-xs'
                           : cell.isCurrentMonth
                           ? 'text-slate-800 font-bold'
                           : 'text-slate-300 font-medium'
@@ -475,15 +697,33 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                       </span>
 
                       {cell.bookings.length > 0 && (
-                        <span className="text-[9px] font-black px-1 rounded-sm bg-slate-900 text-white">
+                        <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-slate-900 text-white">
                           {cell.bookings.length}
                         </span>
                       )}
                     </div>
 
-                    {/* Status Dot Markers */}
+                    {/* Middle: Visual Labor vs Machinery Chips */}
                     {cell.bookings.length > 0 && (
-                      <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <div className="space-y-0.5 my-1 w-full overflow-hidden">
+                        {cell.laborCount > 0 && (
+                          <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-emerald-100 text-emerald-900 text-[9px] font-black truncate border border-emerald-200" title={`${cell.laborCount} Labor Booking(s)`}>
+                            <User className="w-2.5 h-2.5 flex-shrink-0 text-emerald-700" />
+                            <span className="truncate">{cell.laborCount} Labor</span>
+                          </div>
+                        )}
+                        {cell.machineryCount > 0 && (
+                          <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-amber-100 text-amber-900 text-[9px] font-black truncate border border-amber-200" title={`${cell.machineryCount} Machinery Booking(s)`}>
+                            <Tractor className="w-2.5 h-2.5 flex-shrink-0 text-amber-700" />
+                            <span className="truncate">{cell.machineryCount} Machine</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Bottom Status Dot Markers */}
+                    {cell.bookings.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap">
                         {hasPending && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 ring-1 ring-white" title="Pending" />}
                         {hasConfirmed && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" title="Confirmed" />}
                         {hasDeclined && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 ring-1 ring-white" title="Declined" />}
@@ -495,19 +735,27 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             </div>
 
             {/* Legend */}
-            <div className="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-slate-500 pt-2 border-t border-slate-100">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-500" /> Pending Confirmation
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" /> Confirmed / Active
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-rose-500" /> Declined
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-blue-500" /> Completed
-              </span>
+            <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] font-semibold text-slate-500 pt-3 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1 font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  <User className="w-3 h-3 text-emerald-600" /> Sahyogi Labor
+                </span>
+                <span className="flex items-center gap-1 font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                  <Tractor className="w-3 h-3 text-amber-600" /> Machinery / Tractor
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Pending
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Confirmed
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" /> Done
+                </span>
+              </div>
             </div>
           </div>
 
@@ -517,28 +765,31 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
               <div className="flex items-center justify-between border-b pb-3">
                 <div>
                   <span className="text-[10px] font-extrabold uppercase text-slate-400">Selected Date Agenda</span>
-                  <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">
-                    {new Date(selectedDateStr + 'T00:00:00').toLocaleDateString('en-IN', {
-                      weekday: 'short',
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
+                  <h4 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
+                    <CalendarIcon className="w-4 h-4 text-emerald-600" />
+                    <span>
+                      {new Date(selectedDateStr + 'T00:00:00').toLocaleDateString('en-IN', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
                   </h4>
                 </div>
-                <span className="bg-emerald-100 text-emerald-900 font-extrabold text-xs px-2.5 py-1 rounded-full">
+                <span className="bg-emerald-100 text-emerald-900 font-extrabold text-xs px-2.5 py-1 rounded-full border border-emerald-200">
                   {selectedDateBookings.length} {selectedDateBookings.length === 1 ? 'Booking' : 'Bookings'}
                 </span>
               </div>
 
               {selectedDateBookings.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 space-y-2">
-                  <CalendarIcon className="w-8 h-8 mx-auto text-slate-300 opacity-60" />
-                  <p className="text-xs font-semibold">No bookings scheduled on this date.</p>
-                  <p className="text-[11px] text-slate-400">Click on dates with markers to inspect bookings.</p>
+                <div className="py-10 text-center text-slate-400 space-y-2">
+                  <CalendarIcon className="w-10 h-10 mx-auto text-slate-300 opacity-60" />
+                  <p className="text-xs font-bold text-slate-600">No bookings scheduled on this date.</p>
+                  <p className="text-[11px] text-slate-400">Click on any date cell marked with labor or machinery badges to inspect details.</p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
                   {selectedDateBookings.map((b) => (
                     <BookingCard
                       key={b.id}
@@ -558,12 +809,24 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
           </div>
         </div>
       ) : (
-        /* List Mode: All Bookings */
+        /* List Mode: All Filtered Bookings */
         <div className="space-y-3">
           {filteredBookings.length === 0 ? (
-            <div className="bg-white p-10 rounded-2xl border text-center text-slate-500 text-xs space-y-2">
-              <CalendarIcon className="w-8 h-8 mx-auto text-slate-300" />
-              <p className="font-bold">No bookings found matching current filters.</p>
+            <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-500 text-xs space-y-3">
+              <CalendarIcon className="w-10 h-10 mx-auto text-slate-300" />
+              <p className="font-extrabold text-slate-800 text-sm">No bookings found matching current filters.</p>
+              <p className="text-slate-500">Try resetting status or category filters to view all scheduled bookings.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter('All');
+                  setTypeFilter('all');
+                  setOnlyUpcoming(false);
+                }}
+                className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Reset Filters
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -608,31 +871,29 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                 </button>
               </div>
 
-              <div className="text-xs text-slate-600 space-y-1">
+              <div className="space-y-3 text-xs text-slate-600">
                 <p>
-                  You are declining the request for <strong>{decliningBooking.itemName}</strong> by <strong>{decliningBooking.renterName}</strong>.
+                  You are declining the booking for <strong className="text-slate-900">{decliningBooking.itemName}</strong> by <strong className="text-slate-900">{decliningBooking.renterName}</strong>.
                 </p>
-                <p className="text-[11px] text-slate-500">Dates: {decliningBooking.startDate} to {decliningBooking.endDate || decliningBooking.startDate}</p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Reason for Declining (Optional)</label>
-                <textarea
-                  rows={3}
-                  placeholder="e.g. Equipment scheduled for maintenance, already occupied on field, operator unavailable..."
-                  value={declineReasonInput}
-                  onChange={(e) => setDeclineReasonInput(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
-                />
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Reason for declining (Optional)</label>
+                  <textarea
+                    rows={3}
+                    value={declineReasonInput}
+                    onChange={(e) => setDeclineReasonInput(e.target.value)}
+                    placeholder="e.g., Equipment under maintenance, unavailable on date..."
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setDecliningBooking(null)}
-                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
                 >
-                  Back
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -645,8 +906,10 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
 
-        {/* Cancel Confirmation Modal */}
+      {/* Cancel Booking Modal */}
+      <AnimatePresence>
         {cancellingBooking && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
             <motion.div
@@ -729,14 +992,17 @@ const BookingCard: React.FC<BookingCardProps> = ({
   const isRenter = currentUser?.id && booking.renterId === currentUser.id;
 
   return (
-    <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200 hover:border-emerald-300 transition-all space-y-3">
-      {/* Header */}
+    <div className="bg-slate-50/90 rounded-2xl p-3.5 border border-slate-200 hover:border-emerald-300 transition-all space-y-3 shadow-2xs">
+      {/* Header with Type & Status */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
-          <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
-            booking.type === 'sahyogi' ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900'
+          <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 border ${
+            booking.type === 'sahyogi' 
+              ? 'bg-emerald-100 text-emerald-900 border-emerald-200' 
+              : 'bg-amber-100 text-amber-900 border-amber-200'
           }`}>
-            {booking.type === 'sahyogi' ? 'Sahyogi Labor' : 'Machinery'}
+            {booking.type === 'sahyogi' ? <User className="w-3 h-3 text-emerald-700" /> : <Tractor className="w-3 h-3 text-amber-700" />}
+            <span>{booking.type === 'sahyogi' ? 'Sahyogi Labor' : 'Machinery'}</span>
           </span>
           <span className="text-[10px] text-slate-400 font-mono">#{booking.id.slice(-5)}</span>
         </div>
@@ -747,18 +1013,32 @@ const BookingCard: React.FC<BookingCardProps> = ({
         </div>
       </div>
 
-      {/* Item info */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h5 className="font-extrabold text-slate-900 text-xs sm:text-sm">{booking.itemName}</h5>
-          <p className="text-[11px] text-slate-600 flex items-center gap-1 mt-0.5">
-            <CalendarIcon className="w-3 h-3 text-slate-400" />
-            <span>{booking.startDate} {booking.endDate && booking.endDate !== booking.startDate ? `→ ${booking.endDate}` : ''}</span>
-            {booking.quantity && <span className="font-bold">({booking.quantity} {booking.unit || 'days'})</span>}
-          </p>
+      {/* Item info & Thumbnail */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2.5">
+          {booking.itemImage ? (
+            <img 
+              src={booking.itemImage} 
+              alt={booking.itemName} 
+              referrerPolicy="no-referrer"
+              className="w-11 h-11 rounded-xl object-cover border border-slate-200 shadow-2xs flex-shrink-0"
+            />
+          ) : (
+            <div className="w-11 h-11 rounded-xl bg-slate-200 flex items-center justify-center flex-shrink-0 text-slate-600">
+              {booking.type === 'sahyogi' ? <User className="w-5 h-5" /> : <Tractor className="w-5 h-5" />}
+            </div>
+          )}
+          <div>
+            <h5 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-tight">{booking.itemName}</h5>
+            <p className="text-[11px] text-slate-600 flex items-center gap-1 mt-0.5">
+              <CalendarIcon className="w-3 h-3 text-slate-400 flex-shrink-0" />
+              <span className="font-semibold">{booking.startDate} {booking.endDate && booking.endDate !== booking.startDate ? `→ ${booking.endDate}` : ''}</span>
+              {booking.quantity && <span className="text-slate-500 font-bold">({booking.quantity} {booking.unit || 'days'})</span>}
+            </p>
+          </div>
         </div>
 
-        <div className="text-right">
+        <div className="text-right flex-shrink-0">
           <span className="text-[10px] text-slate-400 uppercase font-bold block">Total Amount</span>
           <span className="text-xs sm:text-sm font-black text-emerald-800">
             ₹<AnimatedCounter value={booking.totalAmount || booking.totalCost || 0} />
@@ -767,7 +1047,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
       </div>
 
       {/* Renter & Owner metadata */}
-      <div className="bg-white p-2.5 rounded-xl border border-slate-100 text-[11px] space-y-1 text-slate-600">
+      <div className="bg-white p-2.5 rounded-xl border border-slate-100 text-[11px] space-y-1.5 text-slate-600">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1 font-medium">
             <User className="w-3 h-3 text-emerald-600" />
@@ -780,6 +1060,17 @@ const BookingCard: React.FC<BookingCardProps> = ({
           )}
         </div>
 
+        {booking.ownerName && (
+          <div className="flex items-center justify-between text-slate-500">
+            <span>Provider: <strong className="text-slate-700">{booking.ownerName}</strong></span>
+            {booking.ownerPhone && (
+              <a href={`tel:${booking.ownerPhone}`} className="text-emerald-700 font-bold hover:underline flex items-center gap-0.5">
+                <Phone className="w-2.5 h-2.5" /> {booking.ownerPhone}
+              </a>
+            )}
+          </div>
+        )}
+
         {booking.location && (
           <p className="flex items-center gap-1 text-slate-500 truncate">
             <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
@@ -788,13 +1079,13 @@ const BookingCard: React.FC<BookingCardProps> = ({
         )}
 
         {booking.notes && (
-          <p className="italic text-slate-500 bg-slate-50 p-1 rounded border border-slate-100">
+          <p className="italic text-slate-500 bg-slate-50 p-1.5 rounded-lg border border-slate-100 text-[10px]">
             "{booking.notes}"
           </p>
         )}
 
         {booking.status === 'Declined' && booking.declineReason && (
-          <div className="p-1.5 bg-rose-50 border border-rose-200 rounded text-rose-800 font-medium">
+          <div className="p-1.5 bg-rose-50 border border-rose-200 rounded text-rose-800 font-medium text-[10px]">
             <strong>Decline Note:</strong> {booking.declineReason}
           </div>
         )}

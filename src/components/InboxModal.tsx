@@ -542,8 +542,8 @@ export const InboxModal: React.FC<InboxModalProps> = ({
           .filter(m => m.msgType === 'text')
           .slice(-10)
           .map(m => ({
-            role: m.senderId === 'krishak_ai_bot' ? ('assistant' as const) : ('user' as const),
-            content: m.text,
+            role: m.senderId === 'krishak_ai_bot' ? ('model' as const) : ('user' as const),
+            text: m.text,
           }));
 
         const result = await askKrishakAiChat(textToSend, historyForAi, currentUser);

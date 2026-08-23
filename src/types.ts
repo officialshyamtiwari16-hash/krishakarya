@@ -21,6 +21,7 @@ export interface User {
   bio?: string;
   twoFactorEnabled?: boolean;
   twoFactorMethod?: 'sms' | 'email' | 'app';
+  backupCodes?: string[];
 }
 
 export interface Review {
@@ -167,6 +168,7 @@ export interface Conversation {
   lastMessage: string;
   lastMessageTime: string;
   unreadCount: number;
+  lastTimestamp?: number;
 }
 
 export type LedgerCategory =
@@ -194,4 +196,35 @@ export interface LedgerEntry {
   partyName?: string;
   createdAt: string;
 }
+
+export interface CropHealthTreatment {
+  title: string;
+  composition?: string;
+  dosage: string;
+  applicationMethod?: string;
+  timing?: string;
+  safetyPrecautions?: string;
+}
+
+export interface CropHealthDiagnosis {
+  id: string;
+  timestamp: string;
+  cropName: string;
+  growthStage?: string;
+  diseaseName: string;
+  hindiName?: string;
+  scientificName?: string;
+  severity: 'healthy' | 'mild' | 'moderate' | 'severe';
+  confidenceScore: number;
+  summary: string;
+  visualSymptoms: string[];
+  probableCauses: string[];
+  organicTreatments: CropHealthTreatment[];
+  chemicalTreatments: CropHealthTreatment[];
+  preventiveMeasures: string[];
+  harvestSafetyIntervalDays?: number;
+  imageUrl?: string;
+  rawAnalysis?: string;
+}
+
 

@@ -366,6 +366,7 @@ export const ModernFarmingQA: React.FC<ModernFarmingQAProps> = ({ currentUser, o
                   type="file"
                   ref={fileInputRef}
                   accept="image/*"
+                  capture="environment"
                   onChange={handlePhotoSelect}
                   className="hidden"
                   id="crop-photo-upload"
@@ -390,6 +391,7 @@ export const ModernFarmingQA: React.FC<ModernFarmingQAProps> = ({ currentUser, o
               <img
                 src={imagePreview}
                 alt="Selected Crop"
+                referrerPolicy="no-referrer"
                 className="w-12 h-12 object-cover rounded-xl border border-emerald-300"
               />
               <div className="text-xs">

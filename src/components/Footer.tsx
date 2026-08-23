@@ -5,16 +5,19 @@ import {
   FileText, 
   Award,
   PlusCircle,
-  Home
+  Home,
+  Camera,
+  Sparkles
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
 
 interface FooterProps {
-  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms') => void;
+  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health') => void;
   onOpenTerms?: () => void;
   onOpenAddListing: () => void;
 }
+
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenAddListing }) => {
   const { t } = useLanguage();
@@ -73,6 +76,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
                 >
                   <Tractor className="w-3.5 h-3.5 text-emerald-500" />
                   {t('navMachinery')}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('crop-health')}
+                  className="hover:text-emerald-400 transition-colors flex items-center gap-2 font-bold text-emerald-400"
+                >
+                  <Camera className="w-3.5 h-3.5 text-emerald-400" />
+                  Crop Health AI Assistant
                 </button>
               </li>
               <li>
