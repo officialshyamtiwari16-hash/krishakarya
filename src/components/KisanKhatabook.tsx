@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
 import { LedgerEntry, LedgerCategory, Booking, User } from '../types';
 import { AnimatedCounter } from './AnimatedCounter';
 import { 
@@ -648,10 +647,8 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
       {/* Delete Ledger Entry Confirmation Modal */}
       {entryToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-5 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4"
+          <div
+            className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-5 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 animate-modalPop"
           >
             <div className="flex items-center justify-between border-b dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2 text-rose-600">
@@ -696,7 +693,7 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
                 Yes, Delete Record
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 

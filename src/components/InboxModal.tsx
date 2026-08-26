@@ -980,7 +980,9 @@ export const InboxModal: React.FC<InboxModalProps> = ({
     <div className={`fixed inset-0 z-50 flex items-center justify-center ${isFullscreen ? 'p-0' : 'p-1.5 sm:p-3 md:p-4'} bg-black/80 backdrop-blur-xs overflow-hidden`}>
       
       {/* Compact Container Frame */}
-      <div className={`w-full h-full ${isFullscreen ? 'max-w-none rounded-none' : 'sm:max-w-4xl lg:max-w-5xl sm:h-[86vh] sm:max-h-[760px] sm:rounded-2xl'} bg-[#0c1317] text-slate-100 flex flex-col overflow-hidden sm:border border-[#222d34] shadow-2xl animate-fadeIn`}>
+      <div 
+        className={`w-full h-full ${isFullscreen ? 'max-w-none rounded-none' : 'sm:max-w-4xl lg:max-w-5xl sm:h-[86vh] sm:max-h-[760px] sm:rounded-2xl'} bg-[#0c1317] text-slate-100 flex flex-col overflow-hidden sm:border border-[#222d34] shadow-2xl animate-modalPop`}
+      >
         
         {/* Compact Header */}
         <header className="h-11 sm:h-12 bg-[#111b21] border-b border-[#222d34] px-2.5 sm:px-3.5 flex items-center justify-between flex-shrink-0 z-20">

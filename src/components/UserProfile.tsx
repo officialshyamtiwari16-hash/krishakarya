@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
 import { User, Sahyogi, Machinery, Booking, BookingStatus, LedgerEntry } from '../types';
 import { 
   User as UserIcon, 
@@ -392,11 +391,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       {/* Header Profile Card - Centered Top */}
-      <motion.div 
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="glass-panel rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-4 relative"
+      <div 
+        className="glass-panel rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-4 relative animate-fadeIn"
       >
         
         {/* Top Account Switcher & Logout Bar */}
@@ -554,15 +550,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* SUBTAB 1: DASHBOARD STATS */}
       {activeSubTab === 'dashboard' && (
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="space-y-6"
+        <div 
+          className="space-y-6 animate-fadeIn"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="glass-card p-5 rounded-2xl space-y-1">
@@ -695,7 +688,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               onSyncBookingsToLedger={onSyncBookingsToLedger}
             />
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* SUBTAB 2: FULL KHATABOOK */}
@@ -1131,10 +1124,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       {/* Disable 2FA Modal */}
       {isConfirmingDisable2FA && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4"
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4 animate-modalPop"
           >
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-2 text-rose-600">
@@ -1169,17 +1160,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                 Disable 2FA
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 
       {/* Delete Sahyogi Modal */}
       {sahyogiToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4"
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4 animate-modalPop"
           >
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-2 text-rose-600">
@@ -1217,17 +1206,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                 Yes, Delete
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 
       {/* Delete Machinery Modal */}
       {machineToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4"
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-5 border border-slate-200 shadow-2xl space-y-4 animate-modalPop"
           >
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-2 text-rose-600">
@@ -1265,7 +1252,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                 Yes, Delete
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>

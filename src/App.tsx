@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, 
   Sahyogi, 
@@ -48,37 +48,16 @@ import { HomePage } from './components/HomePage';
 import { SEOHead } from './components/SEOHead';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { OfflineBanner } from './components/OfflineBanner';
-import { PageLoadingSkeleton } from './components/Skeletons';
-import { OtpVerificationModal } from './components/OtpVerificationModal';
 
-// Code-split route components for bundle optimization
-const SahyogiListings = lazy(() =>
-  import('./components/SahyogiListings').then((m) => ({ default: m.SahyogiListings }))
-);
-const MachineryListings = lazy(() =>
-  import('./components/MachineryListings').then((m) => ({ default: m.MachineryListings }))
-);
-const UserProfile = lazy(() =>
-  import('./components/UserProfile').then((m) => ({ default: m.UserProfile }))
-);
-const TermsModal = lazy(() =>
-  import('./components/TermsModal').then((m) => ({ default: m.TermsModal }))
-);
-const ModernFarmingQA = lazy(() =>
-  import('./components/ModernFarmingQA').then((m) => ({ default: m.ModernFarmingQA }))
-);
-const CropHealthAssistant = lazy(() =>
-  import('./components/CropHealthAssistant').then((m) => ({ default: m.CropHealthAssistant }))
-);
-const AuthModal = lazy(() =>
-  import('./components/AuthModal').then((m) => ({ default: m.AuthModal }))
-);
-const AddListingModal = lazy(() =>
-  import('./components/AddListingModal').then((m) => ({ default: m.AddListingModal }))
-);
-const InboxModal = lazy(() =>
-  import('./components/InboxModal').then((m) => ({ default: m.InboxModal }))
-);
+import { SahyogiListings } from './components/SahyogiListings';
+import { MachineryListings } from './components/MachineryListings';
+import { UserProfile } from './components/UserProfile';
+import { TermsModal } from './components/TermsModal';
+import { ModernFarmingQA } from './components/ModernFarmingQA';
+import { CropHealthAssistant } from './components/CropHealthAssistant';
+import { AuthModal } from './components/AuthModal';
+import { AddListingModal } from './components/AddListingModal';
+import { InboxModal } from './components/InboxModal';
 
 export default function App() {
   // Navigation State: home, sahyogi, machinery, profile, terms, modern-farming, crop-health
@@ -696,10 +675,10 @@ export default function App() {
         bookingCount={myBookings.length}
       />
 
-      {/* Main Container with Error Boundary & Suspense */}
+      {/* Main Container with Error Boundary & Smooth Transitions */}
       <main id="main-content" className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-5 py-4 pb-28 sm:pb-32 md:pb-8">
         <ErrorBoundary>
-          <Suspense fallback={<PageLoadingSkeleton message="Loading agricultural data & listings..." />}>
+          <div key={activeTab} className="w-full animate-fadeIn">
             {activeTab === 'home' && (
               <HomePage
                 currentUser={currentUser}
@@ -788,7 +767,7 @@ export default function App() {
             )}
 
             {activeTab === 'terms' && <TermsModal />}
-          </Suspense>
+          </div>
         </ErrorBoundary>
       </main>
 
@@ -802,40 +781,34 @@ export default function App() {
       />
 
       {/* Global Inbox Modal (Accessible with preset AI prompts) */}
-      <Suspense fallback={null}>
-        <InboxModal
-          isOpen={isInboxOpen}
-          onClose={() => {
-            setIsInboxOpen(false);
-            setInboxPresetPrompt(null);
-          }}
-          currentUser={currentUser}
-          presetPrompt={inboxPresetPrompt}
-        />
-      </Suspense>
+      <InboxModal
+        isOpen={isInboxOpen}
+        onClose={() => {
+          setIsInboxOpen(false);
+          setInboxPresetPrompt(null);
+        }}
+        currentUser={currentUser}
+        presetPrompt={inboxPresetPrompt}
+      />
 
       {/* Auth Modal */}
-      <Suspense fallback={null}>
-        <AuthModal
-          isOpen={isAuthOpen}
-          onClose={() => setIsAuthOpen(false)}
-          currentUser={currentUser}
-          onLoginSuccess={handleLoginSuccess}
-          initialTab={authModalTab}
-        />
-      </Suspense>
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        currentUser={currentUser}
+        onLoginSuccess={handleLoginSuccess}
+        initialTab={authModalTab}
+      />
 
       {/* Add Listing Modal */}
-      <Suspense fallback={null}>
-        <AddListingModal
-          isOpen={isAddListingOpen}
-          onClose={() => setIsAddListingOpen(false)}
-          currentUser={currentUser}
-          onOpenAuth={() => setIsAuthOpen(true)}
-          onAddSahyogi={handleAddSahyogiListing}
-          onAddMachinery={handleAddMachineryListing}
-        />
-      </Suspense>
+      <AddListingModal
+        isOpen={isAddListingOpen}
+        onClose={() => setIsAddListingOpen(false)}
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onAddSahyogi={handleAddSahyogiListing}
+        onAddMachinery={handleAddMachineryListing}
+      />
 
       {/* Real-time Notification Toast Banner */}
       <NotificationToast

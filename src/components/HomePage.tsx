@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
 import { User, Sahyogi, Machinery, LedgerEntry, Booking } from '../types';
 import { 
   Users, 
@@ -102,11 +101,8 @@ export const HomePage: React.FC<HomePageProps> = ({
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Master Hero Block with Clean High-Performance Gradient Background */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-gradient-to-br from-slate-950 via-emerald-950/90 to-slate-900 min-h-[420px]"
+      <div
+        className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-gradient-to-br from-slate-950 via-emerald-950/90 to-slate-900 min-h-[420px] animate-fadeIn"
       >
         {/* Subtle Static Ambient Glow Accents (0ms render overhead) */}
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -423,15 +419,11 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
 
         </div>
-      </motion.div>
+      </div>
 
       {/* Featured Overview Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.6 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      <div 
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn"
       >
         {/* Available Sahyogis Card */}
         <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-4">
@@ -530,7 +522,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Seed & Acre Calculator Modal */}
       <SeedCalculatorModal

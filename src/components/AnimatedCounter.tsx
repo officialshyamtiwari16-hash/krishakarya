@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useInView } from 'motion/react';
 
 interface AnimatedCounterProps {
   value: string | number;
@@ -13,15 +12,36 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   duration = 1.2,
 }) => {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-20px' });
+  const [isInView, setIsInView] = useState(false);
   const [displayValue, setDisplayValue] = useState<string>(() => {
-    // If reduced motion is set, show full value immediately
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return String(value);
     }
-    // Initial display with 0
     return String(value).replace(/\d+/g, '0');
   });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '-20px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!isInView) return;

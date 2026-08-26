@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
 import { ShieldCheck, Phone, CheckCircle2, AlertCircle, RefreshCw, X } from 'lucide-react';
 import { isValidIndianPhone, formatIndianPhone } from '../lib/validation';
 import { rateLimiter } from '../lib/rateLimit';
@@ -125,10 +124,8 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
       aria-labelledby="otp-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-3xl max-w-md w-full p-6 border border-emerald-500/20 shadow-2xl space-y-5"
+      <div
+        className="bg-white rounded-3xl max-w-md w-full p-6 border border-emerald-500/20 shadow-2xl space-y-5 animate-modalPop"
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -276,7 +273,7 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 };

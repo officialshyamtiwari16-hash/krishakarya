@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { 
   Calendar as CalendarIcon, 
   ChevronLeft, 
@@ -849,118 +848,108 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       )}
 
       {/* Decline Reason Modal */}
-      <AnimatePresence>
-        {decliningBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl max-w-md w-full p-5 border border-slate-200 shadow-2xl space-y-4"
-            >
-              <div className="flex items-center justify-between border-b pb-3">
-                <div className="flex items-center gap-2 text-rose-700">
-                  <XCircle className="w-5 h-5" />
-                  <h4 className="font-black text-slate-900 text-sm">Decline Booking Request</h4>
-                </div>
-                <button
-                  onClick={() => setDecliningBooking(null)}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+      {decliningBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-5 border border-slate-200 shadow-2xl space-y-4 animate-modalPop"
+          >
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2 text-rose-700">
+                <XCircle className="w-5 h-5" />
+                <h4 className="font-black text-slate-900 text-sm">Decline Booking Request</h4>
               </div>
+              <button
+                onClick={() => setDecliningBooking(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-              <div className="space-y-3 text-xs text-slate-600">
-                <p>
-                  You are declining the booking for <strong className="text-slate-900">{decliningBooking.itemName}</strong> by <strong className="text-slate-900">{decliningBooking.renterName}</strong>.
-                </p>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Reason for declining (Optional)</label>
-                  <textarea
-                    rows={3}
-                    value={declineReasonInput}
-                    onChange={(e) => setDeclineReasonInput(e.target.value)}
-                    placeholder="e.g., Equipment under maintenance, unavailable on date..."
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900"
-                  />
-                </div>
+            <div className="space-y-3 text-xs text-slate-600">
+              <p>
+                You are declining the booking for <strong className="text-slate-900">{decliningBooking.itemName}</strong> by <strong className="text-slate-900">{decliningBooking.renterName}</strong>.
+              </p>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Reason for declining (Optional)</label>
+                <textarea
+                  rows={3}
+                  value={declineReasonInput}
+                  onChange={(e) => setDeclineReasonInput(e.target.value)}
+                  placeholder="e.g., Equipment under maintenance, unavailable on date..."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900"
+                />
               </div>
+            </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setDecliningBooking(null)}
-                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmDecline}
-                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
-                >
-                  Confirm Decline
-                </button>
-              </div>
-            </motion.div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDecliningBooking(null)}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDecline}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Confirm Decline
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Cancel Booking Modal */}
-      <AnimatePresence>
-        {cancellingBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl max-w-md w-full p-5 border border-slate-200 shadow-2xl space-y-4"
-            >
-              <div className="flex items-center justify-between border-b pb-3">
-                <div className="flex items-center gap-2 text-rose-700">
-                  <AlertCircle className="w-5 h-5" />
-                  <h4 className="font-black text-slate-900 text-sm">Cancel Booking Confirmation</h4>
-                </div>
-                <button
-                  onClick={() => setCancellingBooking(null)}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+      {cancellingBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-5 border border-slate-200 shadow-2xl space-y-4 animate-modalPop"
+          >
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2 text-rose-700">
+                <AlertCircle className="w-5 h-5" />
+                <h4 className="font-black text-slate-900 text-sm">Cancel Booking Confirmation</h4>
               </div>
+              <button
+                onClick={() => setCancellingBooking(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-              <div className="text-xs text-slate-600 space-y-2">
-                <p>
-                  Are you sure you want to cancel booking <strong className="text-slate-900">#{cancellingBooking.id.slice(-6)}</strong> for <strong className="text-emerald-800">{cancellingBooking.itemName}</strong>?
-                </p>
-                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] space-y-1">
-                  <p><strong>Scheduled Dates:</strong> {cancellingBooking.startDate} {cancellingBooking.endDate ? `to ${cancellingBooking.endDate}` : ''}</p>
-                  <p><strong>Total Amount:</strong> ₹{cancellingBooking.totalAmount || cancellingBooking.totalCost || 0}</p>
-                </div>
+            <div className="text-xs text-slate-600 space-y-2">
+              <p>
+                Are you sure you want to cancel booking <strong className="text-slate-900">#{cancellingBooking.id.slice(-6)}</strong> for <strong className="text-emerald-800">{cancellingBooking.itemName}</strong>?
+              </p>
+              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] space-y-1">
+                <p><strong>Scheduled Dates:</strong> {cancellingBooking.startDate} {cancellingBooking.endDate ? `to ${cancellingBooking.endDate}` : ''}</p>
+                <p><strong>Total Amount:</strong> ₹{cancellingBooking.totalAmount || cancellingBooking.totalCost || 0}</p>
               </div>
+            </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCancellingBooking(null)}
-                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
-                >
-                  Keep Booking
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmCancel}
-                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
-                >
-                  Yes, Cancel Booking
-                </button>
-              </div>
-            </motion.div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setCancellingBooking(null)}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Keep Booking
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancel}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Yes, Cancel Booking
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Machinery, MachineryCategory, User, Booking } from '../types';
 import { 
   Tractor, 
@@ -175,26 +174,18 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
 
   return (
     <div className="space-y-8 relative">
-      <AnimatePresence>
-        {bookingToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-4 z-50 max-w-md bg-amber-900 text-white p-4 rounded-2xl shadow-2xl border border-amber-500/40 flex items-center gap-3"
-          >
-            <CheckCircle2 className="w-5 h-5 text-amber-400 flex-shrink-0" />
-            <p className="text-xs font-bold leading-relaxed">{bookingToast}</p>
-            <button onClick={() => setBookingToast(null)} className="text-amber-300 hover:text-white text-xs font-bold ml-auto">✕</button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {bookingToast && (
+        <div
+          className="fixed top-20 right-4 z-50 max-w-md bg-amber-900 text-white p-4 rounded-2xl shadow-2xl border border-amber-500/40 flex items-center gap-3 animate-toastSlideIn"
+        >
+          <CheckCircle2 className="w-5 h-5 text-amber-400 flex-shrink-0" />
+          <p className="text-xs font-bold leading-relaxed">{bookingToast}</p>
+          <button onClick={() => setBookingToast(null)} className="text-amber-300 hover:text-white text-xs font-bold ml-auto">✕</button>
+        </div>
+      )}
       {/* Hero Banner */}
-      <motion.div 
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-950 p-4 sm:p-5 text-white shadow-xl space-y-2 border border-emerald-500/30"
+      <div 
+        className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-950 p-4 sm:p-5 text-white shadow-xl space-y-2 border border-emerald-500/30 animate-fadeIn"
       >
         <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -217,15 +208,11 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
             <Plus className="w-3.5 h-3.5" /> List Machine for Rent
           </button>
         </div>
-      </motion.div>
+      </div>
 
       {/* Filter and Category Pills */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-30px' }}
-        transition={{ duration: 0.5 }}
-        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-4"
+      <div 
+        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 animate-fadeIn"
       >
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar smooth-scroll">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
@@ -316,7 +303,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
             Showing <span className="font-bold text-emerald-700"><AnimatedCounter value={filteredMachinery.length} /></span> Rentable Equipment
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Grid of Machinery Cards */}
       {filteredMachinery.length === 0 ? (
@@ -336,14 +323,10 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMachinery.map((machine, index) => (
-            <motion.div
+          {filteredMachinery.map((machine) => (
+            <div
               key={machine.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-              className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group"
+              className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group animate-fadeIn hover:-translate-y-1 transition-all duration-200"
             >
               <div>
                 {machine.image && machine.image.trim().length > 0 && (
@@ -434,7 +417,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
       )}

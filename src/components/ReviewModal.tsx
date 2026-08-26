@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
 import { Star, X, CheckCircle2, MessageSquare, AlertCircle, ThumbsUp } from 'lucide-react';
 import { sanitizeString, isValidRating } from '../lib/validation';
 import { rateLimiter } from '../lib/rateLimit';
@@ -92,10 +91,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
       aria-labelledby="review-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-3xl max-w-lg w-full p-6 border border-emerald-500/20 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+      <div
+        className="bg-white rounded-3xl max-w-lg w-full p-6 border border-emerald-500/20 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto animate-modalPop"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -226,7 +223,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             </button>
           </div>
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 };

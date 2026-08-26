@@ -32,7 +32,7 @@ export const LedgerModal: React.FC<LedgerModalProps> = ({
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh] my-auto transition-all animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh] my-auto animate-modalPop"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -58,7 +58,7 @@ export const LedgerModal: React.FC<LedgerModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-100 hover:text-white transition-colors border border-emerald-700/50"
+            className="p-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-100 hover:text-white transition-colors border border-emerald-700/50 cursor-pointer"
             title="Close Ledger"
           >
             <X className="w-5 h-5" />

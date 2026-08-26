@@ -540,7 +540,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
       <div 
-        className={`relative w-full max-w-lg rounded-3xl shadow-2xl border overflow-hidden my-auto max-h-[92vh] flex flex-col transition-colors duration-200 ${
+        className={`relative w-full max-w-lg rounded-3xl shadow-2xl border overflow-hidden my-auto max-h-[92vh] flex flex-col transition-colors duration-200 animate-modalPop ${
           isDark 
             ? 'bg-slate-900 border-slate-800 text-slate-100' 
             : 'bg-white border-slate-200 text-slate-900'

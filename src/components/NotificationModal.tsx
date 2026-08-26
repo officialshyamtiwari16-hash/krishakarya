@@ -136,7 +136,9 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-4">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+      <div 
+        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] animate-modalPop"
+      >
         {/* Modal Header */}
         <div className="bg-gradient-to-r from-emerald-800 to-green-900 p-5 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
