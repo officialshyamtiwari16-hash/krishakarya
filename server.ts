@@ -47,29 +47,26 @@ function getRemainingRateLimit(identifier: string): { remaining: number; limit: 
   return { remaining, limit: DAILY_LIMIT, used: entry.count };
 }
 
-// Lazy initialization of Gemini API client
-let genAIClient: GoogleGenAI | null = null;
+// Safe initialization of Gemini API client
 function getGenAI(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY' || apiKey.trim() === '') {
+  if (
+    !apiKey || 
+    apiKey === 'MY_GEMINI_API_KEY' || 
+    apiKey.trim() === '' || 
+    apiKey === 'undefined' || 
+    apiKey === 'null' ||
+    apiKey.length < 15
+  ) {
     return null;
   }
-  if (!genAIClient) {
-    try {
-      genAIClient = new GoogleGenAI({
-        apiKey: apiKey.trim(),
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
-          },
-        },
-      });
-    } catch (e) {
-      console.warn('Failed to initialize GoogleGenAI client:', e);
-      return null;
-    }
+  try {
+    return new GoogleGenAI({
+      apiKey: apiKey.trim(),
+    });
+  } catch {
+    return null;
   }
-  return genAIClient;
 }
 
 // Server-side Agronomy Fallback Engine
@@ -420,8 +417,8 @@ ${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${use
               limit: rateStatus.limit,
             });
           }
-        } catch (apiErr: any) {
-          console.warn('Gemini chat note (using expert agronomy engine fallback):', apiErr?.message || apiErr);
+        } catch {
+          // Gracefully continue to expert agronomy engine
         }
       }
 
@@ -431,8 +428,7 @@ ${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${use
         remaining: rateStatus.remaining,
         limit: rateStatus.limit,
       });
-    } catch (err: any) {
-      console.error('Krishak A.I chat route error:', err);
+    } catch {
       return res.json({
         reply: getFallbackChatAnswer(req.body?.message || '', req.body?.userContext),
         remaining: 48,
@@ -518,8 +514,8 @@ Farmer Question: ${question || 'Please analyze this crop image, identify any dis
               limit: rateStatus.limit,
             });
           }
-        } catch (apiErr: any) {
-          console.warn('Gemini QA note (using expert agronomy engine fallback):', apiErr?.message || apiErr);
+        } catch {
+          // Gracefully continue to expert agronomy engine
         }
       }
 
@@ -531,8 +527,7 @@ Farmer Question: ${question || 'Please analyze this crop image, identify any dis
         remaining: rateStatus.remaining,
         limit: rateStatus.limit,
       });
-    } catch (err: any) {
-      console.error('Modern Farming QA route error:', err);
+    } catch {
       return res.json({
         answer: `🔬 **फसल परामर्श:** कृपया अपनी फसल का नाम व लक्षण लिखकर पूछें। संतुलित खाद व समय पर स्प्रे से फसल सुरक्षित रहती है।`,
         remaining: 48,
@@ -592,8 +587,8 @@ Provide:
               limit: rateStatus.limit,
             });
           }
-        } catch (apiErr: any) {
-          console.warn('Gemini crop calculator note (using agronomy engine fallback):', apiErr?.message || apiErr);
+        } catch {
+          // Gracefully continue to agronomy calculation fallback
         }
       }
 
@@ -604,8 +599,7 @@ Provide:
         remaining: rateStatus.remaining,
         limit: rateStatus.limit,
       });
-    } catch (err: any) {
-      console.error('Crop calculator error:', err);
+    } catch {
       const calcResult = getFallbackCalculation(req.body?.crop || 'Wheat', Number(req.body?.acreage) || 1, req.body?.soilType || 'Alluvial / Loamy');
       return res.json({
         calculation: calcResult,
@@ -748,8 +742,8 @@ Please provide a thorough, certified diagnostic analysis in the specified JSON s
               limit: rateStatus.limit,
             });
           }
-        } catch (apiErr: any) {
-          console.warn('Gemini crop health note (using pathology engine fallback):', apiErr?.message || apiErr);
+        } catch {
+          // Gracefully continue to expert pathology fallback
         }
       }
 
@@ -765,8 +759,7 @@ Please provide a thorough, certified diagnostic analysis in the specified JSON s
         remaining: rateStatus.remaining,
         limit: rateStatus.limit,
       });
-    } catch (err: any) {
-      console.error('Crop health diagnosis error:', err);
+    } catch {
       const fallbackDiag = getFallbackCropHealthDiagnosis(req.body?.cropName, req.body?.symptoms);
       return res.json({
         success: true,
