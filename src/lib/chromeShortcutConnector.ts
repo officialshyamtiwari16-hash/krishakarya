@@ -152,15 +152,17 @@ export function initChromeShortcutConnector(): void {
   syncChromeIconManifest();
 
   if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((reg) => {
-          console.log('Krishakarya Chrome Shortcut Connector SW ready:', reg.scope);
-        })
-        .catch((err) => {
-          console.warn('Chrome SW registration fallback warning:', err);
-        });
-    });
+    if (import.meta.env.PROD) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((reg) => {
+            console.log('Krishakarya Chrome Shortcut Connector SW ready:', reg.scope);
+          })
+          .catch((err) => {
+            console.warn('Chrome SW registration fallback warning:', err);
+          });
+      });
+    }
   }
 }

@@ -1,5 +1,5 @@
 // Service Worker for Krishakarya PWA
-const CACHE_NAME = 'krishakarya-pwa-v2';
+const CACHE_NAME = 'krishakarya-pwa-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -41,13 +41,25 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Ignore non-http requests, browser extensions, or API routes
-  if (!url.protocol.startsWith('http') || url.pathname.startsWith('/api/')) return;
+  // Strictly ignore non-http requests, API routes, Vite dev server endpoints, and development modules
+  if (
+    !url.protocol.startsWith('http') || 
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/@vite') ||
+    url.pathname.startsWith('/@fs') ||
+    url.pathname.startsWith('/@id') ||
+    url.pathname.startsWith('/src/') ||
+    url.pathname.includes('/node_modules/') ||
+    url.search.includes('v=') ||
+    url.search.includes('t=')
+  ) {
+    return;
+  }
 
   const isNavigation = event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html');
 
   if (isNavigation) {
-    // Network-first for HTML pages so Vercel updates load immediately
+    // Network-first for HTML pages so latest code always loads
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
@@ -88,4 +100,5 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
 

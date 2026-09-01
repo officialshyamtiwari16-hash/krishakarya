@@ -155,6 +155,37 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
     window.print();
   };
 
+  const handleExportCSV = () => {
+    if (ledgerEntries.length === 0) return;
+
+    const headers = ['Date', 'Title', 'Type', 'Category', 'Amount (INR)', 'Crop', 'Party / Vendor', 'Payment Mode', 'Notes'];
+    const rows = filteredEntries.map((e) => {
+      const catLabel = CATEGORY_LABELS[e.category]?.label || e.category;
+      return [
+        `"${e.date}"`,
+        `"${(e.title || '').replace(/"/g, '""')}"`,
+        `"${e.type.toUpperCase()}"`,
+        `"${catLabel.replace(/"/g, '""')}"`,
+        e.amount,
+        `"${(e.cropName || '').replace(/"/g, '""')}"`,
+        `"${(e.partyName || '').replace(/"/g, '""')}"`,
+        `"${(e.paymentMode || '').replace(/"/g, '""')}"`,
+        `"${(e.notes || '').replace(/"/g, '""')}"`,
+      ].join(',');
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Krishakarya_Kisan_Khatabook_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       
@@ -322,14 +353,28 @@ export const KisanKhatabook: React.FC<KisanKhatabookProps> = ({
             ))}
           </select>
 
-          {/* Action Print */}
-          <button
-            type="button"
-            onClick={handlePrintLedger}
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 flex-shrink-0"
-          >
-            <Printer className="w-3.5 h-3.5" /> Print Ledger
-          </button>
+          {/* Action Export & Print */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              disabled={ledgerEntries.length === 0}
+              className="flex-1 sm:flex-none px-3 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800/80 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Download CSV spreadsheet for Excel / Google Sheets"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Export CSV</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePrintLedger}
+              className="flex-1 sm:flex-none px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 flex-shrink-0"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print</span>
+            </button>
+          </div>
 
         </div>
       </div>

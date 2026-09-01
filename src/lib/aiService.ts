@@ -118,6 +118,100 @@ export async function askKrishakAiChat(
   };
 }
 
+export async function askKrishakAiChatStream(
+  message: string,
+  history: Array<{ role: 'user' | 'model'; text: string }>,
+  currentUser: User | null | undefined,
+  onChunk: (accumulatedText: string) => void,
+  signal?: AbortSignal
+): Promise<AiChatResponse> {
+  let accumulatedText = '';
+  let remainingQuota = 48;
+  let limitQuota = 50;
+
+  try {
+    const res = await fetch('/api/krishak-ai/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal,
+      body: JSON.stringify({
+        message,
+        history,
+        userId: currentUser?.id || currentUser?.username || 'anonymous',
+        userContext: currentUser ? {
+          name: currentUser.name,
+          village: currentUser.village,
+          district: currentUser.district,
+          state: currentUser.state,
+          farmSizeAcres: currentUser.farmSizeAcres,
+        } : undefined,
+      }),
+    });
+
+    if (res.ok && res.body) {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data: ')) continue;
+          const dataStr = trimmed.replace(/^data:\s*/, '');
+          if (dataStr === '[DONE]') break;
+
+          try {
+            const data = JSON.parse(dataStr);
+            if (data.error) {
+              throw new Error(data.error);
+            }
+            if (data.text) {
+              accumulatedText += data.text;
+              onChunk(accumulatedText);
+            }
+            if (data.remaining !== undefined) remainingQuota = data.remaining;
+            if (data.limit !== undefined) limitQuota = data.limit;
+          } catch (jsonErr) {
+            // Non-fatal parse warning
+          }
+        }
+      }
+
+      if (accumulatedText.trim()) {
+        return {
+          reply: accumulatedText,
+          remaining: remainingQuota,
+          limit: limitQuota,
+        };
+      }
+    }
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      return { reply: accumulatedText, remaining: remainingQuota, limit: limitQuota };
+    }
+    console.warn('Streaming fetch fallback note:', err);
+  }
+
+  // Fallback if stream was empty or failed
+  if (!accumulatedText.trim()) {
+    accumulatedText = generateFallbackChatResponse(message, currentUser);
+    onChunk(accumulatedText);
+  }
+
+  return {
+    reply: accumulatedText,
+    remaining: remainingQuota,
+    limit: limitQuota,
+  };
+}
+
 export async function askModernFarmingQA(params: {
   question: string;
   category?: string;

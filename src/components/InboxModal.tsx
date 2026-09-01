@@ -40,7 +40,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { User, ChatMessage, Conversation } from '../types';
-import { askKrishakAiChat, getAiQuota } from '../lib/aiService';
+import { askKrishakAiChat, askKrishakAiChatStream, getAiQuota } from '../lib/aiService';
 import { getDeviceLocation } from '../lib/locationService';
 
 interface InboxModalProps {
@@ -537,6 +537,25 @@ export const InboxModal: React.FC<InboxModalProps> = ({
     // Handle AI Responses
     if (isAiActive) {
       setIsAiTyping(true);
+      const aiMsgId = `msg_ai_${Date.now()}`;
+      const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Create streaming placeholder
+      const aiPlaceholder: ChatMessage = {
+        id: aiMsgId,
+        conversationId: 'conv_krishak_ai',
+        senderId: 'krishak_ai_bot',
+        senderName: 'Krishak A.I',
+        receiverId: currentUser?.id || 'usr_current',
+        receiverName: currentUser?.name || 'Farmer',
+        text: '',
+        timestamp: timeNow,
+        isRead: true,
+        msgType: 'text',
+      };
+
+      appendMessage(aiPlaceholder, 'conv_krishak_ai');
+
       try {
         const historyForAi = activeMessages
           .filter(m => m.msgType === 'text')
@@ -546,39 +565,53 @@ export const InboxModal: React.FC<InboxModalProps> = ({
             text: m.text,
           }));
 
-        const result = await askKrishakAiChat(textToSend, historyForAi, currentUser);
+        const result = await askKrishakAiChatStream(
+          textToSend,
+          historyForAi,
+          currentUser,
+          (streamedChunk) => {
+            setIsAiTyping(false);
+            setAllMessages((prev) => {
+              const msgs = prev['conv_krishak_ai'] || [];
+              const updated = msgs.map((m) =>
+                m.id === aiMsgId ? { ...m, text: streamedChunk } : m
+              );
+              return { ...prev, conv_krishak_ai: updated };
+            });
+            setConversations((cPrev) =>
+              cPrev.map((c) =>
+                c.id === 'conv_krishak_ai'
+                  ? {
+                      ...c,
+                      lastMessage: streamedChunk.length > 45 ? streamedChunk.substring(0, 45) + '...' : streamedChunk,
+                      lastMessageTime: timeNow,
+                    }
+                  : c
+              )
+            );
+          }
+        );
+
         setIsAiTyping(false);
+        setAllMessages((prev) => {
+          const msgs = prev['conv_krishak_ai'] || [];
+          const updated = msgs.map((m) =>
+            m.id === aiMsgId ? { ...m, text: result.reply } : m
+          );
+          return { ...prev, conv_krishak_ai: updated };
+        });
 
-        const aiMsg: ChatMessage = {
-          id: `msg_ai_${Date.now()}`,
-          conversationId: 'conv_krishak_ai',
-          senderId: 'krishak_ai_bot',
-          senderName: 'Krishak A.I',
-          receiverId: currentUser?.id || 'usr_current',
-          receiverName: currentUser?.name || 'Farmer',
-          text: result.reply,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isRead: true,
-          msgType: 'text',
-        };
-
-        appendMessage(aiMsg, 'conv_krishak_ai');
         getAiQuota(currentUser?.id || currentUser?.username).then(setAiQuota);
       } catch {
         setIsAiTyping(false);
-        const fallbackMsg: ChatMessage = {
-          id: `msg_ai_err_${Date.now()}`,
-          conversationId: 'conv_krishak_ai',
-          senderId: 'krishak_ai_bot',
-          senderName: 'Krishak A.I',
-          receiverId: currentUser?.id || 'usr_current',
-          receiverName: currentUser?.name || 'Farmer',
-          text: 'कृषि नेटवर्क में अस्थाई समस्या है। कृपया कुछ देर बाद पुनः प्रयास करें।',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isRead: true,
-          msgType: 'text',
-        };
-        appendMessage(fallbackMsg, 'conv_krishak_ai');
+        const fallbackReply = 'कृषि नेटवर्क में अस्थाई समस्या है। कृपया कुछ देर बाद पुनः प्रयास करें।';
+        setAllMessages((prev) => {
+          const msgs = prev['conv_krishak_ai'] || [];
+          const updated = msgs.map((m) =>
+            m.id === aiMsgId ? { ...m, text: fallbackReply } : m
+          );
+          return { ...prev, conv_krishak_ai: updated };
+        });
       }
     } else {
       // Simulate practical response for direct chats

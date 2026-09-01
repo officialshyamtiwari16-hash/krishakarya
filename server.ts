@@ -437,6 +437,105 @@ ${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${use
     }
   });
 
+  // API Route: Real-Time Token Streaming SSE Chat Endpoint
+  app.post('/api/krishak-ai/chat/stream', async (req, res) => {
+    try {
+      const { message, history = [], userId, userContext, systemPrompt: customPrompt } = req.body;
+      const clientKey = userId || req.ip || 'anonymous_user';
+
+      if (!message || typeof message !== 'string' || !message.trim()) {
+        return res.status(400).json({ error: 'Message text is required.' });
+      }
+
+      // Check daily rate limit
+      const rateStatus = checkAndConsumeRateLimit(clientKey);
+      if (!rateStatus.allowed) {
+        return res.status(429).json({
+          error: `Daily limit of ${DAILY_LIMIT} AI requests reached. Quota resets daily at midnight.`,
+          remaining: 0,
+          limit: DAILY_LIMIT,
+        });
+      }
+
+      // Set SSE headers
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      if (typeof res.flushHeaders === 'function') {
+        res.flushHeaders();
+      }
+
+      const ai = getGenAI();
+
+      if (ai) {
+        try {
+          const defaultPrompt = `You are Krishak A.I (कृषक ए.आई), a dedicated, wise, and friendly agricultural AI assistant integrated into the Krishakarya platform.
+Krishakarya is an Indian agriculture ecosystem connecting farmers, Sahyogi agricultural laborers, and machinery owners.
+Your role:
+1. Provide accurate, practical, and actionable agronomy guidance for Indian crops (Wheat, Paddy, Mustard, Sugarcane, Cotton, Pulses, Vegetables, Fruits, etc.).
+2. Help with modern farming techniques (drip irrigation, drone spraying, precision agriculture, nano fertilizers, solar pumps).
+3. Offer quick calculations for seed rates, fertilizer doses (NPK, Urea, DAP, Potash), labor wage estimates, and machinery rental costs.
+4. Explain government schemes (PM-Kisan, PM Fasal Bima Yojana, Subsidies on Tractors/Harvesters, Soil Health Card).
+5. Always be polite, respectful (use "नमस्ते" or warm, professional greetings), practical, and concise. Format with clear bullet points, bold key terms, and numbers.
+6. Support multi-lingual responses: Reply in the language the user asked in (Hindi, Hinglish, English, Punjabi, etc.).
+${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${userContext.village || ''} ${userContext.district || ''}, ${userContext.state || ''}, farm size ${userContext.farmSizeAcres || 0} acres.` : ''}`;
+
+          const contents: any[] = [];
+          const recentHistory = Array.isArray(history) ? history.slice(-6) : [];
+          for (const item of recentHistory) {
+            contents.push({
+              role: item.role === 'model' || item.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: item.text || item.content || '' }]
+            });
+          }
+
+          contents.push({
+            role: 'user',
+            parts: [{ text: message }]
+          });
+
+          const responseStream = await ai.models.generateContentStream({
+            model: 'gemini-3.7-flash',
+            contents,
+            config: {
+              systemInstruction: customPrompt || defaultPrompt,
+              temperature: 0.7,
+            }
+          });
+
+          for await (const chunk of responseStream) {
+            const chunkText = chunk.text;
+            if (chunkText) {
+              res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+            }
+          }
+
+          res.write(`data: ${JSON.stringify({ done: true, remaining: rateStatus.remaining, limit: rateStatus.limit })}\n\n`);
+          res.write('data: [DONE]\n\n');
+          return res.end();
+        } catch (streamErr: any) {
+          console.warn('Gemini stream fallback trigger:', streamErr?.message);
+        }
+      }
+
+      // Stream fallback response in word chunks for fluid UX
+      const fallbackText = getFallbackChatAnswer(message, userContext);
+      const words = fallbackText.split(' ');
+      for (let i = 0; i < words.length; i += 3) {
+        const chunk = words.slice(i, i + 3).join(' ') + (i + 3 < words.length ? ' ' : '');
+        res.write(`data: ${JSON.stringify({ text: chunk })}\n\n`);
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      res.write(`data: ${JSON.stringify({ done: true, remaining: rateStatus.remaining, limit: rateStatus.limit })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      return res.end();
+    } catch (err: any) {
+      res.write(`data: ${JSON.stringify({ error: err?.message || 'Streaming failed' })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      return res.end();
+    }
+  });
+
   // API Route: Modern Farming Q&A with Multimodal Diagnostics
   app.post('/api/krishak-ai/qa', async (req, res) => {
     try {
