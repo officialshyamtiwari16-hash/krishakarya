@@ -58,8 +58,12 @@ import { CropHealthAssistant } from './components/CropHealthAssistant';
 import { AuthModal } from './components/AuthModal';
 import { AddListingModal } from './components/AddListingModal';
 import { InboxModal } from './components/InboxModal';
+import { SettingsModal } from './components/SettingsModal';
+import { useSettings } from './context/SettingsContext';
 
 export default function App() {
+  const { isSettingsOpen, setIsSettingsOpen } = useSettings();
+
   // Navigation State: home, sahyogi, machinery, profile, terms, modern-farming, crop-health
   const [activeTab, setActiveTab] = useState<
     'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health'
@@ -642,7 +646,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full flex flex-col font-sans bg-mesh-animated bg-grid-pattern text-slate-900 transition-colors duration-200 overflow-x-hidden">
+    <div className="min-h-screen min-h-[100dvh] w-full flex flex-col font-sans bg-mesh-animated bg-grid-pattern text-slate-900 transition-colors duration-200 overflow-x-hidden relative">
+      {/* Ambient Glassmorphism Refraction Orbs (Fixed in Background) */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-32 -left-20 w-[480px] h-[480px] bg-emerald-400/25 rounded-full blur-[110px]" />
+        <div className="absolute top-1/4 -right-24 w-[520px] h-[520px] bg-teal-300/25 rounded-full blur-[120px]" />
+        <div className="absolute top-2/3 left-1/4 w-[420px] h-[420px] bg-lime-300/20 rounded-full blur-[100px]" />
+        <div className="absolute -bottom-28 right-1/3 w-[500px] h-[500px] bg-emerald-300/20 rounded-full blur-[130px]" />
+      </div>
+
       {/* Route-Specific SEO Meta Manager */}
       <SEOHead activeTab={activeTab} />
 
@@ -671,6 +683,7 @@ export default function App() {
           }
         }}
         onOpenInbox={() => setIsInboxOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         onLogout={handleLogout}
         bookingCount={myBookings.length}
       />
@@ -820,6 +833,23 @@ export default function App() {
         }}
         onRequestPermission={requestBrowserNotificationPermission}
         isPermissionGranted={isNotificationPermissionGranted()}
+      />
+
+      {/* Global App Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentUser={currentUser}
+        onOpenTerms={() => {
+          setIsSettingsOpen(false);
+          setActiveTab('terms');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenProfile={() => {
+          setIsSettingsOpen(false);
+          setActiveTab('profile');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
     </div>
   );

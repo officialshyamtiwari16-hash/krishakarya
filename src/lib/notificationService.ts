@@ -5,6 +5,9 @@ import { Booking, BookingStatus } from '../types';
  */
 export const playNotificationChime = (toneType: 'success' | 'alert' | 'info' = 'success') => {
   try {
+    if (typeof window !== 'undefined' && localStorage.getItem('krishakarya_sound_effects') === 'false') {
+      return; // Muted by user setting
+    }
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();

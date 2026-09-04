@@ -172,14 +172,15 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
           <button onClick={() => setBookingToast(null)} className="text-emerald-300 hover:text-white text-xs font-bold ml-auto">✕</button>
         </div>
       )}
-      {/* Hero Banner */}
+      {/* Hero Banner with Frosted Glassmorphism */}
       <div 
-        className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 p-4 sm:p-5 text-white shadow-xl space-y-2 border border-emerald-500/30 animate-fadeIn"
+        className="relative rounded-2xl overflow-hidden glass-dark-card p-4 sm:p-5 text-white shadow-xl space-y-2 border border-white/20 animate-fadeIn"
       >
-        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
+        <div className="absolute -top-12 -left-12 w-64 h-64 bg-emerald-400/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-teal-400/15 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+            <div className="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-xs">
               <UserCheck className="w-3 h-3 text-amber-300 icon-micro-rotate" /> Rated Agricultural Helpers (Sahyogi)
             </div>
             <h1 className="text-sm sm:text-base font-extrabold tracking-tight leading-snug">
@@ -201,7 +202,7 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
 
       {/* Filter and Search Bar */}
       <div 
-        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 animate-fadeIn"
+        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 animate-fadeIn border border-white/40"
       >
         {/* Horizontal Skill Quick Filters */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar smooth-scroll">
@@ -215,7 +216,7 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
                 selectedSkill === skill
                   ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'glass-pill text-slate-700 hover:text-slate-900 border border-slate-200/60 hover:border-emerald-400/50'
               }`}
             >
               {skill === 'All' ? 'All Operations' : skill}
@@ -314,7 +315,7 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
           {filteredSahyogis.map((sahyogi) => (
             <div
               key={sahyogi.id}
-              className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between animate-fadeIn hover:-translate-y-1 transition-all duration-200"
+              className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between animate-fadeIn hover:-translate-y-1.5 transition-all duration-300 border border-white/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_8px_24px_rgba(0,0,0,0.06)]"
             >
               <div className="p-5 space-y-4">
                 <div className="flex items-start gap-4">
@@ -402,8 +403,8 @@ export const SahyogiListings: React.FC<SahyogiListingsProps> = ({
 
       {/* Detail & Hire Modal */}
       {selectedSahyogi && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
-          <div className="relative w-full max-w-2xl glass-panel rounded-3xl shadow-2xl border border-emerald-500/30 overflow-hidden my-auto max-h-[92vh] flex flex-col text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-2xl glass-modal rounded-3xl shadow-2xl border border-white/40 overflow-hidden my-auto max-h-[92vh] flex flex-col text-slate-900">
 
             <div className="bg-gradient-to-r from-emerald-800 to-green-900 p-5 sm:p-6 text-white relative flex-shrink-0">
               <button

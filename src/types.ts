@@ -227,4 +227,37 @@ export interface CropHealthDiagnosis {
   rawAnalysis?: string;
 }
 
+export interface AppSettings {
+  // 1. Language & Regional
+  language: string;
+  landUnit: 'acre' | 'bigha_up' | 'bigha_bihar' | 'bigha_bengal' | 'guntha' | 'hectare' | 'biswa' | 'kanal';
+  currencyFormat: 'inr_lakhs' | 'standard';
+
+  // 2. Notifications & Audio
+  pushNotifications: boolean;
+  soundEffects: boolean;
+  bookingAlerts: boolean;
+  weatherAlerts: boolean;
+  aiAdvisoryAlerts: boolean;
+
+  // 3. Weather & Location
+  tempUnit: 'celsius' | 'fahrenheit';
+  windSpeedUnit: 'kmh' | 'ms' | 'mph';
+  weatherRefreshInterval: '15m' | '30m' | '1h' | 'manual';
+  locationMode: 'auto_gps' | 'saved_profile';
+
+  // 4. Krishak A.I & Voice Assistant
+  autoSpeakAiResponse: boolean;
+  speechRate: number; // 0.8, 1.0, 1.2
+  cropDiagnosticDetail: 'standard' | 'high';
+
+  // 5. Display & Accessibility
+  fontSize: 'normal' | 'large' | 'extralarge';
+  highContrast: boolean;
+  reducedMotion: boolean;
+
+  // 6. Data & Rural Connectivity
+  dataSaverMode: boolean;
+}
+
 

@@ -100,19 +100,19 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Master Hero Block with Clean High-Performance Gradient Background */}
+      {/* Master Hero Block with Clean High-Performance Frosted Glass */}
       <div
-        className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-gradient-to-br from-slate-950 via-emerald-950/90 to-slate-900 min-h-[420px] animate-fadeIn"
+        className="relative rounded-3xl overflow-hidden glass-dark-card border border-white/20 shadow-2xl min-h-[420px] animate-fadeIn"
       >
-        {/* Subtle Static Ambient Glow Accents (0ms render overhead) */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Ambient Glow Accents Behind Glass */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Hero Card Content Container */}
         <div className="relative z-10 p-4 sm:p-6 lg:p-8 space-y-6 text-white">
           
           {/* Top Welcome Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-emerald-500/30 backdrop-blur-md shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-slate-900/60 border border-white/15 backdrop-blur-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_12px_32px_rgba(0,0,0,0.25)]">
             <div className="flex items-center gap-3">
               <KrishakaryaLogo size={46} />
               <div className="space-y-0.5">
@@ -145,7 +145,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
               <button
                 onClick={() => onNavigate('machinery')}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[38px] btn-futuristic cursor-pointer"
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 backdrop-blur-md transition-all flex items-center gap-1.5 min-h-[38px] btn-futuristic cursor-pointer shadow-xs"
               >
                 <Tractor className="w-4 h-4 text-amber-400 icon-micro-rotate" /> {t('rentMachinery')}
               </button>
@@ -161,7 +161,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
 
           {/* Compact & Good-Looking Krishak A.I Inbox Banner (Down in the line) */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950/95 via-slate-900/90 to-teal-950/95 border border-emerald-500/30 hover:border-emerald-400/50 backdrop-blur-md p-3.5 sm:p-4 shadow-xl transition-all">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950/80 via-emerald-950/75 to-slate-900/80 border border-emerald-400/40 hover:border-emerald-300/60 backdrop-blur-2xl p-3.5 sm:p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_12px_36px_rgba(0,0,0,0.35)] transition-all">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
               
               {/* Left: Compact Bot Identity */}
@@ -179,7 +179,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <h3 className="font-black text-sm sm:text-base text-white flex items-center gap-1.5 tracking-tight">
                       Krishak A.I Inbox <span className="text-emerald-400 text-xs font-semibold">(कृषक ए.आई)</span>
                     </h3>
-                    <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black rounded-full uppercase tracking-wider">
+                    <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black rounded-full uppercase tracking-wider backdrop-blur-xs">
                       24/7 Agro Advisory
                     </span>
                   </div>
@@ -200,7 +200,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <button
                       key={idx}
                       onClick={() => handleOpenAiInbox(chip.prompt)}
-                      className="px-2.5 py-1 bg-white/5 hover:bg-emerald-500/20 text-emerald-200 hover:text-white border border-emerald-500/20 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer"
+                      className="px-2.5 py-1 bg-white/10 hover:bg-emerald-500/25 text-emerald-200 hover:text-white border border-white/15 rounded-lg text-[11px] font-semibold backdrop-blur-md transition-all whitespace-nowrap cursor-pointer shadow-xs"
                     >
                       {chip.label}
                     </button>
@@ -236,9 +236,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Tool 0: AI Crop Health Assistant & Photo Diagnostic */}
               <button
                 onClick={() => onNavigate('crop-health')}
-                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-gradient-to-br from-emerald-950/95 via-teal-950/90 to-slate-900/90 hover:from-emerald-900/95 hover:to-slate-900 backdrop-blur-md border border-emerald-400/50 hover:border-emerald-300 transition-all shadow-lg ring-1 ring-emerald-500/30"
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-gradient-to-br from-slate-950/80 via-emerald-950/70 to-slate-900/80 hover:from-slate-950/90 hover:to-emerald-950/85 backdrop-blur-2xl border border-emerald-400/50 hover:border-emerald-300 transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_10px_28px_rgba(0,0,0,0.3)] hover:-translate-y-1.5"
               >
-                <div className="p-2.5 bg-emerald-500/30 text-emerald-200 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-400/40">
+                <div className="p-2.5 bg-emerald-500/25 text-emerald-200 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-400/40 backdrop-blur-md">
                   <Camera className="w-5 h-5 text-emerald-300 animate-pulse" />
                 </div>
                 <div className="space-y-0.5">
@@ -246,7 +246,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <h3 className="font-black text-emerald-300 text-xs sm:text-sm group-hover:text-emerald-200 transition-colors">
                       Crop Health Assistant
                     </h3>
-                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase">
+                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase shadow-xs">
                       New AI
                     </span>
                   </div>
@@ -262,9 +262,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Tool 1: Find Sahyogi */}
               <button
                 onClick={() => onNavigate('sahyogi')}
-                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-2xl border border-white/15 hover:border-emerald-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 transition-all duration-300"
               >
-                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30">
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30 backdrop-blur-md">
                   <Users className="w-5 h-5 text-emerald-300" />
                 </div>
                 <div className="space-y-0.5">
@@ -283,9 +283,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Tool 2: Rent Machinery */}
               <button
                 onClick={() => onNavigate('machinery')}
-                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-2xl border border-white/15 hover:border-amber-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 transition-all duration-300"
               >
-                <div className="p-2.5 bg-amber-500/20 text-amber-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-amber-500/30">
+                <div className="p-2.5 bg-amber-500/20 text-amber-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-amber-500/30 backdrop-blur-md">
                   <Tractor className="w-5 h-5 text-amber-300" />
                 </div>
                 <div className="space-y-0.5">
@@ -304,9 +304,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Tool 3: List Service / Machinery */}
               <button
                 onClick={onOpenAddListing}
-                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-2xl border border-white/15 hover:border-emerald-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 transition-all duration-300"
               >
-                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30">
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30 backdrop-blur-md">
                   <PlusCircle className="w-5 h-5 text-emerald-300" />
                 </div>
                 <div className="space-y-0.5">
@@ -325,9 +325,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Tool 4: Kisan Bahi Khata (Digital Ledger) */}
               <button
                 onClick={() => setIsLedgerOpen(true)}
-                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-2xl border border-white/15 hover:border-emerald-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 transition-all duration-300"
               >
-                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30">
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30 backdrop-blur-md">
                   <BookOpen className="w-5 h-5 text-emerald-300" />
                 </div>
                 <div className="space-y-0.5">
@@ -335,7 +335,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-emerald-300 transition-colors">
                       Kisan Bahi Khata
                     </h3>
-                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase">
+                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase shadow-xs">
                       Ledger
                     </span>
                   </div>
@@ -351,9 +351,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Tool 5: Land Acreage & Seed Calculator */}
               <button
                 onClick={() => setIsCalculatorOpen(true)}
-                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-2xl border border-white/15 hover:border-emerald-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 transition-all duration-300"
               >
-                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30">
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-emerald-500/30 backdrop-blur-md">
                   <Calculator className="w-5 h-5 text-emerald-300" />
                 </div>
                 <div className="space-y-0.5">
@@ -372,9 +372,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Tool 6: Krishak A.I & Modern Farming */}
               <button
                 onClick={() => onNavigate('modern-farming')}
-                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-gradient-to-br from-emerald-950/90 to-slate-900/90 hover:from-emerald-900/90 hover:to-slate-900 backdrop-blur-md border border-amber-400/40 hover:border-amber-400 transition-all shadow-md"
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-gradient-to-br from-slate-950/80 via-emerald-950/70 to-slate-900/80 hover:from-slate-950/90 hover:to-emerald-950/85 backdrop-blur-2xl border border-amber-400/40 hover:border-amber-400 transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5"
               >
-                <div className="p-2.5 bg-amber-400/20 text-amber-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-amber-400/40">
+                <div className="p-2.5 bg-amber-400/20 text-amber-300 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-amber-400/40 backdrop-blur-md">
                   <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
                 </div>
                 <div className="space-y-0.5">
@@ -382,7 +382,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <h3 className="font-extrabold text-amber-300 text-xs sm:text-sm group-hover:text-amber-200 transition-colors">
                       Modern Farming & AI
                     </h3>
-                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase">
+                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase shadow-xs">
                       AI 24/7
                     </span>
                   </div>
@@ -398,9 +398,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Tool 7: User Profile & Details */}
               <button
                 onClick={() => onNavigate('profile')}
-                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/65 hover:bg-slate-900/85 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 transition-all shadow-md"
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-2xl border border-white/15 hover:border-emerald-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 transition-all duration-300"
               >
-                <div className="p-2.5 bg-slate-800 text-slate-200 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-slate-700">
+                <div className="p-2.5 bg-slate-800/80 text-slate-200 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-slate-700 backdrop-blur-md">
                   <UserIcon className="w-5 h-5 text-slate-300" />
                 </div>
                 <div className="space-y-0.5">

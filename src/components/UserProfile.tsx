@@ -30,9 +30,11 @@ import {
   Shield,
   Key,
   BookOpen,
-  CalendarDays
+  CalendarDays,
+  Settings
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useSettings } from '../context/SettingsContext';
 import { checkUsernameAvailability, normalizeUsername, saveUserToFirestore } from '../lib/firestoreService';
 import { signInWithPopup, updatePassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, googleAuthProvider } from '../lib/firebase';
@@ -82,6 +84,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   onNavigate,
 }) => {
   const { t } = useLanguage();
+  const { setIsSettingsOpen } = useSettings();
 
   // Active Subtab for Logged In User
   const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'profile' | 'security' | 'bookings' | 'listings' | 'khatabook'>('dashboard');
@@ -402,6 +405,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({
           </span>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="px-3 py-1 bg-white hover:bg-emerald-50 text-slate-800 hover:text-emerald-950 font-bold text-xs rounded-xl border border-slate-200 transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+              title="App Settings & Preferences"
+            >
+              <Settings className="w-3.5 h-3.5 text-emerald-700" /> App Settings
+            </button>
+
             <button
               onClick={() => onOpenAuthModal?.('login')}
               className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors flex items-center gap-1 cursor-pointer"

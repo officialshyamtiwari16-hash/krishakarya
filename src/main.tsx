@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { LanguageProvider } from './context/LanguageContext';
+import { SettingsProvider } from './context/SettingsContext';
 
 // Register Service Worker for PWA in production only, clean up in dev
 if ('serviceWorker' in navigator) {
@@ -30,7 +31,9 @@ if ('serviceWorker' in navigator) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
-      <App />
+      <SettingsProvider>
+        <App />
+      </SettingsProvider>
     </LanguageProvider>
   </StrictMode>,
 );

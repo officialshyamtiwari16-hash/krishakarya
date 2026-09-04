@@ -290,14 +290,14 @@ export const LocalWeatherWidget: React.FC<LocalWeatherWidgetProps> = ({
   if (!weather) return null;
 
   return (
-    <div className="rounded-3xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-gradient-to-br from-slate-950 via-[#0a1a15] to-[#0c1317] relative text-white">
+    <div className="rounded-3xl overflow-hidden glass-dark-card border border-white/20 shadow-2xl relative text-white">
       
       {/* Ambient background glows */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Header Strip with GPS Status, Search & Action Buttons */}
-      <div className="p-4 sm:p-5 border-b border-emerald-500/20 bg-slate-900/70 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 relative z-10">
+      <div className="p-4 sm:p-5 border-b border-white/10 bg-slate-900/60 backdrop-blur-2xl flex flex-wrap items-center justify-between gap-3 relative z-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]">
         
         {/* Location & GPS Indicator */}
         <div className="flex items-center gap-3 min-w-0">
@@ -451,7 +451,7 @@ export const LocalWeatherWidget: React.FC<LocalWeatherWidgetProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
               
               {/* Temperature & Live Conditions Hero Card (5 Cols) */}
-              <div className="md:col-span-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-950/90 via-slate-900/90 to-teal-950/90 border border-emerald-500/30 flex flex-col justify-between gap-4 shadow-xl">
+              <div className="md:col-span-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-950/85 via-emerald-950/75 to-slate-900/85 border border-white/15 backdrop-blur-2xl flex flex-col justify-between gap-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.3)]">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-baseline gap-2">

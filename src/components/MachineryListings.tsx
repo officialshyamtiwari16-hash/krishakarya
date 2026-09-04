@@ -183,27 +183,28 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
           <button onClick={() => setBookingToast(null)} className="text-amber-300 hover:text-white text-xs font-bold ml-auto">✕</button>
         </div>
       )}
-      {/* Hero Banner */}
+      {/* Hero Banner with Frosted Glassmorphism */}
       <div 
-        className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-950 p-4 sm:p-5 text-white shadow-xl space-y-2 border border-emerald-500/30 animate-fadeIn"
+        className="relative rounded-2xl overflow-hidden glass-dark-card p-4 sm:p-5 text-white shadow-xl space-y-2 border border-white/20 animate-fadeIn"
       >
-        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
+        <div className="absolute -top-12 -left-12 w-64 h-64 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-emerald-400/15 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 bg-amber-400 text-slate-950 font-bold px-2.5 py-0.5 rounded-full text-[10px]">
-              <Tractor className="w-3 h-3 icon-micro-rotate" /> Reliable Agricultural Equipment Hub
+            <div className="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-xs">
+              <Tractor className="w-3 h-3 icon-micro-rotate text-amber-300" /> Reliable Agricultural Equipment Hub
             </div>
             <h1 className="text-sm sm:text-base font-extrabold tracking-tight leading-snug">
-              Rent Modern <span className="text-amber-400">Tractors & Farming Machinery</span>
+              Rent Modern <span className="text-amber-300">Tractors & Farming Machinery</span>
             </h1>
-            <p className="text-amber-100 text-[11px] leading-tight">
+            <p className="text-amber-100/90 text-[11px] leading-tight">
               Rent tractors, combine harvesters, rotavators, spray drones, solar water pumps, and thresher tools.
             </p>
           </div>
 
           <button
             onClick={onOpenAddListing}
-            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[11px] shadow-md transition-all flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center btn-futuristic pulse-glow-cta cursor-pointer"
+            className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-[11px] shadow-md transition-all flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center btn-futuristic pulse-glow-cta cursor-pointer border border-emerald-400/30"
           >
             <Plus className="w-3.5 h-3.5" /> List Machine for Rent
           </button>
@@ -212,7 +213,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
 
       {/* Filter and Category Pills */}
       <div 
-        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 animate-fadeIn"
+        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 animate-fadeIn border border-white/40"
       >
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar smooth-scroll">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
@@ -224,8 +225,8 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
               onClick={() => setSelectedCategory(cat)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-emerald-700 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'glass-pill text-slate-700 hover:text-slate-900 border border-slate-200/60 hover:border-emerald-400/50'
               }`}
             >
               {cat}
@@ -326,7 +327,7 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
           {filteredMachinery.map((machine) => (
             <div
               key={machine.id}
-              className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group animate-fadeIn hover:-translate-y-1 transition-all duration-200"
+              className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group animate-fadeIn hover:-translate-y-1.5 transition-all duration-300 border border-white/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_8px_24px_rgba(0,0,0,0.06)]"
             >
               <div>
                 {machine.image && machine.image.trim().length > 0 && (
@@ -424,8 +425,8 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
 
       {/* Detail & Rental Modal */}
       {selectedMachine && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
-          <div className="relative w-full max-w-2xl glass-panel rounded-3xl shadow-2xl border border-emerald-500/30 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-2xl glass-modal rounded-3xl shadow-2xl border border-white/40 overflow-hidden my-auto max-h-[92vh] flex flex-col">
             <div className="relative p-6 bg-gradient-to-r from-amber-900 via-stone-900 to-emerald-950 text-white flex-shrink-0">
               <button
                 onClick={() => setSelectedMachine(null)}

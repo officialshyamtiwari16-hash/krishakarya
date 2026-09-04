@@ -15,9 +15,11 @@ import {
   Sparkles,
   Bot,
   Leaf,
-  Camera
+  Camera,
+  Settings
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useSettings } from '../context/SettingsContext';
 import { InboxModal } from './InboxModal';
 import { NotificationModal } from './NotificationModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
@@ -30,6 +32,7 @@ interface HeaderProps {
   onOpenAuth: () => void;
   onOpenAddListing: () => void;
   onOpenInbox?: () => void;
+  onOpenSettings?: () => void;
   onLogout: () => void;
   bookingCount: number;
 }
@@ -42,12 +45,22 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
   onOpenAddListing,
   onOpenInbox,
+  onOpenSettings,
   onLogout,
   bookingCount,
 }) => {
   const { currentLanguage, setLanguage, languages, t, getLanguageInfo } = useLanguage();
+  const { setIsSettingsOpen } = useSettings();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
+
+  const handleOpenSettingsModal = () => {
+    if (onOpenSettings) {
+      onOpenSettings();
+    } else {
+      setIsSettingsOpen(true);
+    }
+  };
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [hasNotifPermission, setHasNotifPermission] = useState(false);
@@ -94,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-emerald-500/20 shadow-sm transition-all duration-300">
+      <header className="sticky top-0 z-40 bg-white/75 backdrop-blur-2xl border-b border-white/80 shadow-[0_4px_24px_-2px_rgba(4,120,87,0.07),inset_0_1px_1px_rgba(255,255,255,0.95)] transition-all duration-300">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 space-y-2">
           {/* Top Row: Left Utilities | Top Center Krishakarya Heading | Right Controls */}
           <div className="flex items-center justify-between gap-2">
@@ -104,12 +117,12 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={handleShareWebsite}
                 title="Share Krishakarya Website"
-                className="flex items-center gap-1 px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-[11px] sm:text-xs font-extrabold border border-emerald-200 transition-all min-h-[36px] shrink-0 cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-white/70 hover:bg-emerald-50/90 text-emerald-950 rounded-xl text-[11px] sm:text-xs font-extrabold border border-white/90 hover:border-emerald-300/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] shrink-0 cursor-pointer"
               >
                 {copiedLink ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="hidden sm:inline">Copied!</span>
+                    <span className="hidden sm:inline font-black text-emerald-700">Copied!</span>
                   </>
                 ) : (
                   <>
@@ -124,14 +137,25 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => setIsNotifOpen(true)}
                 title="Notifications & Alerts"
                 aria-label="Notifications & Alerts"
-                className="relative flex items-center justify-center p-2 bg-slate-100 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 rounded-xl border border-slate-200 transition-all min-h-[36px] min-w-[36px] shrink-0 cursor-pointer"
+                className="relative flex items-center justify-center p-2 bg-white/70 hover:bg-emerald-50/90 text-slate-800 hover:text-emerald-900 rounded-xl border border-white/90 hover:border-emerald-300/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] min-w-[36px] shrink-0 cursor-pointer"
               >
                 <Bell className="w-4 h-4 text-emerald-700" />
                 {hasNotifPermission ? (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" title="Notifications Enabled" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white shadow-xs" title="Notifications Enabled" />
                 ) : (
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 animate-ping" title="Click to enable notifications" />
                 )}
+              </button>
+
+              {/* App Settings Button (Always Visible) */}
+              <button
+                onClick={handleOpenSettingsModal}
+                title="App Settings & Preferences (हर सेटिंग)"
+                aria-label="App Settings"
+                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 bg-white/70 hover:bg-emerald-50/90 text-emerald-950 rounded-xl text-[11px] sm:text-xs font-extrabold border border-white/90 hover:border-emerald-300/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] shrink-0 cursor-pointer group"
+              >
+                <Settings className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-emerald-700 group-hover:rotate-45 transition-transform duration-300" />
+                <span className="hidden sm:inline font-bold text-slate-800 group-hover:text-emerald-900">Settings</span>
               </button>
             </div>
 
@@ -158,7 +182,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="relative">
                 <button
                   onClick={() => setIsLangOpen(!isLangOpen)}
-                  className="flex items-center gap-1 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-[11px] sm:text-xs font-bold border border-slate-200/80 transition-all min-h-[36px] cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-white/70 hover:bg-white/95 text-slate-800 rounded-xl text-[11px] sm:text-xs font-bold border border-white/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] cursor-pointer"
                   title="Select Indian Language / भाषा चुनें"
                 >
                   <Globe className="w-3.5 h-3.5 text-emerald-600" />
@@ -170,13 +194,13 @@ export const Header: React.FC<HeaderProps> = ({
                 {isLangOpen && (
                   <>
                     <div 
-                      className="fixed inset-0 z-40" 
+                      className="fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-xs" 
                       onClick={() => setIsLangOpen(false)} 
                     />
-                    <div className="absolute right-0 mt-2 w-56 sm:w-64 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 max-h-80 overflow-y-auto space-y-1">
-                      <div className="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase">
+                    <div className="absolute right-0 mt-2 w-56 sm:w-64 z-50 glass-modal rounded-2xl p-2 max-h-80 overflow-y-auto space-y-1 animate-modalPop">
+                      <div className="px-3 py-1.5 border-b border-emerald-500/10 flex items-center justify-between text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
                         <span>Indian Languages</span>
-                        <span>14 Available</span>
+                        <span className="text-emerald-700">14 Available</span>
                       </div>
 
                       <div className="grid grid-cols-1 gap-1 pt-1">
@@ -189,8 +213,8 @@ export const Header: React.FC<HeaderProps> = ({
                             }}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors ${
                               currentLanguage === lang.code
-                                ? 'bg-emerald-50 text-emerald-800 font-bold ring-1 ring-emerald-500/30'
-                                : 'text-slate-700 hover:bg-slate-100'
+                                ? 'bg-emerald-500/15 text-emerald-900 font-black border border-emerald-400/40 shadow-xs'
+                                : 'text-slate-700 hover:bg-white/80 hover:text-emerald-800'
                             }`}
                           >
                             <div className="flex items-center gap-2">
@@ -215,7 +239,7 @@ export const Header: React.FC<HeaderProps> = ({
               {!currentUser && (
                 <button
                   onClick={onOpenAuth}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold rounded-xl text-xs shadow-xs border border-emerald-500/30 transition-all min-h-[36px] shrink-0 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-600 hover:to-emerald-700 text-white font-extrabold rounded-xl text-xs shadow-[0_4px_14px_rgba(4,120,87,0.25),inset_0_1px_1px_rgba(255,255,255,0.4)] border border-emerald-400/30 transition-all min-h-[36px] shrink-0 cursor-pointer btn-futuristic"
                   title="Sign In / Register"
                 >
                   <UserIcon className="w-3.5 h-3.5 text-emerald-200" />
@@ -233,8 +257,8 @@ export const Header: React.FC<HeaderProps> = ({
                     }}
                     className={`flex items-center gap-1.5 p-1 sm:p-1.5 pl-2 sm:pl-2.5 pr-2 rounded-xl border text-xs font-bold transition-all min-h-[36px] cursor-pointer ${
                       activeTab === 'profile'
-                        ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20'
-                        : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
+                        ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-950 ring-2 ring-emerald-500/20 shadow-xs'
+                        : 'bg-white/70 border-white/90 text-slate-800 hover:bg-white/95 shadow-xs'
                     }`}
                   >
                     {currentUser.profileImage && currentUser.profileImage.trim().length > 0 ? (
@@ -259,13 +283,13 @@ export const Header: React.FC<HeaderProps> = ({
                     )}
                   </button>
 
-                  {/* Sign Out Button - Placed in position of listing button */}
+                  {/* Sign Out Button */}
                   <button
                     onClick={onLogout}
                     title={t('signOut')}
-                    className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 font-extrabold rounded-xl text-xs border border-red-200/80 transition-all min-h-[36px] shrink-0 cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-rose-50/80 hover:bg-rose-100 text-rose-700 font-extrabold rounded-xl text-xs border border-rose-200/80 shadow-xs backdrop-blur-md transition-all min-h-[36px] shrink-0 cursor-pointer"
                   >
-                    <LogOut className="w-3.5 h-3.5 text-red-600" />
+                    <LogOut className="w-3.5 h-3.5 text-rose-600" />
                     <span className="hidden sm:inline text-[11px] sm:text-xs">{t('signOut')}</span>
                   </button>
                 </div>
@@ -275,16 +299,16 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Centered Navigation Tabs Placed BELOW Krishakarya Heading */}
           <div className="flex justify-center w-full pt-1">
-            <nav className="flex items-center justify-start sm:justify-center gap-1 sm:gap-1.5 bg-slate-100/80 p-1 rounded-2xl max-w-full overflow-x-auto no-scrollbar smooth-scroll touch-pan-x">
+            <nav className="flex items-center justify-start sm:justify-center gap-1 sm:gap-1.5 bg-white/60 backdrop-blur-xl border border-white/80 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),0_4px_16px_rgba(4,120,87,0.06)] p-1 rounded-2xl max-w-full overflow-x-auto no-scrollbar smooth-scroll touch-pan-x">
               <button
                 onClick={() => {
                   setActiveTab('home');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap cursor-pointer ${
                   activeTab === 'home'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60'
+                    ? 'bg-gradient-to-r from-emerald-700 to-emerald-800 text-white shadow-[0_4px_12px_rgba(4,120,87,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+                    : 'text-slate-700 hover:text-emerald-900 hover:bg-white/70'
                 }`}
               >
                 <Home className="w-4 h-4" />
@@ -296,10 +320,10 @@ export const Header: React.FC<HeaderProps> = ({
                   setActiveTab('sahyogi');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap cursor-pointer ${
                   activeTab === 'sahyogi'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60'
+                    ? 'bg-gradient-to-r from-emerald-700 to-emerald-800 text-white shadow-[0_4px_12px_rgba(4,120,87,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+                    : 'text-slate-700 hover:text-emerald-900 hover:bg-white/70'
                 }`}
               >
                 <Users className="w-4 h-4" />
@@ -311,10 +335,10 @@ export const Header: React.FC<HeaderProps> = ({
                   setActiveTab('machinery');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap cursor-pointer ${
                   activeTab === 'machinery'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60'
+                    ? 'bg-gradient-to-r from-emerald-700 to-emerald-800 text-white shadow-[0_4px_12px_rgba(4,120,87,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+                    : 'text-slate-700 hover:text-emerald-900 hover:bg-white/70'
                 }`}
               >
                 <Tractor className="w-4 h-4" />
@@ -326,10 +350,10 @@ export const Header: React.FC<HeaderProps> = ({
                   setActiveTab('crop-health');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap cursor-pointer ${
                   activeTab === 'crop-health'
-                    ? 'bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-amber-300 shadow-xs border border-amber-400/40'
-                    : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60'
+                    ? 'bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-amber-300 shadow-[0_4px_14px_rgba(13,148,136,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-amber-400/40'
+                    : 'text-slate-700 hover:text-emerald-900 hover:bg-white/70'
                 }`}
                 title="Crop Health Assistant - Photo & Camera AI Diagnosis"
               >
@@ -347,10 +371,10 @@ export const Header: React.FC<HeaderProps> = ({
                   setActiveTab('modern-farming');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap cursor-pointer ${
                   activeTab === 'modern-farming'
-                    ? 'bg-gradient-to-r from-emerald-800 to-teal-800 text-amber-300 shadow-xs border border-amber-400/40'
-                    : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60'
+                    ? 'bg-gradient-to-r from-emerald-800 to-teal-800 text-amber-300 shadow-[0_4px_14px_rgba(13,148,136,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-amber-400/40'
+                    : 'text-slate-700 hover:text-emerald-900 hover:bg-white/70'
                 }`}
               >
                 <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
@@ -359,13 +383,13 @@ export const Header: React.FC<HeaderProps> = ({
 
               <button
                 onClick={handleTriggerInbox}
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60"
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap text-slate-700 hover:text-emerald-900 hover:bg-white/70 cursor-pointer"
                 title="Message Inbox & Krishak A.I"
               >
                 <MessageSquare className="w-4 h-4 text-emerald-700" />
                 <span className="flex items-center gap-1">
                   Inbox
-                  <span className="px-1.5 py-0.2 bg-emerald-600 text-white text-[9px] font-black rounded-md">
+                  <span className="px-1.5 py-0.2 bg-emerald-600 text-white text-[9px] font-black rounded-md shadow-xs">
                     AI
                   </span>
                 </span>
@@ -378,8 +402,8 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap ${
                   activeTab === 'profile'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-200/60'
+                    ? 'bg-gradient-to-r from-emerald-700 to-emerald-800 text-white shadow-[0_4px_12px_rgba(4,120,87,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+                    : 'text-slate-700 hover:text-emerald-900 hover:bg-white/70'
                 }`}
               >
                 <UserIcon className="w-4 h-4" />
@@ -389,6 +413,16 @@ export const Header: React.FC<HeaderProps> = ({
                     {bookingCount}
                   </span>
                 )}
+              </button>
+
+              {/* Desktop App Settings Tab */}
+              <button
+                onClick={handleOpenSettingsModal}
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap text-slate-700 hover:text-emerald-900 hover:bg-white/70 cursor-pointer group"
+                title="App Settings & Preferences (हर सेटिंग)"
+              >
+                <Settings className="w-4 h-4 text-emerald-700 group-hover:rotate-45 transition-transform duration-300" />
+                <span>Settings</span>
               </button>
             </nav>
           </div>
