@@ -54,7 +54,7 @@
     },
     "Machinery": {
       "title": "Machinery",
-      "description": "Agricultural equipment listing",
+      "description": "Agricultural equipment listing for rent, buy, or sell",
       "type": "object",
       "properties": {
         "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
@@ -63,14 +63,49 @@
         "ownerPhone": { "type": "string", "maxLength": 20 },
         "title": { "type": "string", "maxLength": 150 },
         "category": { "type": "string", "maxLength": 80 },
+        "listingType": { "type": "string", "enum": ["rent", "sale", "both"] },
+        "condition": { "type": "string", "enum": ["Brand New", "Certified Used", "Good Working Condition", "Well Maintained"] },
         "ratePerDay": { "type": "number" },
         "ratePerHour": { "type": "number" },
+        "sellingPrice": { "type": "number" },
+        "brandModel": { "type": "string", "maxLength": 100 },
+        "horsepower": { "type": "number" },
+        "yearOfMfg": { "type": "number" },
         "village": { "type": "string", "maxLength": 100 },
         "district": { "type": "string", "maxLength": 100 },
         "state": { "type": "string", "maxLength": 100 },
-        "availabilityStatus": { "type": "string", "enum": ["available", "rented"] }
+        "availabilityStatus": { "type": "string", "enum": ["available", "rented", "sold"] }
       },
-      "required": ["id", "ownerId", "title", "category", "ratePerDay"]
+      "required": ["id", "ownerId", "title", "category"]
+    },
+    "MarketplaceListing": {
+      "title": "MarketplaceListing",
+      "description": "Produce and commodities listing for crops, vegetables, fruits, eggs, fish, dairy, etc.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "sellerId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "sellerName": { "type": "string", "maxLength": 100 },
+        "sellerPhone": { "type": "string", "maxLength": 20 },
+        "title": { "type": "string", "maxLength": 150 },
+        "category": { "type": "string", "maxLength": 80 },
+        "variety": { "type": "string", "maxLength": 100 },
+        "pricePerUnit": { "type": "number" },
+        "unit": { "type": "string", "maxLength": 30 },
+        "quantityAvailable": { "type": "number" },
+        "minOrderQuantity": { "type": "number" },
+        "isNegotiable": { "type": "boolean" },
+        "isOrganic": { "type": "boolean" },
+        "harvestDate": { "type": "string", "maxLength": 50 },
+        "village": { "type": "string", "maxLength": 100 },
+        "district": { "type": "string", "maxLength": 100 },
+        "state": { "type": "string", "maxLength": 100 },
+        "image": { "type": "string" },
+        "description": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["available", "sold", "reserved"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "sellerId", "sellerName", "sellerPhone", "title", "category", "pricePerUnit", "unit", "quantityAvailable", "district"]
     },
     "Booking": {
       "title": "Booking",
@@ -136,6 +171,10 @@
     "/ledger_entries/{entryId}": {
       "schema": { "$ref": "#/entities/LedgerEntry" },
       "description": "Private financial records for farmer's Kisan Khatabook"
+    },
+    "/marketplace_listings/{listingId}": {
+      "schema": { "$ref": "#/entities/MarketplaceListing" },
+      "description": "Public produce and commodities marketplace listings"
     }
   }
 }

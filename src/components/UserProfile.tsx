@@ -60,7 +60,7 @@ interface UserProfileProps {
   onUpdateMachinery: (machinery: Machinery) => void;
   onDeleteSahyogi?: (id: string) => void;
   onDeleteMachinery?: (id: string) => void;
-  onNavigate: (tab: 'sahyogi' | 'machinery') => void;
+  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'terms' | 'modern-farming' | 'crop-health') => void;
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({

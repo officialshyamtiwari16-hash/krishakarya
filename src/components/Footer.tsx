@@ -8,14 +8,15 @@ import {
   Home,
   Camera,
   Sparkles,
-  Settings
+  Settings,
+  ShoppingBag
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
 
 interface FooterProps {
-  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health') => void;
+  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'terms' | 'modern-farming' | 'crop-health') => void;
   onOpenTerms?: () => void;
   onOpenAddListing: () => void;
 }
@@ -79,6 +80,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
                 >
                   <Tractor className="w-3.5 h-3.5 text-emerald-500" />
                   {t('navMachinery')}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('marketplace')}
+                  className="hover:text-amber-400 transition-colors flex items-center gap-2 font-bold text-amber-300 cursor-pointer"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
+                  Krishi Bazaar & Mandi
                 </button>
               </li>
               <li>

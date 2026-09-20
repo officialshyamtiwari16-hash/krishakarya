@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface SEOHeadProps {
-  activeTab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health';
+  activeTab: 'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'terms' | 'modern-farming' | 'crop-health';
 }
 
 const TAB_METADATA: Record<
@@ -18,6 +18,12 @@ const TAB_METADATA: Record<
     description:
       'Empowering Indian farmers with instant access to verified Sahyogi farm labor, tractor rentals, modern harvesters, digital Kisan Khatabook, and AI agronomy advice.',
     keywords: 'krishakarya, farm labor, sahyogi, tractor rental, harvester rental, kisan khatabook, farming weather, agricultural equipment india',
+  },
+  marketplace: {
+    title: 'Krishi Bazaar | Buy & Sell Crops, Vegetables, Fish, Eggs & Live Mandi Rates',
+    description:
+      'Direct farm-to-buyer agricultural marketplace. Trade wheat, paddy, organic vegetables, freshwater fish, poultry eggs, and check live mandi market prices powered by Google search data.',
+    keywords: 'krishi marketplace, buy crops online, sell vegetables farmer, fish trading, poultry eggs direct, live mandi rates, agmarknet prices india',
   },
   'crop-health': {
     title: 'AI Crop Health Assistant & Plant Disease Diagnosis | Krishakarya',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sahyogi, Machinery, MachineryCategory, User } from '../types';
 import { Users, Tractor, Upload, X } from 'lucide-react';
+import { ALL_INDIAN_DISTRICTS } from '../data/indiaLocations';
 
 interface AddListingModalProps {
   isOpen: boolean;
@@ -36,6 +37,12 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
   // Machinery fields
   const [machineTitle, setMachineTitle] = useState('');
   const [machineCategory, setMachineCategory] = useState<MachineryCategory>('Tractor');
+  const [machinePurpose, setMachinePurpose] = useState<'sale' | 'rent' | 'both'>('rent');
+  const [machineCondition, setMachineCondition] = useState<'Brand New' | 'Certified Used' | 'Well Maintained' | 'Good Working Condition'>('Well Maintained');
+  const [sellingPrice, setSellingPrice] = useState('');
+  const [yearOfMfg, setYearOfMfg] = useState('2022');
+  const [hoursUsed, setHoursUsed] = useState('');
+  const [rcTransferAvailable, setRcTransferAvailable] = useState(true);
   const [brandModel, setBrandModel] = useState('');
   const [horsepower, setHorsepower] = useState('');
   const [ratePerDay, setRatePerDay] = useState('');
@@ -127,6 +134,9 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
 
       onAddSahyogi(newSahyogi);
     } else {
+      const isSale = machinePurpose === 'sale' || machinePurpose === 'both';
+      const isRent = machinePurpose === 'rent' || machinePurpose === 'both';
+
       const newMachine: Machinery = {
         id: `mac_${Date.now()}`,
         ownerId: currentUser.id,
@@ -134,21 +144,30 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
         ownerPhone: currentUser.phone,
         title: machineTitle || 'Agricultural Equipment',
         category: machineCategory,
-        brandModel: brandModel || 'Standard 2024 Model',
+        listingType: machinePurpose,
+        condition: machineCondition,
+        sellingPrice: isSale && sellingPrice ? parseFloat(sellingPrice) : undefined,
+        yearOfMfg: yearOfMfg ? parseInt(yearOfMfg) : undefined,
+        hoursUsed: hoursUsed ? parseInt(hoursUsed) : undefined,
+        rcTransferAvailable: rcTransferAvailable,
+        brandModel: brandModel || 'Standard Agricultural Model',
         horsepower: parseInt(horsepower) || 0,
-        ratePerDay: parseFloat(ratePerDay) || 1500,
-        ratePerHour: parseFloat(ratePerHour) || 250,
-        securityDeposit: parseFloat(securityDeposit) || 500,
+        ratePerDay: isRent ? (parseFloat(ratePerDay) || 1500) : 0,
+        ratePerHour: isRent ? (parseFloat(ratePerHour) || 250) : 0,
+        securityDeposit: isRent ? (parseFloat(securityDeposit) || 0) : 0,
         village: machineVillage || currentUser.village,
         district: machineDistrict || currentUser.district,
         state: currentUser.state || 'Uttar Pradesh',
         availabilityStatus: 'available',
         image: machineImage,
-        description: machineDescription || 'High quality equipment ready for farm operation.',
+        description: machineDescription || 'High quality equipment ready for farm operation or purchase.',
         specs: [
           { key: 'Category', value: machineCategory },
-          { key: 'Horsepower', value: `${horsepower} HP` },
-          { key: 'Driver Included', value: includesOperator ? 'Yes' : 'No' },
+          { key: 'Deal Type', value: machinePurpose === 'sale' ? 'For Sale' : machinePurpose === 'both' ? 'Sale & Rent' : 'For Rent' },
+          { key: 'Condition', value: machineCondition },
+          ...(horsepower ? [{ key: 'Horsepower', value: `${horsepower} HP` }] : []),
+          ...(yearOfMfg ? [{ key: 'Year of Mfg', value: `${yearOfMfg}` }] : []),
+          ...(isRent ? [{ key: 'Driver Included', value: includesOperator ? 'Yes' : 'No' }] : []),
         ],
         rating: 5.0,
         reviewCount: 1,
@@ -158,7 +177,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             authorName: 'Krishakarya Network',
             rating: 5,
             date: new Date().toISOString().split('T')[0],
-            comment: 'Verified machinery rental listing.',
+            comment: 'Verified machinery listing.',
             type: 'machinery',
           },
         ],
@@ -294,6 +313,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     placeholder="District"
                     value={sahyogiDistrict}
                     onChange={(e) => setSahyogiDistrict(e.target.value)}
+                    list="machinery-districts-list"
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                   />
                 </div>
@@ -400,13 +420,55 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                 </div>
               </div>
 
+              {/* Purpose Selector */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  I want to list this machinery for:
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMachinePurpose('rent')}
+                    className={`py-2 px-2 text-xs font-extrabold rounded-xl border transition-all cursor-pointer ${
+                      machinePurpose === 'rent'
+                        ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-xs'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    🚜 For Rent
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMachinePurpose('sale')}
+                    className={`py-2 px-2 text-xs font-extrabold rounded-xl border transition-all cursor-pointer ${
+                      machinePurpose === 'sale'
+                        ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    🏷️ For Sale
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMachinePurpose('both')}
+                    className={`py-2 px-2 text-xs font-extrabold rounded-xl border transition-all cursor-pointer ${
+                      machinePurpose === 'both'
+                        ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    🔄 Both
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Machine / Tool Name</label>
                   <input
                     type="text"
                     required
-                    placeholder="Machinery Name (e.g. Tractor)"
+                    placeholder="Machinery Name (e.g. Mahindra 575 DI)"
                     value={machineTitle}
                     onChange={(e) => setMachineTitle(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-amber-500"
@@ -418,7 +480,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                   <select
                     value={machineCategory}
                     onChange={(e) => setMachineCategory(e.target.value as MachineryCategory)}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"
                   >
                     <option value="Tractor">Tractor</option>
                     <option value="Combine Harvester">Combine Harvester</option>
@@ -431,6 +493,145 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                   </select>
                 </div>
               </div>
+
+              {/* Machinery Sale / Condition Details */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-amber-50/50 p-3 rounded-2xl border border-amber-200/60">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Condition</label>
+                  <select
+                    value={machineCondition}
+                    onChange={(e) => setMachineCondition(e.target.value as any)}
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold"
+                  >
+                    <option value="Brand New">Brand New</option>
+                    <option value="Certified Used">Certified Used</option>
+                    <option value="Well Maintained">Well Maintained</option>
+                    <option value="Good Working Condition">Working Condition</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Mfg Year</label>
+                  <input
+                    type="number"
+                    value={yearOfMfg}
+                    onChange={(e) => setYearOfMfg(e.target.value)}
+                    placeholder="2022"
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Horsepower</label>
+                  <input
+                    type="number"
+                    placeholder="45"
+                    value={horsepower}
+                    onChange={(e) => setHorsepower(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Hours Run</label>
+                  <input
+                    type="number"
+                    placeholder="1200"
+                    value={hoursUsed}
+                    onChange={(e) => setHoursUsed(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Selling Price if For Sale or Both */}
+              {(machinePurpose === 'sale' || machinePurpose === 'both') && (
+                <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-300/70 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-emerald-950 mb-1">
+                        Total Selling Price (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="e.g. 485000"
+                        value={sellingPrice}
+                        onChange={(e) => setSellingPrice(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-sm font-black text-emerald-950 focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-5">
+                      <input
+                        type="checkbox"
+                        id="rcTransferCheck"
+                        checked={rcTransferAvailable}
+                        onChange={(e) => setRcTransferAvailable(e.target.checked)}
+                        className="w-4 h-4 text-emerald-700 rounded cursor-pointer"
+                      />
+                      <label htmlFor="rcTransferCheck" className="text-xs font-bold text-emerald-900 cursor-pointer">
+                        RC / Ownership Transfer Papers Available
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Rental Rates if Rent or Both */}
+              {(machinePurpose === 'rent' || machinePurpose === 'both') && (
+                <div className="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-600 block uppercase tracking-wider">
+                    Rental Pricing & Operator
+                  </span>
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Daily Rent (₹)</label>
+                      <input
+                        type="number"
+                        placeholder="Rate"
+                        value={ratePerDay}
+                        onChange={(e) => setRatePerDay(e.target.value)}
+                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Hourly Rent (₹)</label>
+                      <input
+                        type="number"
+                        placeholder="Rate"
+                        value={ratePerHour}
+                        onChange={(e) => setRatePerHour(e.target.value)}
+                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Deposit (₹)</label>
+                      <input
+                        type="number"
+                        placeholder="Rate"
+                        value={securityDeposit}
+                        onChange={(e) => setSecurityDeposit(e.target.value)}
+                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id="opCheck"
+                      checked={includesOperator}
+                      onChange={(e) => setIncludesOperator(e.target.checked)}
+                      className="w-4 h-4 text-amber-600 rounded cursor-pointer"
+                    />
+                    <label htmlFor="opCheck" className="text-xs font-bold text-slate-800 cursor-pointer">
+                      Include Trained Operator / Driver in Rent
+                    </label>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -445,19 +646,6 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Horsepower (HP)</label>
-                  <input
-                    type="number"
-                    placeholder="HP"
-                    value={horsepower}
-                    onChange={(e) => setHorsepower(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Village Location</label>
                   <input
                     type="text"
@@ -468,69 +656,26 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">District Location</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="District"
-                    value={machineDistrict}
-                    onChange={(e) => setMachineDistrict(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
-                  />
-                </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Daily Rent (₹)</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="Rate"
-                    value={ratePerDay}
-                    onChange={(e) => setRatePerDay(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Hourly Rent (₹)</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="Rate"
-                    value={ratePerHour}
-                    onChange={(e) => setRatePerHour(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Deposit (₹)</label>
-                  <input
-                    type="number"
-                    placeholder="Rate"
-                    value={securityDeposit}
-                    onChange={(e) => setSecurityDeposit(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">District Location</label>
                 <input
-                  type="checkbox"
-                  id="opCheck"
-                  checked={includesOperator}
-                  onChange={(e) => setIncludesOperator(e.target.checked)}
-                  className="w-4 h-4 text-amber-600 rounded cursor-pointer"
+                  type="text"
+                  required
+                  placeholder="District"
+                  value={machineDistrict}
+                  onChange={(e) => setMachineDistrict(e.target.value)}
+                  list="machinery-districts-list"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
                 />
-                <label htmlFor="opCheck" className="text-xs font-bold text-slate-800 cursor-pointer">
-                  Include Trained Operator/Driver in Rent Price
-                </label>
               </div>
+
+              <datalist id="machinery-districts-list">
+                {ALL_INDIAN_DISTRICTS.slice(0, 200).map((d) => (
+                  <option key={`${d.district}-${d.state}`} value={d.district} label={d.state} />
+                ))}
+              </datalist>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Equipment Description</label>
@@ -549,7 +694,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             type="submit"
             className="w-full py-3.5 bg-gradient-to-r from-emerald-700 to-green-800 hover:from-emerald-800 hover:to-green-900 text-white font-extrabold rounded-xl text-sm shadow-md transition-all"
           >
-            Publish {listingType === 'sahyogi' ? 'Sahyogi Profile' : 'Machinery Rental Listing'}
+            Publish {listingType === 'sahyogi' ? 'Sahyogi Profile' : (machinePurpose === 'sale' ? 'Machinery for Sale' : machinePurpose === 'both' ? 'Machinery for Sale & Rent' : 'Machinery for Rent')}
           </button>
         </form>
       </div>

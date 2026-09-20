@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { handleFirestoreError, OperationType } from './firebaseErrors';
-import { User, Sahyogi, Machinery, Booking, LedgerEntry } from '../types';
+import { User, Sahyogi, Machinery, Booking, LedgerEntry, MarketplaceListing } from '../types';
 
 const USERS_COL = 'users';
 const USERNAMES_COL = 'usernames';
@@ -19,6 +19,7 @@ const SAHYOGIS_COL = 'sahyogis';
 const MACHINERY_COL = 'machineries';
 const BOOKINGS_COL = 'bookings';
 const LEDGER_COL = 'ledger_entries';
+const MARKETPLACE_COL = 'marketplace_listings';
 
 // Format raw username into clean @username format
 export function normalizeUsername(raw: string): string {
@@ -349,8 +350,14 @@ export async function saveMachineryToFirestore(machinery: Machinery): Promise<vo
     district: sanitizeString(machinery.district, 100),
     state: sanitizeString(machinery.state, 100),
     description: sanitizeString(machinery.description, 500),
-    ratePerDay: Math.max(1, Math.round(machinery.ratePerDay || 1000)),
-    ratePerHour: Math.max(1, Math.round(machinery.ratePerHour || 200)),
+    listingType: machinery.listingType || (machinery.sellingPrice ? 'sale' : 'rent'),
+    condition: machinery.condition || 'Well Maintained',
+    sellingPrice: machinery.sellingPrice ? Math.max(0, Math.round(machinery.sellingPrice)) : undefined,
+    ratePerDay: machinery.ratePerDay ? Math.max(0, Math.round(machinery.ratePerDay)) : 0,
+    ratePerHour: machinery.ratePerHour ? Math.max(0, Math.round(machinery.ratePerHour)) : 0,
+    yearOfMfg: machinery.yearOfMfg ? Number(machinery.yearOfMfg) : undefined,
+    hoursUsed: machinery.hoursUsed ? Number(machinery.hoursUsed) : undefined,
+    rcTransferAvailable: !!machinery.rcTransferAvailable,
   };
 
   try {
@@ -384,6 +391,69 @@ export function subscribeMachineries(onData: (items: Machinery[]) => void) {
     },
     (err) => {
       handleFirestoreError(err, OperationType.GET, MACHINERY_COL);
+    }
+  );
+}
+
+// Produce & Agri-Goods Marketplace Operations
+export async function saveMarketplaceListingToFirestore(listing: MarketplaceListing): Promise<void> {
+  if (!auth.currentUser || auth.currentUser.uid !== listing.sellerId) {
+    console.warn('Blocked unauthorized saveMarketplaceListingToFirestore: user mismatch or unauthenticated');
+    throw new Error('Unauthorized: You must be logged in as the seller to create or edit this listing.');
+  }
+
+  const cleanListing: MarketplaceListing = {
+    ...listing,
+    title: sanitizeString(listing.title, 150),
+    category: sanitizeString(listing.category, 80),
+    variety: sanitizeString(listing.variety, 100),
+    sellerName: sanitizeString(listing.sellerName, 100),
+    sellerPhone: sanitizeString(listing.sellerPhone, 20),
+    whatsappNumber: sanitizeString(listing.whatsappNumber, 20),
+    village: sanitizeString(listing.village, 100),
+    district: sanitizeString(listing.district, 100),
+    state: sanitizeString(listing.state, 100),
+    description: sanitizeString(listing.description, 1000),
+    pricePerUnit: Math.max(0.1, Number(listing.pricePerUnit) || 1),
+    quantityAvailable: Math.max(0, Number(listing.quantityAvailable) || 0),
+    minOrderQuantity: Math.max(1, Number(listing.minOrderQuantity) || 1),
+    isNegotiable: !!listing.isNegotiable,
+    isOrganic: !!listing.isOrganic,
+    status: listing.status || 'available',
+  };
+
+  try {
+    await setDoc(doc(db, MARKETPLACE_COL, cleanListing.id), cleanListing, { merge: true });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, `${MARKETPLACE_COL}/${cleanListing.id}`);
+  }
+}
+
+export async function deleteMarketplaceListingFromFirestore(id: string): Promise<void> {
+  if (!auth.currentUser) {
+    throw new Error('Unauthorized: You must be signed in to delete your listing.');
+  }
+
+  try {
+    await deleteDoc(doc(db, MARKETPLACE_COL, id));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, `${MARKETPLACE_COL}/${id}`);
+  }
+}
+
+export function subscribeMarketplaceListings(onData: (items: MarketplaceListing[]) => void) {
+  return onSnapshot(
+    collection(db, MARKETPLACE_COL),
+    (snapshot) => {
+      const items: MarketplaceListing[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push(docSnap.data() as MarketplaceListing);
+      });
+      items.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      onData(items);
+    },
+    (err) => {
+      handleFirestoreError(err, OperationType.GET, MARKETPLACE_COL);
     }
   );
 }

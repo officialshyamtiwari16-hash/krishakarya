@@ -80,6 +80,12 @@ export interface Machinery {
   ownerPhone: string;
   title: string;
   category: MachineryCategory;
+  listingType?: 'rent' | 'sale' | 'both';
+  condition?: 'Brand New' | 'Certified Used' | 'Good Working Condition' | 'Well Maintained';
+  sellingPrice?: number;
+  yearOfMfg?: number;
+  hoursUsed?: number;
+  rcTransferAvailable?: boolean;
   brandModel: string;
   horsepower: number;
   ratePerDay: number;
@@ -90,7 +96,7 @@ export interface Machinery {
   district: string;
   pincode?: string;
   state: string;
-  availabilityStatus: 'available' | 'rented';
+  availabilityStatus: 'available' | 'rented' | 'sold';
   image: string;
   description: string;
   specs: MachinerySpec[];
@@ -98,6 +104,66 @@ export interface Machinery {
   reviewCount: number;
   reviews: Review[];
   includesOperator: boolean;
+}
+
+export type MarketplaceCategory =
+  | 'All'
+  | 'Crops & Grains'
+  | 'Vegetables'
+  | 'Fruits'
+  | 'Eggs & Poultry'
+  | 'Fish & Aquaculture'
+  | 'Dairy & Livestock'
+  | 'Pulses & Legumes'
+  | 'Spices & Condiments'
+  | 'Organic & Seeds';
+
+export interface MarketplaceListing {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  sellerPhone: string;
+  whatsappNumber?: string;
+  title: string;
+  category: string;
+  variety?: string;
+  pricePerUnit: number;
+  unit: string;
+  quantityAvailable: number;
+  minOrderQuantity?: number;
+  isNegotiable?: boolean;
+  isOrganic?: boolean;
+  harvestDate?: string;
+  village: string;
+  district: string;
+  state: string;
+  image: string;
+  description: string;
+  status: 'available' | 'sold' | 'reserved';
+  createdAt: string;
+}
+
+export interface MandiRateItem {
+  commodity: string;
+  category?: string;
+  variety?: string;
+  minPrice: number;
+  maxPrice: number;
+  modalPrice: number;
+  unit: string;
+  trend: 'up' | 'down' | 'stable';
+  arrival?: string;
+}
+
+export interface MandiRateResponse {
+  district: string;
+  state: string;
+  marketName: string;
+  updatedAt: string;
+  source: string;
+  isGoogleSearchGrounded?: boolean;
+  groundingSources?: { title: string; url: string }[];
+  rates: MandiRateItem[];
 }
 
 export type BookingStatus = 'Pending' | 'Confirmed' | 'Declined' | 'Completed' | 'Cancelled';

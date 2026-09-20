@@ -14,7 +14,8 @@ import {
   BookOpen,
   Bot,
   Camera,
-  Leaf
+  Leaf,
+  ShoppingBag
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { InboxModal } from './InboxModal';
@@ -30,7 +31,7 @@ interface HomePageProps {
   machineries: Machinery[];
   ledgerEntries?: LedgerEntry[];
   myBookings?: Booking[];
-  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'modern-farming' | 'crop-health') => void;
+  onNavigate: (tab: 'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'modern-farming' | 'crop-health') => void;
   onOpenAddListing: () => void;
   onOpenInboxWithPrompt?: (prompt?: string) => void;
   onAddToLedger?: (entry: any) => void;
@@ -280,7 +281,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </div>
               </button>
 
-              {/* Tool 2: Rent Machinery */}
+              {/* Tool 2: Machinery (Rent & Buy) */}
               <button
                 onClick={() => onNavigate('machinery')}
                 className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-2xl border border-white/15 hover:border-amber-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 transition-all duration-300"
@@ -289,14 +290,45 @@ export const HomePage: React.FC<HomePageProps> = ({
                   <Tractor className="w-5 h-5 text-amber-300" />
                 </div>
                 <div className="space-y-0.5">
-                  <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-amber-300 transition-colors">
-                    {t('rentMachinery')}
-                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-amber-300 transition-colors">
+                      Machinery (Rent & Buy)
+                    </h3>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase shadow-xs">
+                      Buy/Rent
+                    </span>
+                  </div>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Rent tractors, harvesters, spray drones & pumps.
+                    Tractors, harvesters, seeders & rotavators with filter by rent or purchase.
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 pt-0.5">
                     Browse <AnimatedCounter value={machineries.length} /> Machines <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </button>
+
+              {/* Tool 2.5: Krishi Marketplace & Live Mandi Rates */}
+              <button
+                onClick={() => onNavigate('marketplace')}
+                className="group p-4 rounded-2xl text-left flex items-start gap-3.5 cursor-pointer bg-gradient-to-br from-slate-950/85 via-amber-950/40 to-slate-900/80 hover:from-slate-950/90 hover:to-amber-950/60 backdrop-blur-2xl border border-amber-500/40 hover:border-amber-400 transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)] hover:-translate-y-1.5"
+              >
+                <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 shadow-xs border border-amber-500/30 backdrop-blur-md">
+                  <ShoppingBag className="w-5 h-5 text-amber-400" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-amber-300 transition-colors">
+                      Krishi Bazaar & Mandi
+                    </h3>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 bg-emerald-500 text-slate-950 rounded-md uppercase shadow-xs">
+                      Live Mandi
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300/90 leading-snug">
+                    Buy & sell crops, vegetables, fish, eggs & view live Google-grounded Mandi rates.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 pt-0.5">
+                    Explore Marketplace <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>

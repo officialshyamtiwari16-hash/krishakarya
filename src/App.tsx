@@ -5,12 +5,14 @@ import {
   Machinery, 
   Booking,
   BookingStatus,
-  LedgerEntry 
+  LedgerEntry,
+  MarketplaceListing
 } from './types';
 import { 
   initialUser, 
   initialSahyogis, 
-  initialMachinery
+  initialMachinery,
+  initialMarketplaceListings
 } from './data/mockData';
 import {
   getUserFromFirestore,
@@ -28,7 +30,10 @@ import {
   deleteLedgerEntryFromFirestore,
   subscribeLedgerEntries,
   findUserInFirestoreByIdentifier,
-  saveUserToLocalAccountsDb
+  saveUserToLocalAccountsDb,
+  saveMarketplaceListingToFirestore,
+  deleteMarketplaceListingFromFirestore,
+  subscribeMarketplaceListings
 } from './lib/firestoreService';
 
 import {
@@ -51,12 +56,14 @@ import { OfflineBanner } from './components/OfflineBanner';
 
 import { SahyogiListings } from './components/SahyogiListings';
 import { MachineryListings } from './components/MachineryListings';
+import { MarketplaceView } from './components/MarketplaceView';
 import { UserProfile } from './components/UserProfile';
 import { TermsModal } from './components/TermsModal';
 import { ModernFarmingQA } from './components/ModernFarmingQA';
 import { CropHealthAssistant } from './components/CropHealthAssistant';
 import { AuthModal } from './components/AuthModal';
 import { AddListingModal } from './components/AddListingModal';
+import { AddMarketplaceListingModal } from './components/AddMarketplaceListingModal';
 import { InboxModal } from './components/InboxModal';
 import { SettingsModal } from './components/SettingsModal';
 import { useSettings } from './context/SettingsContext';
@@ -64,9 +71,9 @@ import { useSettings } from './context/SettingsContext';
 export default function App() {
   const { isSettingsOpen, setIsSettingsOpen } = useSettings();
 
-  // Navigation State: home, sahyogi, machinery, profile, terms, modern-farming, crop-health
+  // Navigation State: home, sahyogi, machinery, marketplace, profile, terms, modern-farming, crop-health
   const [activeTab, setActiveTab] = useState<
-    'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health'
+    'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'terms' | 'modern-farming' | 'crop-health'
   >('home');
 
 
@@ -115,18 +122,46 @@ export default function App() {
     return initialSahyogis;
   });
 
+  const isMockMachinery = (id: string) =>
+    id.startsWith('mac_sale_') ||
+    id.startsWith('mac_both_') ||
+    id.startsWith('mac_rent_') ||
+    id.startsWith('mac_demo_') ||
+    id.startsWith('mac_20') ||
+    id.startsWith('mac_sample');
+
+  const isMockMarketplace = (id: string) =>
+    id.startsWith('crop_list_') ||
+    id.startsWith('mkt_mock') ||
+    id.startsWith('mkt_demo');
+
   const [machineries, setMachineries] = useState<Machinery[]>(() => {
     const saved = localStorage.getItem('krishakarya_machinery') || localStorage.getItem('krishikulture_machinery') || localStorage.getItem('krishilink_machinery');
     if (saved) {
       try {
         const parsed: Machinery[] = JSON.parse(saved);
-        return parsed.filter(m => !m.id.startsWith('mac_demo_') && !m.id.startsWith('mac_20'));
+        return parsed.filter(m => !isMockMachinery(m.id));
       } catch (e) {
         // Fallback
       }
     }
     return initialMachinery;
   });
+
+  const [marketplaceListings, setMarketplaceListings] = useState<MarketplaceListing[]>(() => {
+    const saved = localStorage.getItem('krishakarya_marketplace');
+    if (saved) {
+      try {
+        const parsed: MarketplaceListing[] = JSON.parse(saved);
+        return parsed.filter(m => !isMockMarketplace(m.id));
+      } catch (e) {
+        // Fallback
+      }
+    }
+    return initialMarketplaceListings;
+  });
+
+  const [isAddMarketplaceOpen, setIsAddMarketplaceOpen] = useState(false);
 
   const [myBookings, setMyBookings] = useState<Booking[]>(() => {
     const saved = localStorage.getItem('krishakarya_bookings') || localStorage.getItem('krishikulture_bookings') || localStorage.getItem('krishilink_bookings');
@@ -167,9 +202,18 @@ export default function App() {
     });
     const unsubMachinery = subscribeMachineries((items) => {
       if (items && items.length > 0) {
-        setMachineries(items);
+        const clean = items.filter(m => !isMockMachinery(m.id));
+        setMachineries(clean);
       } else {
-        setMachineries(initialMachinery);
+        setMachineries([]);
+      }
+    });
+    const unsubMarketplace = subscribeMarketplaceListings((items) => {
+      if (items && items.length > 0) {
+        const clean = items.filter(m => !isMockMarketplace(m.id));
+        setMarketplaceListings(clean);
+      } else {
+        setMarketplaceListings([]);
       }
     });
 
@@ -279,6 +323,7 @@ export default function App() {
     return () => {
       unsubSahyogis();
       unsubMachinery();
+      unsubMarketplace();
       unsubBookings();
       unsubLedger();
     };
@@ -366,6 +411,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('krishakarya_machinery', JSON.stringify(machineries));
   }, [machineries]);
+
+  useEffect(() => {
+    localStorage.setItem('krishakarya_marketplace', JSON.stringify(marketplaceListings));
+  }, [marketplaceListings]);
 
   useEffect(() => {
     localStorage.setItem('krishakarya_bookings', JSON.stringify(myBookings));
@@ -625,6 +674,16 @@ export default function App() {
     saveMachineryToFirestore(machinery).catch(console.error);
   };
 
+  const handleAddMarketplaceListing = (listing: MarketplaceListing) => {
+    setMarketplaceListings((prev) => [listing, ...prev]);
+    saveMarketplaceListingToFirestore(listing).catch(console.error);
+  };
+
+  const handleDeleteMarketplaceListing = (id: string) => {
+    setMarketplaceListings((prev) => prev.filter((m) => m.id !== id));
+    deleteMarketplaceListingFromFirestore(id).catch(console.error);
+  };
+
   const handleUpdateSahyogi = (updated: Sahyogi) => {
     setSahyogis((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
     saveSahyogiToFirestore(updated).catch(console.error);
@@ -740,6 +799,18 @@ export default function App() {
               />
             )}
 
+            {activeTab === 'marketplace' && (
+              <MarketplaceView
+                listings={marketplaceListings}
+                currentUser={currentUser}
+                onOpenAuth={() => setIsAuthOpen(true)}
+                onOpenAddListing={() => {
+                  if (!currentUser) setIsAuthOpen(true);
+                  else setIsAddMarketplaceOpen(true);
+                }}
+              />
+            )}
+
             {activeTab === 'profile' && (
               <UserProfile
                 currentUser={currentUser}
@@ -821,6 +892,15 @@ export default function App() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onAddSahyogi={handleAddSahyogiListing}
         onAddMachinery={handleAddMachineryListing}
+      />
+
+      {/* Add Marketplace Listing Modal (Crops, Vegetables, Fish, Dairy, Eggs) */}
+      <AddMarketplaceListingModal
+        isOpen={isAddMarketplaceOpen}
+        onClose={() => setIsAddMarketplaceOpen(false)}
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onAddListing={handleAddMarketplaceListing}
       />
 
       {/* Real-time Notification Toast Banner */}

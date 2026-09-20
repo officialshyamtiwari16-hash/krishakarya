@@ -10,7 +10,11 @@ import {
   X, 
   Plus, 
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  Tag,
+  Phone,
+  MessageCircle,
+  FileText
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { AnimatedCounter } from './AnimatedCounter';
@@ -46,9 +50,12 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
 }) => {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
+  const [dealTypeFilter, setDealTypeFilter] = useState<'all' | 'buy' | 'rent'>('all');
+  const [conditionFilter, setConditionFilter] = useState<string>('All');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('All');
   const [maxRate, setMaxRate] = useState<number>(10000);
+  const [maxPrice, setMaxPrice] = useState<number>(1500000);
   const [selectedMachine, setSelectedMachine] = useState<Machinery | null>(null);
   const [bookingToast, setBookingToast] = useState<string | null>(null);
 
@@ -103,9 +110,20 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
     const matchesDistrict =
       selectedDistrict === 'All' || m.district === selectedDistrict;
 
-    const matchesPrice = m.ratePerDay <= maxRate;
+    const matchesDealType =
+      dealTypeFilter === 'all' ||
+      (dealTypeFilter === 'buy' && (m.listingType === 'sale' || m.listingType === 'both' || (m.sellingPrice && m.sellingPrice > 0))) ||
+      (dealTypeFilter === 'rent' && (m.listingType === 'rent' || m.listingType === 'both' || (m.ratePerDay && m.ratePerDay > 0) || !m.listingType));
 
-    return matchesSearch && matchesCategory && matchesDistrict && matchesPrice;
+    const matchesCondition =
+      conditionFilter === 'All' || m.condition === conditionFilter;
+
+    const matchesPrice =
+      dealTypeFilter === 'buy'
+        ? (!m.sellingPrice || m.sellingPrice <= maxPrice)
+        : (m.ratePerDay <= maxRate || (m.ratePerDay === 0 && dealTypeFilter === 'all'));
+
+    return matchesSearch && matchesCategory && matchesDistrict && matchesDealType && matchesCondition && matchesPrice;
   });
 
   const calculateTotalCost = (m: Machinery): number => {
@@ -192,13 +210,13 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-xs">
-              <Tractor className="w-3 h-3 icon-micro-rotate text-amber-300" /> Reliable Agricultural Equipment Hub
+              <Tractor className="w-3 h-3 icon-micro-rotate text-amber-300" /> Dedicated Machinery Exchange & Rental
             </div>
-            <h1 className="text-sm sm:text-base font-extrabold tracking-tight leading-snug">
-              Rent Modern <span className="text-amber-300">Tractors & Farming Machinery</span>
+            <h1 className="text-base sm:text-lg font-extrabold tracking-tight leading-snug">
+              Buy, Sell & Rent <span className="text-amber-300">Agricultural Machinery</span>
             </h1>
             <p className="text-amber-100/90 text-[11px] leading-tight">
-              Rent tractors, combine harvesters, rotavators, spray drones, solar water pumps, and thresher tools.
+              Buy verified tractors & harvesters, find farm equipment for daily rent, or list your own machinery with RC papers.
             </p>
           </div>
 
@@ -206,24 +224,79 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
             onClick={onOpenAddListing}
             className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-[11px] shadow-md transition-all flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center btn-futuristic pulse-glow-cta cursor-pointer border border-emerald-400/30"
           >
-            <Plus className="w-3.5 h-3.5" /> List Machine for Rent
+            <Plus className="w-3.5 h-3.5" /> List Machine (Sell or Rent)
           </button>
         </div>
       </div>
 
       {/* Filter and Category Pills */}
       <div 
-        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 animate-fadeIn border border-white/40"
+        className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5 animate-fadeIn border border-white/40"
       >
+        {/* Deal Type Primary Segmented Switch */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+          <div className="flex items-center gap-1.5 bg-slate-100/90 p-1 rounded-2xl border border-slate-200">
+            <button
+              onClick={() => setDealTypeFilter('all')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                dealTypeFilter === 'all'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🚜 All Machinery
+            </button>
+            <button
+              onClick={() => setDealTypeFilter('buy')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                dealTypeFilter === 'buy'
+                  ? 'bg-emerald-700 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Tag className="w-3.5 h-3.5" />
+              <span>Buy Machinery (खरीदें)</span>
+            </button>
+            <button
+              onClick={() => setDealTypeFilter('rent')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                dealTypeFilter === 'rent'
+                  ? 'bg-amber-500 text-slate-950 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Rent Machinery (किराया)</span>
+            </button>
+          </div>
+
+          {/* Condition Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-slate-500">Condition:</span>
+            <select
+              value={conditionFilter}
+              onChange={(e) => setConditionFilter(e.target.value)}
+              className="px-2.5 py-1 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+            >
+              <option value="All">All Conditions</option>
+              <option value="Brand New">Brand New</option>
+              <option value="Certified Used">Certified Used</option>
+              <option value="Well Maintained">Well Maintained</option>
+              <option value="Good Working Condition">Working Condition</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Equipment Type Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar smooth-scroll">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-            <Filter className="w-3 h-3 text-emerald-600" /> Equipment Type:
+            <Filter className="w-3 h-3 text-emerald-600" /> Category:
           </span>
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
                 selectedCategory === cat
                   ? 'bg-emerald-700 text-white shadow-xs'
                   : 'glass-pill text-slate-700 hover:text-slate-900 border border-slate-200/60 hover:border-emerald-400/50'
@@ -234,12 +307,13 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
           ))}
         </div>
 
+        {/* Search & Location Inputs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="relative md:col-span-2">
             <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search machinery type (tractor, rotavator, drone), model, village, or district..."
+              placeholder="Search machinery (tractor, rotavator, drone), brand model, or district..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -270,157 +344,310 @@ export const MachineryListings: React.FC<MachineryListingsProps> = ({
           </div>
         </div>
 
+        {/* Footer Filter Controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="font-bold text-slate-700 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5 text-emerald-600" /> Max Daily Rent: ₹<AnimatedCounter value={maxRate} />
-            </span>
-            <input
-              type="range"
-              min={500}
-              max={12000}
-              step={500}
-              value={maxRate}
-              onChange={(e) => setMaxRate(Number(e.target.value))}
-              className="w-36 accent-emerald-600 cursor-pointer"
-            />
+            {dealTypeFilter === 'buy' ? (
+              <>
+                <span className="font-bold text-slate-700 flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-emerald-600" /> Max Price: ₹<AnimatedCounter value={maxPrice} />
+                </span>
+                <input
+                  type="range"
+                  min={50000}
+                  max={2500000}
+                  step={50000}
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(Number(e.target.value))}
+                  className="w-36 accent-emerald-600 cursor-pointer"
+                />
+              </>
+            ) : (
+              <>
+                <span className="font-bold text-slate-700 flex items-center gap-1">
+                  <Filter className="w-3.5 h-3.5 text-emerald-600" /> Max Daily Rent: ₹<AnimatedCounter value={maxRate} />
+                </span>
+                <input
+                  type="range"
+                  min={500}
+                  max={12000}
+                  step={500}
+                  value={maxRate}
+                  onChange={(e) => setMaxRate(Number(e.target.value))}
+                  className="w-36 accent-amber-500 cursor-pointer"
+                />
+              </>
+            )}
 
-            {(searchTerm || selectedCategory !== 'All' || selectedDistrict !== 'All' || maxRate < 12000) && (
+            {(searchTerm || selectedCategory !== 'All' || selectedDistrict !== 'All' || conditionFilter !== 'All' || dealTypeFilter !== 'all') && (
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedCategory('All');
                   setSelectedDistrict('All');
+                  setDealTypeFilter('all');
+                  setConditionFilter('All');
                   setMaxRate(12000);
+                  setMaxPrice(2500000);
                 }}
                 className="text-emerald-700 hover:text-emerald-900 font-bold underline text-[11px] flex items-center gap-1 cursor-pointer"
               >
-                <X className="w-3 h-3" /> Clear All Filters
+                <X className="w-3 h-3" /> Reset Filters
               </button>
             )}
           </div>
 
           <div className="text-slate-500 font-medium">
-            Showing <span className="font-bold text-emerald-700"><AnimatedCounter value={filteredMachinery.length} /></span> Rentable Equipment
+            Showing <span className="font-bold text-emerald-700"><AnimatedCounter value={filteredMachinery.length} /></span> Machinery Listings
           </div>
         </div>
       </div>
 
       {/* Grid of Machinery Cards */}
       {filteredMachinery.length === 0 ? (
-        <EmptyState
-          icon={<Tractor className="w-8 h-8 text-emerald-800" />}
-          title="No Farm Machinery Found In This Location"
-          description="Try broadening your district or category filter, or list your tractor or farm equipment to start earning rental income."
-          actionText="Reset All Filters"
-          onAction={() => {
-            setSearchTerm('');
-            setSelectedCategory('All');
-            setSelectedDistrict('All');
-            setMaxRate(12000);
-          }}
-          secondaryActionText="List Machine for Rent"
-          onSecondaryAction={onOpenAddListing}
-        />
+        machineries.length === 0 ? (
+          <EmptyState
+            icon={<Tractor className="w-8 h-8 text-emerald-800" />}
+            title="No Machinery Listed for Sale or Rent Yet"
+            description="Be the first equipment owner or farmer to list your tractor, harvester, rotavator, pump, or drone. Connect directly with verified buyers and renters in your area."
+            actionText="List Machinery Now"
+            onAction={onOpenAddListing}
+          />
+        ) : (
+          <EmptyState
+            icon={<Tractor className="w-8 h-8 text-emerald-800" />}
+            title="No Farm Machinery Found Matching Filters"
+            description="Try switching between Buy or Rent tabs, broadening your district filter, or list your tractor to connect with interested buyers and renters."
+            actionText="Reset All Filters"
+            onAction={() => {
+              setSearchTerm('');
+              setSelectedCategory('All');
+              setSelectedDistrict('All');
+              setDealTypeFilter('all');
+              setConditionFilter('All');
+              setMaxRate(12000);
+              setMaxPrice(2500000);
+            }}
+            secondaryActionText="List Machine"
+            onSecondaryAction={onOpenAddListing}
+          />
+        )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMachinery.map((machine) => (
-            <div
-              key={machine.id}
-              className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group animate-fadeIn hover:-translate-y-1.5 transition-all duration-300 border border-white/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_8px_24px_rgba(0,0,0,0.06)]"
-            >
-              <div>
-                {machine.image && machine.image.trim().length > 0 && (
-                  <div className="w-full h-40 bg-slate-100 overflow-hidden relative border-b border-slate-100">
-                    <img
-                      src={machine.image}
-                      alt={`${machine.title} - ${machine.brandModel || 'Agricultural Equipment'}`}
-                      loading="lazy"
-                      decoding="async"
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                )}
-                <div className="p-4 bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-amber-500/10 border-b border-amber-100/80 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2.5 bg-amber-100 text-amber-800 rounded-xl">
-                      <Tractor className="w-5 h-5" />
+          {filteredMachinery.map((machine) => {
+            const isForSale = machine.listingType === 'sale' || machine.listingType === 'both' || (machine.sellingPrice && machine.sellingPrice > 0);
+            const isForRent = machine.listingType === 'rent' || machine.listingType === 'both' || (!machine.listingType && machine.ratePerDay > 0);
+            const waUrl = `https://wa.me/${machine.ownerPhone?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+              `Namaste ${machine.ownerName}, I saw your machinery listing for "${machine.title}" on Krishakarya. I am interested in ${isForSale ? 'purchasing' : 'renting'} it. Please share availability.`
+            )}`;
+
+            return (
+              <div
+                key={machine.id}
+                className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group animate-fadeIn hover:-translate-y-1.5 transition-all duration-300 border border-white/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_8px_24px_rgba(0,0,0,0.06)]"
+              >
+                <div>
+                  {machine.image && machine.image.trim().length > 0 ? (
+                    <div className="w-full h-44 bg-slate-100 overflow-hidden relative border-b border-slate-100">
+                      <img
+                        src={machine.image}
+                        alt={`${machine.title} - ${machine.brandModel || 'Agricultural Equipment'}`}
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+
+                      {/* Deal Type Badge */}
+                      <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
+                        {isForSale && (
+                          <span className="bg-emerald-950/90 text-emerald-200 text-[10px] font-black px-2 py-0.5 rounded-lg backdrop-blur-md flex items-center gap-1 shadow-sm">
+                            <Tag className="w-3 h-3 text-emerald-400" /> FOR SALE
+                          </span>
+                        )}
+                        {isForRent && (
+                          <span className="bg-amber-950/90 text-amber-200 text-[10px] font-black px-2 py-0.5 rounded-lg backdrop-blur-md flex items-center gap-1 shadow-sm">
+                            <Calendar className="w-3 h-3 text-amber-400" /> FOR RENT
+                          </span>
+                        )}
+                        {machine.condition && (
+                          <span className="bg-white/90 text-slate-800 text-[10px] font-extrabold px-2 py-0.5 rounded-lg shadow-sm">
+                            {machine.condition}
+                          </span>
+                        )}
+                      </div>
+
+                      {machine.rcTransferAvailable && (
+                        <div className="absolute bottom-2.5 left-2.5">
+                          <span className="bg-blue-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                            <FileText className="w-3 h-3" /> RC Papers Ready
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <span className="bg-amber-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        {machine.category}
-                      </span>
-                      <p className="text-[11px] text-slate-500 font-semibold mt-0.5">{machine.brandModel}</p>
+                  ) : (
+                    <div className="w-full bg-gradient-to-r from-emerald-50 via-slate-50 to-amber-50 p-4 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex flex-wrap gap-1.5">
+                        {isForSale && (
+                          <span className="bg-emerald-900 text-emerald-100 text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-xs">
+                            <Tag className="w-3 h-3 text-emerald-300" /> FOR SALE
+                          </span>
+                        )}
+                        {isForRent && (
+                          <span className="bg-amber-900 text-amber-100 text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-xs">
+                            <Calendar className="w-3 h-3 text-amber-300" /> FOR RENT
+                          </span>
+                        )}
+                        {machine.condition && (
+                          <span className="bg-white text-slate-800 border border-slate-200 text-[10px] font-extrabold px-2 py-0.5 rounded-lg shadow-xs">
+                            {machine.condition}
+                          </span>
+                        )}
+                      </div>
+                      {machine.rcTransferAvailable && (
+                        <span className="bg-blue-100 text-blue-800 border border-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <FileText className="w-3 h-3" /> RC Ready
+                        </span>
+                      )}
                     </div>
-                  </div>
-                  {machine.includesOperator && (
-                    <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <Zap className="w-3 h-3" /> Driver Included
-                    </span>
                   )}
-                </div>
 
-                <div className="p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-slate-900 text-base leading-snug">
-                      {machine.title}
-                    </h3>
-                    <span className="bg-amber-50 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
-                      <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                      {machine.rating} ({machine.reviewCount})
-                    </span>
+                  <div className="p-4 bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-amber-500/10 border-b border-amber-100/80 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2.5 bg-amber-100 text-amber-800 rounded-xl">
+                        <Tractor className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="bg-amber-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          {machine.category}
+                        </span>
+                        <p className="text-[11px] text-slate-500 font-semibold mt-0.5">{machine.brandModel}</p>
+                      </div>
+                    </div>
+                    {machine.includesOperator && (
+                      <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Zap className="w-3 h-3" /> Driver Included
+                      </span>
+                    )}
                   </div>
 
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                    {machine.village}, {machine.district}
-                  </p>
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-bold text-slate-900 text-base leading-snug">
+                        {machine.title}
+                      </h3>
+                      <span className="bg-amber-50 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
+                        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                        {machine.rating} ({machine.reviewCount})
+                      </span>
+                    </div>
 
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                    {machine.description}
-                  </p>
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                      {machine.village}, {machine.district}
+                    </p>
 
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[11px] grid grid-cols-2 gap-1 text-slate-700">
-                    <span>HP: <strong className="text-slate-900">{machine.horsepower > 0 ? <><AnimatedCounter value={machine.horsepower} /> HP</> : 'N/A'}</strong></span>
-                    <span>Hourly: <strong className="text-emerald-800">₹<AnimatedCounter value={machine.ratePerHour} />/hr</strong></span>
+                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      {machine.description}
+                    </p>
+
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[11px] grid grid-cols-2 gap-1 text-slate-700">
+                      <span>HP: <strong className="text-slate-900">{machine.horsepower > 0 ? <><AnimatedCounter value={machine.horsepower} /> HP</> : 'N/A'}</strong></span>
+                      {machine.yearOfMfg ? (
+                        <span>Year: <strong className="text-slate-900">{machine.yearOfMfg}</strong></span>
+                      ) : (
+                        <span>Hourly: <strong className="text-emerald-800">₹<AnimatedCounter value={machine.ratePerHour} />/hr</strong></span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Price and Action Section */}
+                <div className="bg-slate-50 px-4 sm:px-5 py-3 border-t border-slate-100 flex flex-col justify-between gap-3">
+                  <div className="flex items-baseline justify-between">
+                    {isForSale && machine.sellingPrice ? (
+                      <div>
+                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">
+                          Selling Price (खरीद मूल्य)
+                        </span>
+                        <span className="text-base sm:text-lg font-black text-emerald-800">
+                          ₹<AnimatedCounter value={machine.sellingPrice} />
+                        </span>
+                      </div>
+                    ) : (
+                      <div>
+                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">
+                          Daily Rent Rate
+                        </span>
+                        <span className="text-base sm:text-lg font-extrabold text-amber-700">
+                          ₹<AnimatedCounter value={machine.ratePerDay} />
+                          <span className="text-xs font-normal text-slate-500"> / day</span>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Secondary rent rate if both */}
+                    {machine.listingType === 'both' && machine.ratePerDay > 0 && (
+                      <div className="text-right">
+                        <span className="text-slate-400 text-[10px] font-bold block">Rent:</span>
+                        <span className="text-xs font-bold text-amber-700">₹{machine.ratePerDay}/day</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full justify-between pt-1">
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href={`tel:${machine.ownerPhone}`}
+                        title="Call Owner"
+                        className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200 transition-colors"
+                      >
+                        <Phone className="w-4 h-4" />
+                      </a>
+                      <a
+                        href={waUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="WhatsApp Owner"
+                        className="p-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl shadow-xs transition-colors"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setSelectedMachine(machine)}
+                        className="px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 cursor-pointer"
+                      >
+                        Specs
+                      </button>
+
+                      {isForRent ? (
+                        <button
+                          onClick={() => {
+                            setSelectedMachine(machine);
+                            setIsRentModalOpen(true);
+                          }}
+                          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded-xl text-xs shadow-sm transition-all flex items-center gap-1 btn-futuristic cursor-pointer"
+                        >
+                          <Calendar className="w-3.5 h-3.5" /> Rent Now
+                        </button>
+                      ) : (
+                        <a
+                          href={`tel:${machine.ownerPhone}`}
+                          className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl text-xs shadow-sm transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Tag className="w-3.5 h-3.5" /> Buy Machine
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-
-
-            <div className="bg-slate-50 px-4 sm:px-5 py-3 border-t border-slate-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3">
-              <div>
-                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">
-                  Daily Rent Rate
-                </span>
-                <span className="text-base sm:text-lg font-extrabold text-amber-700">
-                  ₹<AnimatedCounter value={machine.ratePerDay} />
-                  <span className="text-xs font-normal text-slate-500"> / day</span>
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 w-full xs:w-auto justify-end">
-                <button
-                  onClick={() => setSelectedMachine(machine)}
-                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 min-h-[38px] cursor-pointer"
-                >
-                  Specs & Reviews
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedMachine(machine);
-                    setIsRentModalOpen(true);
-                  }}
-                  className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded-xl text-xs shadow-sm transition-all flex items-center gap-1 min-h-[38px] btn-futuristic cursor-pointer"
-                >
-                  <Calendar className="w-3.5 h-3.5" /> Rent Equipment
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
       )}
 
       {/* Detail & Rental Modal */}

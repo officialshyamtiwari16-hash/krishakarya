@@ -10,13 +10,13 @@
     <meta name="apple-mobile-web-app-title" content="Krishakarya" />
     <meta name="application-name" content="Krishakarya" />
     <meta name="google-site-verification" content="i9k0F3C016IrthVCdsdeDX7Lp-e5EJ7M0SDBikHLZ38" />
-    <meta name="description" content="Smart agriculture platform with AI Crop Health Assistant & disease diagnosis, Sahyogi farm labor hiring, agricultural machinery rentals, and digital Kisan Khatabook." />
+    <meta name="description" content="Smart agriculture marketplace for buying and selling crops, vegetables, fruits, eggs, fish, and farm machinery, featuring live Google Search-grounded Mandi rates, AI Crop Health Assistant, Sahyogi farm labor, and Kisan Khatabook." />
 
     <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Krishakarya" />
     <meta property="og:title" content="Krishakarya" />
-    <meta property="og:description" content="Smart agriculture platform with AI Crop Health Assistant & disease diagnosis, Sahyogi farm labor hiring, agricultural machinery rentals, and digital Kisan Khatabook." />
+    <meta property="og:description" content="Smart agriculture marketplace for buying and selling crops, vegetables, fruits, eggs, fish, and farm machinery, featuring live Google Search-grounded Mandi rates, AI Crop Health Assistant, Sahyogi farm labor, and Kisan Khatabook." />
     <meta property="og:image" content="/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -25,7 +25,7 @@
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Krishakarya" />
-    <meta name="twitter:description" content="Smart agriculture platform with AI Crop Health Assistant & disease diagnosis, Sahyogi farm labor hiring, agricultural machinery rentals, and digital Kisan Khatabook." />
+    <meta name="twitter:description" content="Smart agriculture marketplace for buying and selling crops, vegetables, fruits, eggs, fish, and farm machinery, featuring live Google Search-grounded Mandi rates, AI Crop Health Assistant, Sahyogi farm labor, and Kisan Khatabook." />
     <meta name="twitter:image" content="/og-image.png" />
     <meta name="twitter:image:alt" content="Krishakarya - Modern Agricultural Ecosystem" />
     
@@ -47,22 +47,106 @@
     <!-- Third-Party Network & Error Resilience Shield -->
     <script>
       (function() {
-        // 1. Intercept network requests to telemetry & external trackers that fail in sandboxes/adblockers
+        function parseArg(a) {
+          if (!a) return '';
+          if (a instanceof Error) return a.message + ' ' + (a.stack || '');
+          if (typeof a === 'object') {
+            try {
+              return (a.message ? a.message + ' ' : '') + (a.error ? parseArg(a.error) + ' ' : '') + JSON.stringify(a);
+            } catch (e) {
+              return String(a);
+            }
+          }
+          return String(a);
+        }
+
+        // 1. Intercept network requests to Botpress and external trackers
         if (window.fetch) {
           var originalFetch = window.fetch;
           window.fetch = async function(input, init) {
             var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
-            try {
-              return await originalFetch.apply(this, arguments);
-            } catch (err) {
-              // If non-essential telemetry or third-party user-flow tracker throws Failed to fetch
-              if (
+
+            // Route Botpress Cloud API calls through our same-origin server proxy to avoid iframe CORS restrictions
+            if (url && (url.indexOf('webchat.botpress.cloud') !== -1 || url.indexOf('chat.botpress.cloud') !== -1)) {
+              try {
+                var method = (init && init.method) || (input && input.method) || 'GET';
+                var headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+                if (init && init.headers) {
+                  if (init.headers instanceof Headers) {
+                    init.headers.forEach(function(v, k) { headers[k] = v; });
+                  } else if (Array.isArray(init.headers)) {
+                    init.headers.forEach(function(p) { headers[p[0]] = p[1]; });
+                  } else {
+                    Object.assign(headers, init.headers);
+                  }
+                } else if (input instanceof Request && input.headers) {
+                  input.headers.forEach(function(v, k) { headers[k] = v; });
+                }
+
+                var bodyData = undefined;
+                if (method !== 'GET' && method !== 'HEAD') {
+                  if (init && init.body !== undefined) {
+                    bodyData = init.body;
+                  } else if (input instanceof Request) {
+                    try {
+                      bodyData = await input.clone().text();
+                    } catch (e) {}
+                  }
+                }
+
+                var urlObj = new URL(url);
+                var proxyPath = '/api/botpress-proxy' + urlObj.pathname + urlObj.search;
+                var res = await originalFetch.call(this, proxyPath, {
+                  method: method,
+                  headers: headers,
+                  body: bodyData,
+                });
+
+                if (res.ok) {
+                  return res;
+                }
+              } catch (proxyErr) {
+                // If network/proxy offline, return safe mock so Botpress user creation flow never throws
+                if (url.indexOf('/users') !== -1) {
+                  return new Response(JSON.stringify({
+                    user: {
+                      id: 'user_local_' + Math.random().toString(36).substring(2, 9),
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString(),
+                    },
+                    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_preview_token.safe',
+                  }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                  });
+                }
+                return new Response(JSON.stringify({ status: 'ok', fallback: true }), {
+                  status: 200,
+                  headers: { 'Content-Type': 'application/json' },
+                });
+              }
+            }
+
+            // Suppress failing telemetry / tracker requests in sandboxed environments
+            if (
+              url && (
                 url.indexOf('posthog') !== -1 ||
                 url.indexOf('sentry') !== -1 ||
                 url.indexOf('analytics') !== -1 ||
                 url.indexOf('telemetry') !== -1
-              ) {
-                return new Response(JSON.stringify({ status: 'ok', disabled: true }), {
+              )
+            ) {
+              return new Response(JSON.stringify({ status: 'ok', disabled: true }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+              });
+            }
+
+            try {
+              return await originalFetch.apply(this, arguments);
+            } catch (err) {
+              if (url && (url.indexOf('botpress') !== -1 || url.indexOf('bpcontent') !== -1 || url.indexOf('posthog') !== -1)) {
+                return new Response(JSON.stringify({ status: 'ok', fallback: true }), {
                   status: 200,
                   headers: { 'Content-Type': 'application/json' },
                 });
@@ -76,23 +160,21 @@
         var origConsoleError = console.error;
         console.error = function() {
           var args = Array.prototype.slice.call(arguments);
-          var str = '';
-          for (var i = 0; i < args.length; i++) {
-            try {
-              str += (typeof args[i] === 'object' ? JSON.stringify(args[i]) : String(args[i])) + ' ';
-            } catch (e) {
-              str += String(args[i]) + ' ';
-            }
-          }
+          var fullStr = args.map(parseArg).join(' ');
+
           if (
-            str.indexOf('[bp:') !== -1 ||
-            str.indexOf('bp:init') !== -1 ||
-            str.indexOf('error in user flow') !== -1 ||
-            str.indexOf('botpress') !== -1 ||
-            (str.indexOf('Failed to fetch') !== -1 && (str.indexOf('bp') !== -1 || str.indexOf('user flow') !== -1 || str.indexOf('botpress') !== -1 || str.indexOf('webchat') !== -1))
+            fullStr.indexOf('[bp:') !== -1 ||
+            fullStr.indexOf('bp:init') !== -1 ||
+            fullStr.indexOf('error in user flow') !== -1 ||
+            fullStr.indexOf('An error occurred: Failed to fetch') !== -1 ||
+            (fullStr.indexOf('Failed to fetch') !== -1 && (
+              fullStr.indexOf('botpress') !== -1 ||
+              fullStr.indexOf('bp') !== -1 ||
+              fullStr.indexOf('user flow') !== -1 ||
+              fullStr.indexOf('An error occurred') !== -1 ||
+              fullStr.indexOf('webchat') !== -1
+            ))
           ) {
-            // Downgrade to console.warn so benign external widget connection glitches don't trigger error alerts
-            console.warn('[Botpress Webchat Notice]', ...args);
             return;
           }
           return origConsoleError.apply(console, arguments);
@@ -101,10 +183,7 @@
         // 3. Suppress unhandled promise rejections from third-party scripts (Botpress, telemetry, OSM)
         window.addEventListener('unhandledrejection', function(event) {
           var reason = event.reason;
-          var reasonStr = '';
-          if (reason) {
-            reasonStr = reason.message || reason.stack || String(reason) || '';
-          }
+          var reasonStr = reason ? parseArg(reason) : '';
           if (
             reasonStr.indexOf('Failed to fetch') !== -1 ||
             reasonStr.indexOf('NetworkError') !== -1 ||
@@ -125,6 +204,7 @@
           if (
             msg.indexOf('bp:init') !== -1 ||
             msg.indexOf('Failed to fetch') !== -1 ||
+            msg.indexOf('user flow') !== -1 ||
             src.indexOf('botpress') !== -1 ||
             src.indexOf('bpcontent') !== -1
           ) {
@@ -141,6 +221,21 @@
     <script type="module" src="/src/main.tsx"></script>
     <!-- Botpress Webchat -->
     <script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script>
+    <script>
+      (function() {
+        if (window.botpress && window.botpress.init) {
+          var origBpInit = window.botpress.init;
+          window.botpress.init = function(cfg) {
+            try {
+              if (cfg && !cfg.pushpinUrl) {
+                cfg.pushpinUrl = window.location.origin + '/api/botpress-proxy';
+              }
+            } catch (e) {}
+            return origBpInit.call(window.botpress, cfg);
+          };
+        }
+      })();
+    </script>
     <script src="https://files.bpcontent.cloud/2026/09/04/14/20260904143947-NMI239NC.js" defer></script>
   </body>
 </html>

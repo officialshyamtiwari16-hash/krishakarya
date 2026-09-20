@@ -16,7 +16,8 @@ import {
   Bot,
   Leaf,
   Camera,
-  Settings
+  Settings,
+  ShoppingBag
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
@@ -26,8 +27,8 @@ import { KrishakaryaLogo } from './KrishakaryaLogo';
 import { isNotificationPermissionGranted } from '../lib/notificationService';
 
 interface HeaderProps {
-  activeTab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health';
-  setActiveTab: (tab: 'home' | 'sahyogi' | 'machinery' | 'profile' | 'terms' | 'modern-farming' | 'crop-health') => void;
+  activeTab: 'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'terms' | 'modern-farming' | 'crop-health';
+  setActiveTab: (tab: 'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'terms' | 'modern-farming' | 'crop-health') => void;
   currentUser: User | null;
   onOpenAuth: () => void;
   onOpenAddListing: () => void;
@@ -145,6 +146,16 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : (
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 animate-ping" title="Click to enable notifications" />
                 )}
+              </button>
+
+              {/* Mobile Direct Inbox Button */}
+              <button
+                onClick={handleTriggerInbox}
+                title="Inbox & Chat"
+                aria-label="Inbox & Chat"
+                className="md:hidden relative flex items-center justify-center p-2 bg-white/70 hover:bg-emerald-50/90 text-slate-800 hover:text-emerald-900 rounded-xl border border-white/90 hover:border-emerald-300/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] min-w-[36px] shrink-0 cursor-pointer"
+              >
+                <MessageSquare className="w-4 h-4 text-emerald-700" />
               </button>
 
               {/* App Settings Button (Always Visible) */}
@@ -345,6 +356,28 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>{t('navMachinery')}</span>
               </button>
 
+              {/* Krishi Marketplace Tab */}
+              <button
+                onClick={() => {
+                  setActiveTab('marketplace');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap cursor-pointer ${
+                  activeTab === 'marketplace'
+                    ? 'bg-gradient-to-r from-emerald-700 to-emerald-800 text-white shadow-[0_4px_12px_rgba(4,120,87,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+                    : 'text-slate-700 hover:text-emerald-900 hover:bg-white/70'
+                }`}
+                title="Krishi Bazaar - Buy & Sell Crops, Vegetables, Fish, Eggs & Live Mandi Rates"
+              >
+                <ShoppingBag className="w-4 h-4 text-amber-500" />
+                <span className="flex items-center gap-1">
+                  Marketplace
+                  <span className="px-1.5 py-0.2 bg-amber-500/20 text-amber-900 border border-amber-500/30 text-[9px] font-black rounded-md">
+                    Mandi
+                  </span>
+                </span>
+              </button>
+
               <button
                 onClick={() => {
                   setActiveTab('crop-health');
@@ -483,13 +516,17 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] tracking-tight mt-0.5">{t('navMachinery')}</span>
           </button>
 
-          {/* Inbox Option Right of Rent Machinery */}
+          {/* Marketplace / Krishi Bazaar Option */}
           <button
-            onClick={handleTriggerInbox}
-            className="flex flex-col items-center justify-center py-1.5 rounded-xl transition-all min-h-[48px] text-slate-600 font-semibold hover:bg-slate-50 relative"
+            onClick={() => setActiveTab('marketplace')}
+            className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all min-h-[48px] ${
+              activeTab === 'marketplace'
+                ? 'bg-emerald-50 text-emerald-800 font-black'
+                : 'text-slate-600 font-semibold hover:bg-slate-50'
+            }`}
           >
-            <MessageSquare className="w-5 h-5 text-emerald-700" />
-            <span className="text-[10px] tracking-tight mt-0.5">Inbox</span>
+            <ShoppingBag className={`w-5 h-5 ${activeTab === 'marketplace' ? 'text-emerald-700' : 'text-slate-500'}`} />
+            <span className="text-[10px] tracking-tight mt-0.5">Marketplace</span>
           </button>
 
           <button

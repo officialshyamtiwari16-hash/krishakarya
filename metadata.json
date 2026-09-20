@@ -1,6 +1,6 @@
 {
   "name": "Krishakarya",
-  "description": "Smart agriculture platform with AI Crop Health Assistant & disease diagnosis, Sahyogi farm labor hiring, agricultural machinery rentals, and digital Kisan Khatabook.",
+  "description": "Smart agriculture marketplace for buying and selling crops, vegetables, fruits, eggs, fish, and farm machinery, featuring live Google Search-grounded Mandi rates, AI Crop Health Assistant, Sahyogi farm labor, and Kisan Khatabook.",
   "requestFramePermissions": [
     "camera",
     "microphone",

@@ -53,7 +53,16 @@ service cloud.firestore {
              data.ownerId is string && data.ownerId == request.auth.uid &&
              data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
              data.category is string &&
-             data.ratePerDay is number && data.ratePerDay > 0;
+             ((data.ratePerDay is number && data.ratePerDay > 0) || (data.sellingPrice is number && data.sellingPrice > 0));
+    }
+
+    function isValidMarketplaceListing(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.sellerId is string && data.sellerId == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+             data.category is string && data.category.size() > 0 &&
+             data.pricePerUnit is number && data.pricePerUnit > 0 &&
+             data.quantityAvailable is number && data.quantityAvailable >= 0;
     }
 
     function isValidBooking(data) {
@@ -130,6 +139,14 @@ service cloud.firestore {
       allow create: if isSignedIn() && isValidId(entryId) && incoming().userId == request.auth.uid && isValidLedgerEntry(incoming());
       allow update: if isSignedIn() && existing().userId == request.auth.uid && incoming().userId == request.auth.uid && isValidLedgerEntry(incoming());
       allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // 7. Produce and Commodity Marketplace Listings Collection
+    match /marketplace_listings/{listingId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(listingId) && incoming().sellerId == request.auth.uid && isValidMarketplaceListing(incoming());
+      allow update: if isSignedIn() && existing().sellerId == request.auth.uid && incoming().sellerId == request.auth.uid && isValidMarketplaceListing(incoming());
+      allow delete: if isSignedIn() && existing().sellerId == request.auth.uid;
     }
   }
 }
