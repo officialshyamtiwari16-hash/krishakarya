@@ -7,7 +7,6 @@ import {
   PlusCircle,
   Home,
   Camera,
-  Sparkles,
   Settings,
   ShoppingBag
 } from 'lucide-react';
@@ -52,7 +51,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
           {/* Quick Navigation Links */}
           <div className="space-y-3">
             <h4 className="text-white font-bold text-sm border-l-2 border-emerald-500 pl-2.5">
-              Quick Navigation
+              {t('quickNav')}
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
@@ -88,7 +87,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
                   className="hover:text-amber-400 transition-colors flex items-center gap-2 font-bold text-amber-300 cursor-pointer"
                 >
                   <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
-                  Krishi Bazaar & Mandi
+                  {t('krishiBazaar')}
                 </button>
               </li>
               <li>
@@ -97,7 +96,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
                   className="hover:text-emerald-400 transition-colors flex items-center gap-2 font-bold text-emerald-400 cursor-pointer"
                 >
                   <Camera className="w-3.5 h-3.5 text-emerald-400" />
-                  Crop Health AI Assistant
+                  {t('cropHealthTitle')}
                 </button>
               </li>
               <li>
@@ -115,7 +114,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
                   className="hover:text-emerald-400 transition-colors flex items-center gap-2 font-bold text-amber-300 cursor-pointer"
                 >
                   <FileText className="w-3.5 h-3.5 text-amber-400" />
-                  Terms & Conditions
+                  {t('termsConditions')}
                 </button>
               </li>
               <li>
@@ -124,7 +123,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
                   className="hover:text-emerald-400 transition-colors flex items-center gap-2 font-bold text-emerald-300 cursor-pointer"
                 >
                   <Settings className="w-3.5 h-3.5 text-emerald-400" />
-                  App Settings & Preferences
+                  {t('appSettings')}
                 </button>
               </li>
             </ul>
@@ -134,16 +133,16 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
           <div className="bg-slate-900/60 backdrop-blur-xl border border-white/15 rounded-2xl p-5 flex flex-col justify-between shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.25)]">
             <div>
               <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                <Award className="w-4 h-4" /> Official Support
+                <Award className="w-4 h-4" /> {t('officialSupport')}
               </div>
               <h3 className="text-xl font-extrabold text-white tracking-tight">
-                Krishakarya Services
+                Krishakarya
               </h3>
               <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                Direct community platform connecting village farmers with Sahyogi labor and local machinery owners.
+                {t('heroSubtitle')}
               </p>
               <div className="mt-3 pt-3 border-t border-white/10">
-                <p className="text-[11px] text-slate-400 font-medium">Primary Contact & Help:</p>
+                <p className="text-[11px] text-slate-400 font-medium">{t('officialSupport')}:</p>
                 <a 
                   href="mailto:krishakarya@gmail.com" 
                   className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 mt-0.5"
@@ -156,7 +155,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
             <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-emerald-400 font-medium">
               <span>Krishakarya Support</span>
               <span className="bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold backdrop-blur-xs">
-                Official Help
+                {t('verified')}
               </span>
             </div>
           </div>
@@ -165,9 +164,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
         {/* Bottom Bar with Terms Button */}
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div className="space-y-1 text-center sm:text-left">
-            <p>© {new Date().getFullYear()} Krishakarya. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Krishakarya. {t('allRightsReserved')}.</p>
             <p className="text-slate-400 font-semibold text-[11px]">
-              Founder: <span className="text-emerald-400 font-bold">Shyam Mani Tiwari</span>
+              {t('founder')}: <span className="text-emerald-400 font-bold">Shyam Mani Tiwari</span>
             </p>
           </div>
 
@@ -177,7 +176,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenTerms, onOpenA
               className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-emerald-300 border border-white/15 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer backdrop-blur-md shadow-xs"
             >
               <FileText className="w-3.5 h-3.5" />
-              Terms & Conditions
+              {t('termsConditions')}
             </button>
           </div>
         </div>

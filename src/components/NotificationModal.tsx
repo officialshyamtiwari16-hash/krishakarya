@@ -105,8 +105,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, on
       try {
         new Notification(title, {
           body,
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-192.png',
         });
       } catch (e) {
         console.log('Browser notification fallback:', e);

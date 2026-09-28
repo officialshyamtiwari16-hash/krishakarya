@@ -20,14 +20,17 @@ import {
   Scale, 
   ExternalLink,
   ChevronDown,
-  X
+  X,
+  BarChart3
 } from 'lucide-react';
+import { MandiPriceTrendsChart } from './MandiPriceTrendsChart';
 import { AddMarketplaceListingModal } from './AddMarketplaceListingModal';
 import { 
   INDIA_LOCATIONS, 
   DISTRICTS_BY_STATE, 
   ALL_INDIAN_DISTRICTS 
 } from '../data/indiaLocations';
+import { useLanguage } from '../context/LanguageContext';
 
 interface MarketplaceViewProps {
   listings: MarketplaceListing[];
@@ -77,6 +80,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
   onDeleteListing,
   onOpenAddListing,
 }) => {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDistrict, setFilterDistrict] = useState('all');
@@ -105,6 +109,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
   }, []);
 
   const [mandiCommodityFilter, setMandiCommodityFilter] = useState('all');
+  const [showTrendChart, setShowTrendChart] = useState(true);
   const [mandiRatesData, setMandiRatesData] = useState<MandiRateResponse | null>(null);
   const [isLoadingMandi, setIsLoadingMandi] = useState(false);
   const [mandiError, setMandiError] = useState<string | null>(null);
@@ -259,7 +264,21 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <button
+              id="toggle-mandi-chart-btn"
+              onClick={() => setShowTrendChart(!showTrendChart)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs ${
+                showTrendChart
+                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300'
+              }`}
+              title="Toggle Weekly Price Trend Chart & Selling Advisory"
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-emerald-700" />
+              <span>{showTrendChart ? 'Hide Trends (चार्ट छुपाएं)' : 'Price Trends (चार्ट देखें)'}</span>
+            </button>
+
             <button
               id="refresh-mandi-rates-btn"
               onClick={() => fetchMandiRates(selectedMandiDistrict, selectedMandiState)}
@@ -268,7 +287,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingMandi ? 'animate-spin text-emerald-200' : ''}`} />
-              <span>Refresh Rates</span>
+              <span>{t('refresh')}</span>
             </button>
           </div>
         </div>
@@ -444,6 +463,17 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
           })}
         </div>
 
+        {/* SECTION 1.5: Recharts Weekly Price Trends & Kisan Selling Advisory */}
+        {showTrendChart && mandiRatesData && mandiRatesData.rates.length > 0 && (
+          <MandiPriceTrendsChart
+            rates={mandiRatesData.rates}
+            selectedDistrict={selectedMandiDistrict}
+            selectedState={selectedMandiState}
+            marketName={mandiRatesData.marketName}
+            updatedAt={mandiRatesData.updatedAt}
+          />
+        )}
+
         {/* Commodity Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
           {[
@@ -531,6 +561,29 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                     <span className="font-bold text-slate-700">{item.arrival}</span>
                   </div>
                 )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTrendChart(true);
+                    setTimeout(() => {
+                      const el = document.getElementById('mandi-weekly-price-trends-container');
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                      const selectEl = document.getElementById('mandi-trend-crop-select') as HTMLSelectElement | null;
+                      if (selectEl) {
+                        selectEl.value = item.commodity;
+                        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                      }
+                    }, 50);
+                  }}
+                  className="w-full mt-1 py-1.5 px-2 bg-slate-100/90 hover:bg-emerald-50 hover:text-emerald-900 hover:border-emerald-200 border border-transparent rounded-xl text-[10px] font-bold text-slate-600 transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
+                  title={`Analyze 7-day price trend & selling decision for ${item.commodity}`}
+                >
+                  <BarChart3 className="w-3 h-3 text-emerald-600" />
+                  <span>7D Trend & Advisory (चार्ट)</span>
+                </button>
               </div>
             ))}
           </div>
@@ -592,7 +645,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                   onChange={(e) => setFilterDistrict(e.target.value)}
                   className="pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer appearance-none"
                 >
-                  <option value="all">📍 All Districts</option>
+                  <option value="all">📍 {t('allDistricts')}</option>
                   {availableDistricts.map((dist) => (
                     <option key={dist} value={dist}>
                       {dist}
@@ -607,7 +660,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                 className="flex items-center gap-1.5 px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ List Produce</span>
+                <span>+ {t('sellProduce')}</span>
               </button>
             </div>
           </div>
@@ -815,7 +868,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                           className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-extrabold text-xs rounded-xl border border-emerald-200 transition-colors"
                         >
                           <Phone className="w-3.5 h-3.5 text-emerald-700" />
-                          <span>Call Seller</span>
+                          <span>{t('call')}</span>
                         </a>
 
                         <a
@@ -825,7 +878,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                           className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
-                          <span>WhatsApp</span>
+                          <span>{t('whatsapp')}</span>
                         </a>
                       </div>
                     </div>

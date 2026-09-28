@@ -5,6 +5,8 @@ export interface AiChatResponse {
   remaining: number;
   limit: number;
   error?: string;
+  groundingSources?: Array<{ title: string; url: string }>;
+  isImageAnalyzed?: boolean;
 }
 
 export interface AiQaResponse {
@@ -53,12 +55,20 @@ export async function getAiQuota(userId?: string): Promise<AiQuotaResponse> {
 function generateFallbackChatResponse(query: string, user?: User | null): string {
   const q = query.toLowerCase();
 
-  if (q.includes('urea') || q.includes('यूरिया') || q.includes('dap') || q.includes('fertilizer') || q.includes('खाद')) {
-    return `🌾 **उर्वरक एवं पोषण प्रबंधन सलाह (Fertilizer Advisory):**\n\n• **नैनो यूरिया (Nano Urea):** 4 मि.ली. प्रति लीटर पानी (60-70 मि.ली. प्रति 15 लीटर स्प्रे पंप)। कल्ले फूटते समय व फूल आने से पूर्व छिड़काव करें।\n• **डीएपी (DAP):** 45-50 किग्रा/एकड़ बुवाई के समय बेसल डोज के रूप में।\n• **पोटाश (MOP):** 20-25 किग्रा/एकड़ दानों की चमक व वजन बढ़ाने हेतु।\n• **जिंक सल्फेट (33%):** 5 किग्रा/एकड़ मिट्टी में मिलाकर डालें।\n\n💡 *सलाह:* यूरिया का बुरकाव हमेशा शाम के समय ओस हटने के बाद करें।`;
+  if (q.includes('mandi') || q.includes('मंडी') || q.includes('rate') || q.includes('भाव') || q.includes('price') || q.includes('कीमत') || q.includes('bhav')) {
+    return `📈 **वर्तमान प्रमुख कृषि मंडी भाव एवं रुझान (APMC Mandi Bhav Index):**\n\n• **गेहूं (Wheat - Sharbati/Mill Quality):** ₹2,420 - ₹2,780 / क्विंटल (स्थिर व तेज मांग)\n• **धान बासमती 1509/1121:** ₹3,200 - ₹4,150 / क्विंटल (निर्यात मांग सक्रिय)\n• **सरसों (Mustard 42% Oil):** ₹5,150 - ₹5,680 / क्विंटल (तेल मिलों की अच्छी खरीदारी)\n• **चना (Gram / Desi Chana):** ₹5,600 - ₹6,150 / क्विंटल (मजबूत भाव)\n• **सोयाबीन (Soybean Yellow):** ₹4,300 - ₹4,850 / क्विंटल\n• **आलू (Potato Fresh):** ₹1,150 - ₹1,650 / क्विंटल\n• **प्याज (Onion Red):** ₹1,400 - ₹2,200 / क्विंटल\n• **कपास (Cotton):** ₹6,800 - ₹7,450 / क्विंटल\n\n💡 **कृषक सलाह:** अच्छी गुणवत्ता व सफाई के साथ उपज लाने पर मंडी में 5-8% अधिक दाम प्राप्त होते हैं। 7-दिवसीय मूल्य रुझान देखने के लिए 'Marketplace' टैब पर जाएं।`;
+  }
+
+  if (q.includes('weather') || q.includes('मौसम') || q.includes('barish') || q.includes('बारिश') || q.includes('irrigation') || q.includes('सिंचाई') || q.includes('पाला') || q.includes('frost')) {
+    return `🌦️ **मौसम पूर्वानुमान एवं खेत सिंचाई परामर्श (Agro-Met Advisory):**\n\n• **सिंचाई समय निर्धारण:** रबी फसलों (गेहूं, सरसों) में दोपहर की तेज धूप के बजाय सुबह या शाम के समय हल्की सिंचाई करें।\n• **शीत लहर / पाला (Frost) सुरक्षा:**\n  - पाले की संभावना होने पर खेत की उत्तर-पश्चिम मेड़ों पर शाम के समय धुआं करें।\n  - खेत में हल्की नमी या 0.1% घुलनशील सल्फर (2g/L) स्प्रे पाले से पौधों की कोशिकाओं को फटने से बचाता है।\n• **कीटनाशक छिड़काव चेतावनी:** तेज हवा (>15 किमी/घंटा) या बारिश की संभावना में कीटनाशक/उर्वरक स्प्रे न करें; कम से कम 4 घंटे सूखा मौसम जरूरी है।`;
+  }
+
+  if (q.includes('urea') || q.includes('यूरिया') || q.includes('dap') || q.includes('fertilizer') || q.includes('खाद') || q.includes('npk')) {
+    return `🌾 **उर्वरक एवं पोषण प्रबंधन सलाह (Fertilizer Advisory):**\n\n• **नैनो यूरिया (Nano Urea):** 4 मि.ली. प्रति लीटर पानी (60-70 मि.ली. प्रति 15 लीटर स्प्रे पंप)। कल्ले फूटते समय व फूल आने से पूर्व छिड़काव करें।\n• **डीएपी (DAP 18:46:0):** 45-50 किग्रा/एकड़ बुवाई के समय बेसल डोज के रूप में।\n• **पोटाश (MOP 0:0:60):** 20-25 किग्रा/एकड़ दानों की चमक, दाना भराव व तना मजबूत करने हेतु।\n• **जिंक सल्फेट (33% Monohydrate):** 5 किग्रा/एकड़ मिट्टी में मिलाकर डालें।\n• **सल्फर (90% Bentonite):** 10 किग्रा/एकड़ तिलहनी व दलहनी फसलों में तेल प्रतिशत बढ़ाने हेतु अनिवार्य।\n\n💡 *सलाह:* यूरिया का बुरकाव हमेशा शाम के समय ओस हटने के बाद करें।`;
   }
 
   if (q.includes('keet') || q.includes('कीट') || q.includes('pest') || q.includes('rog') || q.includes('रोग') || q.includes('pila') || q.includes('peela') || q.includes('fungus')) {
-    return `🔬 **फसल सुरक्षा एवं कीट-रोग नियंत्रण (Crop Protection):**\n\n• **पत्तियों का पीलापन / फफूंद (Fungus/Blight):**\n  - टेबुकोनाज़ोल + ट्राइफ्लॉक्सीस्ट्रोबिन (Nativo) 120 ग्राम/एकड़ 200 लीटर पानी में, अथवा साफ (SAAF) 2 ग्राम/लीटर।\n• **तना छेदक व इल्ली (Stem Borer / Caterpillars):**\n  - कोराजन (Chlorantraniliprole 18.5% SC) 60 मि.ली./एकड़।\n• **माहू / तेला / सफेद मक्खी (Aphids/Whitefly):**\n  - इमिडाक्लोप्रिड 17.8% SL (0.5 मिली/लीटर पानी)।\n\n🌿 *जैविक उपचार:* 5% नीम तेल (Neem Oil 10000 PPM) 3 मि.ली./लीटर पानी में मिलाकर छिड़कें।`;
+    return `🔬 **फसल सुरक्षा एवं कीट-रोग नियंत्रण (Crop Protection):**\n\n• **पत्तियों का पीलापन / फफूंद (Fungus/Blight):**\n  - टेबुकोनाज़ोल + ट्राइफ्लॉक्सीस्ट्रोबिन (Nativo) 120 ग्राम/एकड़ 200 लीटर पानी में, अथवा साफ (SAAF) 2 ग्राम/लीटर।\n• **तना छेदक व इल्ली (Stem Borer / Caterpillars):**\n  - कोराजन (Chlorantraniliprole 18.5% SC) 60 मि.ली./एकड़।\n• **माहू / तेला / सफेद मक्खी (Aphids/Whitefly):**\n  - इमिडाक्लोप्रिड 17.8% SL (0.5 मिली/लीटर पानी)।\n\n🌿 *जैविक उपचार:* 5% नीम तेल (Neem Oil 10,000 PPM) 3 मि.ली./लीटर पानी में मिलाकर छिड़कें।`;
   }
 
   if (q.includes('gehu') || q.includes('गेहूं') || q.includes('wheat')) {
@@ -66,20 +76,21 @@ function generateFallbackChatResponse(query: string, user?: User | null): string
   }
 
   if (q.includes('scheme') || q.includes('yojana') || q.includes('योजना') || q.includes('subsidy') || q.includes('सब्सिडी') || q.includes('pm kisan') || q.includes('किसान')) {
-    return `🏛️ **प्रमुख सरकारी कृषि योजनाएं ও सब्सिडी:**\n\n1. **पीएम-किसान सम्मान निधि (PM-KISAN):**\n   - प्रति वर्ष ₹6,000 की आर्थिक सहायता (₹2,000 की 3 किस्तों में)।\n2. **कृषि यंत्रीकरण योजना (SMAM Subsidy):**\n   - ट्रैक्टर, रोटावेटर, सुपर सीडर पर 40% से 50% तक सरकारी अनुदान।\n3. **पीएम कुसुम योजना (PM-KUSUM):**\n   - सोलर कृषि पंप स्थापना पर 60% से 90% तक सब्सिडी।\n4. **प्रधानमंत्री फसल बीमा योजना (PMFBY):**\n   - रबी फसलों पर 1.5% व खरीफ फसलों पर 2% प्रीमियम पर संपूर्ण बीमा सुरक्षा।`;
+    return `🏛️ **प्रमुख सरकारी कृषि योजनाएं व सब्सिडी:**\n\n1. **पीएम-किसान सम्मान निधि (PM-KISAN):**\n   - प्रति वर्ष ₹6,000 की आर्थिक सहायता (₹2,000 की 3 किस्तों में)।\n2. **कृषि यंत्रीकरण योजना (SMAM Subsidy):**\n   - ट्रैक्टर, रोटावेटर, सुपर सीडर पर 40% से 50% तक सरकारी अनुदान।\n3. **पीएम कुसुम योजना (PM-KUSUM):**\n   - सोलर कृषि पंप स्थापना पर 60% से 90% तक सब्सिडी।\n4. **प्रधानमंत्री फसल बीमा योजना (PMFBY):**\n   - रबी फसलों पर 1.5% व खरीफ फसलों पर 2% प्रीमियम पर संपूर्ण बीमा सुरक्षा।`;
   }
 
   if (q.includes('rent') || q.includes('tractor') || q.includes('ट्रैक्टर') || q.includes('रेट') || q.includes('किराया') || q.includes('machinery')) {
     return `🚜 **कृषि मशीनरी अनुमानित किराया दरें (Market Benchmark Rates):**\n\n• **ट्रैक्टर + कल्टीवेटर / हैरो:** ₹600 - ₹900 प्रति घंटा / प्रति एकड़।\n• **रोटावेटर जुताई:** ₹800 - ₹1,200 प्रति घंटा।\n• **कंबाइन हार्वेस्टर (कटाई + मढ़ाई):** ₹1,800 - ₹2,500 प्रति एकड़ (भूसा सहित/रहित)।\n• **सुपर सीडर / हैप्पी सीडर:** ₹1,200 - ₹1,600 प्रति एकड़।\n• **ड्रोन स्प्रे (कीटनाशक/नैनो यूरिया):** ₹350 - ₹500 प्रति एकड़।\n\n👉 *नोट:* आप 'Rent Machinery' टैब से अपने नजदीकी उपकरण मालिकों से सीधे बात कर सकते हैं।`;
   }
 
-  return `🌾 **कृषक ए.आई सलाहकार उत्तर:**\n\nनमस्ते ${user?.name ? user.name + ' जी' : ''}!\nआपके प्रश्न के संदर्भ में महत्वपूर्ण कृषि सुझाव:\n\n• **सटीक फसल प्रबंधन:** अपनी मिट्टी के प्रकार और सिंचाई व्यवस्था के अनुसार संतुलित खाद (NPK 4:2:1) का प्रयोग करें।\n• **कीट निगरानी:** खेत का सुबह-शाम निरीक्षण करें और प्रारंभिक अवस्था में ही नीम तेल या अनुशंसित जैविक कीटनाशक का छिड़काव करें।\n• **लागत में बचत:** 'Sahyogi' टैब से प्रशिक्षित लेबर और 'Rent Machinery' से आधुनिक यंत्र उचित दरों पर बुक करें।\n\nक्या आप किसी विशेष फसल, बीमारी या खाद की खुराक के बारे में विस्तार से जानना चाहते हैं?`;
+  return `🌾 **कृषक ए.आई सलाहकार उत्तर:**\n\nनमस्ते ${user?.name ? user.name + ' जी' : 'किसान साथी'}!\nआपके प्रश्न के संदर्भ में महत्वपूर्ण कृषि सुझाव:\n\n• **सटीक फसल प्रबंधन:** अपनी मिट्टी के प्रकार और सिंचाई व्यवस्था के अनुसार संतुलित खाद (NPK 4:2:1) का प्रयोग करें।\n• **कीट निगरानी:** खेत का सुबह-शाम निरीक्षण करें और प्रारंभिक अवस्था में ही नीम तेल या अनुशंसित जैविक कीटनाशक का छिड़काव करें।\n• **लागत में बचत:** 'Sahyogi' टैब से प्रशिक्षित लेबर और 'Rent Machinery' से आधुनिक यंत्र उचित दरों पर बुक करें।\n\nक्या आप किसी विशेष फसल, बीमारी या खाद की खुराक के बारे में विस्तार से जानना चाहते हैं? आप फसल की फोटो भी संलग्न कर सकते हैं!`;
 }
 
 export async function askKrishakAiChat(
   message: string,
   history: Array<{ role: 'user' | 'model'; text: string }>,
-  currentUser?: User | null
+  currentUser?: User | null,
+  imageAttachment?: { base64: string; mimeType?: string }
 ): Promise<AiChatResponse> {
   try {
     const res = await fetch('/api/krishak-ai/chat', {
@@ -89,6 +100,8 @@ export async function askKrishakAiChat(
         message,
         history,
         userId: currentUser?.id || currentUser?.username || 'anonymous',
+        imageBase64: imageAttachment?.base64,
+        imageMimeType: imageAttachment?.mimeType || 'image/jpeg',
         userContext: currentUser ? {
           name: currentUser.name,
           village: currentUser.village,
@@ -123,11 +136,14 @@ export async function askKrishakAiChatStream(
   history: Array<{ role: 'user' | 'model'; text: string }>,
   currentUser: User | null | undefined,
   onChunk: (accumulatedText: string) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  imageAttachment?: { base64: string; mimeType?: string }
 ): Promise<AiChatResponse> {
   let accumulatedText = '';
   let remainingQuota = 48;
   let limitQuota = 50;
+  let groundingSources: Array<{ title: string; url: string }> | undefined;
+  let isImageAnalyzed = Boolean(imageAttachment?.base64);
 
   try {
     const res = await fetch('/api/krishak-ai/chat/stream', {
@@ -138,6 +154,8 @@ export async function askKrishakAiChatStream(
         message,
         history,
         userId: currentUser?.id || currentUser?.username || 'anonymous',
+        imageBase64: imageAttachment?.base64,
+        imageMimeType: imageAttachment?.mimeType || 'image/jpeg',
         userContext: currentUser ? {
           name: currentUser.name,
           village: currentUser.village,
@@ -178,6 +196,8 @@ export async function askKrishakAiChatStream(
             }
             if (data.remaining !== undefined) remainingQuota = data.remaining;
             if (data.limit !== undefined) limitQuota = data.limit;
+            if (data.groundingSources) groundingSources = data.groundingSources;
+            if (data.isImageAnalyzed !== undefined) isImageAnalyzed = data.isImageAnalyzed;
           } catch (jsonErr) {
             // Non-fatal parse warning
           }
@@ -189,12 +209,14 @@ export async function askKrishakAiChatStream(
           reply: accumulatedText,
           remaining: remainingQuota,
           limit: limitQuota,
+          groundingSources,
+          isImageAnalyzed,
         };
       }
     }
   } catch (err: any) {
     if (err.name === 'AbortError') {
-      return { reply: accumulatedText, remaining: remainingQuota, limit: limitQuota };
+      return { reply: accumulatedText, remaining: remainingQuota, limit: limitQuota, groundingSources, isImageAnalyzed };
     }
     console.warn('Streaming fetch fallback note:', err);
   }
@@ -209,6 +231,8 @@ export async function askKrishakAiChatStream(
     reply: accumulatedText,
     remaining: remainingQuota,
     limit: limitQuota,
+    groundingSources,
+    isImageAnalyzed,
   };
 }
 

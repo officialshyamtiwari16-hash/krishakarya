@@ -102,12 +102,28 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }, [settings]);
 
+  // Listen for language changes from LanguageContext
+  useEffect(() => {
+    const handleLangSync = (e: Event) => {
+      const customEvent = e as CustomEvent<{ language: string }>;
+      if (customEvent.detail?.language) {
+        setSettings((prev) => {
+          if (prev.language === customEvent.detail.language) return prev;
+          return { ...prev, language: customEvent.detail.language };
+        });
+      }
+    };
+    window.addEventListener('krishakarya_language_changed', handleLangSync);
+    return () => window.removeEventListener('krishakarya_language_changed', handleLangSync);
+  }, []);
+
   const updateSettings = (updates: Partial<AppSettings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...updates };
       // If language changed, sync with LanguageContext key
       if (updates.language && updates.language !== prev.language) {
         localStorage.setItem('krishakarya_language', updates.language);
+        window.dispatchEvent(new CustomEvent('krishakarya_language_changed', { detail: { language: updates.language } }));
       }
       return next;
     });

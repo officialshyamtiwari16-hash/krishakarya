@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { MarketplaceListing, MarketplaceCategory, User } from '../types';
 import { X, Upload, ShoppingBag, Sprout, Check, ShieldCheck, Phone, MapPin } from 'lucide-react';
 import { ALL_INDIAN_STATES, DISTRICTS_BY_STATE, ALL_INDIAN_DISTRICTS } from '../data/indiaLocations';
+import { compressImageFile } from '../lib/imageUtils';
 
 interface AddMarketplaceListingModalProps {
   isOpen: boolean;
@@ -65,20 +66,17 @@ export const AddMarketplaceListingModal: React.FC<AddMarketplaceListingModalProp
 
   if (!isOpen) return null;
 
-  // Handle local image file upload
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle local image file upload with offline compression
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setFormError('Photo size must be under 5MB.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
+      try {
+        const compressed = await compressImageFile(file, { maxWidth: 800, maxHeight: 800, quality: 0.8 });
+        setImage(compressed);
         setFormError('');
-      };
-      reader.readAsDataURL(file);
+      } catch (err: any) {
+        setFormError('Failed to process image. Please try another photo.');
+      }
     }
   };
 

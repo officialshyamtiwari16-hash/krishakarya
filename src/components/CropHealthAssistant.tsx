@@ -36,6 +36,7 @@ import {
 import { User, CropHealthDiagnosis, LedgerEntry } from '../types';
 import { diagnoseCropHealth, getAiQuota, AiQuotaResponse } from '../lib/aiService';
 import { useLanguage } from '../context/LanguageContext';
+import { compressImageFile } from '../lib/imageUtils';
 
 interface CropHealthAssistantProps {
   currentUser: User | null;
@@ -333,31 +334,33 @@ export const CropHealthAssistant: React.FC<CropHealthAssistantProps> = ({
     }
   };
 
-  // Handle File Input Selection (from device camera capture or gallery)
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle File Input Selection (from device camera capture or gallery) with offline compression
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setImageMimeType(file.type || 'image/jpeg');
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    setImageMimeType('image/jpeg');
+    try {
+      const compressed = await compressImageFile(file, { maxWidth: 1024, maxHeight: 1024, quality: 0.85 });
+      setImagePreview(compressed);
+    } catch (err) {
+      console.warn('File compression note:', err);
+    }
   };
 
-  // Handle Drag & Drop of Image Files
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  // Handle Drag & Drop of Image Files with offline compression
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDraggingFile(false);
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      setImageMimeType(file.type || 'image/jpeg');
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setImageMimeType('image/jpeg');
+      try {
+        const compressed = await compressImageFile(file, { maxWidth: 1024, maxHeight: 1024, quality: 0.85 });
+        setImagePreview(compressed);
+      } catch (err) {
+        console.warn('Drop compression note:', err);
+      }
     }
   };
 

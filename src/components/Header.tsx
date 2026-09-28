@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User } from '../types';
 import { 
   Home, 
@@ -6,15 +6,11 @@ import {
   Tractor, 
   User as UserIcon, 
   LogOut, 
-  Globe, 
-  ChevronDown, 
   MessageSquare, 
   Share2, 
   Check, 
   Bell,
   Sparkles,
-  Bot,
-  Leaf,
   Camera,
   Settings,
   ShoppingBag
@@ -24,7 +20,6 @@ import { useSettings } from '../context/SettingsContext';
 import { InboxModal } from './InboxModal';
 import { NotificationModal } from './NotificationModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
-import { isNotificationPermissionGranted } from '../lib/notificationService';
 
 interface HeaderProps {
   activeTab: 'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'terms' | 'modern-farming' | 'crop-health';
@@ -50,9 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   bookingCount,
 }) => {
-  const { currentLanguage, setLanguage, languages, t, getLanguageInfo } = useLanguage();
+  const { t } = useLanguage();
   const { setIsSettingsOpen } = useSettings();
-  const [isLangOpen, setIsLangOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
 
   const handleOpenSettingsModal = () => {
@@ -64,7 +58,6 @@ export const Header: React.FC<HeaderProps> = ({
   };
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [hasNotifPermission, setHasNotifPermission] = useState(false);
 
   const handleTriggerInbox = () => {
     if (onOpenInbox) {
@@ -73,12 +66,6 @@ export const Header: React.FC<HeaderProps> = ({
       setIsInboxOpen(true);
     }
   };
-
-  useEffect(() => {
-    setHasNotifPermission(isNotificationPermissionGranted());
-  }, [isNotifOpen]);
-
-  const selectedLang = getLanguageInfo(currentLanguage);
 
   const handleShareWebsite = async () => {
     const shareData = {
@@ -123,12 +110,12 @@ export const Header: React.FC<HeaderProps> = ({
                 {copiedLink ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="hidden sm:inline font-black text-emerald-700">Copied!</span>
+                    <span className="hidden sm:inline font-black text-emerald-700">{t('copied')}</span>
                   </>
                 ) : (
                   <>
                     <Share2 className="w-3.5 h-3.5 text-emerald-700" />
-                    <span className="hidden sm:inline">Share</span>
+                    <span className="hidden sm:inline">{t('share')}</span>
                   </>
                 )}
               </button>
@@ -136,23 +123,18 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Notification Alerts Center Button */}
               <button
                 onClick={() => setIsNotifOpen(true)}
-                title="Notifications & Alerts"
-                aria-label="Notifications & Alerts"
+                title={t('notifications')}
+                aria-label={t('notifications')}
                 className="relative flex items-center justify-center p-2 bg-white/70 hover:bg-emerald-50/90 text-slate-800 hover:text-emerald-900 rounded-xl border border-white/90 hover:border-emerald-300/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] min-w-[36px] shrink-0 cursor-pointer"
               >
                 <Bell className="w-4 h-4 text-emerald-700" />
-                {hasNotifPermission ? (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white shadow-xs" title="Notifications Enabled" />
-                ) : (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 animate-ping" title="Click to enable notifications" />
-                )}
               </button>
 
               {/* Mobile Direct Inbox Button */}
               <button
                 onClick={handleTriggerInbox}
-                title="Inbox & Chat"
-                aria-label="Inbox & Chat"
+                title={t('navInbox')}
+                aria-label={t('navInbox')}
                 className="md:hidden relative flex items-center justify-center p-2 bg-white/70 hover:bg-emerald-50/90 text-slate-800 hover:text-emerald-900 rounded-xl border border-white/90 hover:border-emerald-300/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] min-w-[36px] shrink-0 cursor-pointer"
               >
                 <MessageSquare className="w-4 h-4 text-emerald-700" />
@@ -161,12 +143,12 @@ export const Header: React.FC<HeaderProps> = ({
               {/* App Settings Button (Always Visible) */}
               <button
                 onClick={handleOpenSettingsModal}
-                title="App Settings & Preferences (हर सेटिंग)"
-                aria-label="App Settings"
+                title={t('appSettings')}
+                aria-label={t('appSettings')}
                 className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 bg-white/70 hover:bg-emerald-50/90 text-emerald-950 rounded-xl text-[11px] sm:text-xs font-extrabold border border-white/90 hover:border-emerald-300/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] shrink-0 cursor-pointer group"
               >
                 <Settings className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-emerald-700 group-hover:rotate-45 transition-transform duration-300" />
-                <span className="hidden sm:inline font-bold text-slate-800 group-hover:text-emerald-900">Settings</span>
+                <span className="hidden sm:inline font-bold text-slate-800 group-hover:text-emerald-900">{t('navSettings')}</span>
               </button>
             </div>
 
@@ -189,63 +171,6 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Right Action Controls */}
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              {/* Indian Languages Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsLangOpen(!isLangOpen)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 bg-white/70 hover:bg-white/95 text-slate-800 rounded-xl text-[11px] sm:text-xs font-bold border border-white/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-md transition-all min-h-[36px] cursor-pointer"
-                  title="Select Indian Language / भाषा चुनें"
-                >
-                  <Globe className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="hidden sm:inline">{selectedLang.nativeName}</span>
-                  <span className="sm:hidden font-extrabold uppercase text-[10px]">{selectedLang.code}</span>
-                  <ChevronDown className="w-3 h-3 text-slate-400" />
-                </button>
-
-                {isLangOpen && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-xs" 
-                      onClick={() => setIsLangOpen(false)} 
-                    />
-                    <div className="absolute right-0 mt-2 w-56 sm:w-64 z-50 glass-modal rounded-2xl p-2 max-h-80 overflow-y-auto space-y-1 animate-modalPop">
-                      <div className="px-3 py-1.5 border-b border-emerald-500/10 flex items-center justify-between text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
-                        <span>Indian Languages</span>
-                        <span className="text-emerald-700">14 Available</span>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-1 pt-1">
-                        {languages.map((lang) => (
-                          <button
-                            key={lang.code}
-                            onClick={() => {
-                              setLanguage(lang.code);
-                              setIsLangOpen(false);
-                            }}
-                            className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors ${
-                              currentLanguage === lang.code
-                                ? 'bg-emerald-500/15 text-emerald-900 font-black border border-emerald-400/40 shadow-xs'
-                                : 'text-slate-700 hover:bg-white/80 hover:text-emerald-800'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{lang.flag}</span>
-                              <div>
-                                <span className="block font-bold">{lang.nativeName}</span>
-                                <span className="text-[10px] text-slate-400">{lang.name}</span>
-                              </div>
-                            </div>
-                            {currentLanguage === lang.code && (
-                              <span className="w-2 h-2 rounded-full bg-emerald-600" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
               {/* Sign In / Sign Up Button (when logged out) */}
               {!currentUser && (
                 <button
@@ -370,12 +295,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Krishi Bazaar - Buy & Sell Crops, Vegetables, Fish, Eggs & Live Mandi Rates"
               >
                 <ShoppingBag className="w-4 h-4 text-amber-500" />
-                <span className="flex items-center gap-1">
-                  Marketplace
-                  <span className="px-1.5 py-0.2 bg-amber-500/20 text-amber-900 border border-amber-500/30 text-[9px] font-black rounded-md">
-                    Mandi
-                  </span>
-                </span>
+                <span>{t('navMarketplace')}</span>
               </button>
 
               <button
@@ -391,12 +311,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Crop Health Assistant - Photo & Camera AI Diagnosis"
               >
                 <Camera className="w-4 h-4 text-emerald-600" />
-                <span className="flex items-center gap-1">
-                  Crop Health
-                  <span className="px-1.5 py-0.2 bg-amber-500/20 text-emerald-900 border border-emerald-500/30 text-[9px] font-black rounded-md">
-                    AI
-                  </span>
-                </span>
+                <span>{t('navCropHealth')}</span>
               </button>
 
               <button
@@ -411,21 +326,16 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
-                <span>Modern Farming Q&A</span>
+                <span>{t('navModernFarming')}</span>
               </button>
 
               <button
                 onClick={handleTriggerInbox}
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap text-slate-700 hover:text-emerald-900 hover:bg-white/70 cursor-pointer"
-                title="Message Inbox & Krishak A.I"
+                title={t('krishakAiTitle')}
               >
                 <MessageSquare className="w-4 h-4 text-emerald-700" />
-                <span className="flex items-center gap-1">
-                  Inbox
-                  <span className="px-1.5 py-0.2 bg-emerald-600 text-white text-[9px] font-black rounded-md shadow-xs">
-                    AI
-                  </span>
-                </span>
+                <span>{t('navInbox')}</span>
               </button>
 
               <button
@@ -446,16 +356,6 @@ export const Header: React.FC<HeaderProps> = ({
                     {bookingCount}
                   </span>
                 )}
-              </button>
-
-              {/* Desktop App Settings Tab */}
-              <button
-                onClick={handleOpenSettingsModal}
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all min-h-[36px] whitespace-nowrap text-slate-700 hover:text-emerald-900 hover:bg-white/70 cursor-pointer group"
-                title="App Settings & Preferences (हर सेटिंग)"
-              >
-                <Settings className="w-4 h-4 text-emerald-700 group-hover:rotate-45 transition-transform duration-300" />
-                <span>Settings</span>
               </button>
             </nav>
           </div>
@@ -526,7 +426,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <ShoppingBag className={`w-5 h-5 ${activeTab === 'marketplace' ? 'text-emerald-700' : 'text-slate-500'}`} />
-            <span className="text-[10px] tracking-tight mt-0.5">Marketplace</span>
+            <span className="text-[10px] tracking-tight mt-0.5">{t('navMarketplace')}</span>
           </button>
 
           <button

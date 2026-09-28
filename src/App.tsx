@@ -109,12 +109,19 @@ export default function App() {
     }
   }, [activeToast]);
 
+  const isMockSahyogi = (id: string) =>
+    id.startsWith('sah_real_') ||
+    id.startsWith('sah_demo_') ||
+    id.startsWith('sah_10') ||
+    id.startsWith('sah_sample') ||
+    id.startsWith('sah_mock');
+
   const [sahyogis, setSahyogis] = useState<Sahyogi[]>(() => {
     const saved = localStorage.getItem('krishakarya_sahyogis') || localStorage.getItem('krishikulture_sahyogis') || localStorage.getItem('krishilink_sahyogis');
     if (saved) {
       try {
         const parsed: Sahyogi[] = JSON.parse(saved);
-        return parsed.filter(s => !s.id.startsWith('sah_demo_') && !s.id.startsWith('sah_10'));
+        return parsed.filter(s => !isMockSahyogi(s.id));
       } catch (e) {
         // Fallback
       }
@@ -173,11 +180,24 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Enforce Light Theme (Dark Mode Removed)
+  // Enforce Light Theme & Clean Prototype Data
   useEffect(() => {
     document.documentElement.classList.remove('dark');
     localStorage.removeItem('krishakarya_theme');
     localStorage.removeItem('krishikulture_theme');
+
+    // Remove legacy prototype sahyogis from localStorage
+    const savedSah = localStorage.getItem('krishakarya_sahyogis');
+    if (savedSah) {
+      try {
+        const parsed: Sahyogi[] = JSON.parse(savedSah);
+        const filtered = parsed.filter(s => !isMockSahyogi(s.id));
+        if (filtered.length !== parsed.length) {
+          localStorage.setItem('krishakarya_sahyogis', JSON.stringify(filtered));
+          setSahyogis(filtered);
+        }
+      } catch (e) {}
+    }
   }, []);
 
   // Modal Controls
@@ -195,9 +215,10 @@ export default function App() {
   useEffect(() => {
     const unsubSahyogis = subscribeSahyogis((items) => {
       if (items && items.length > 0) {
-        setSahyogis(items);
+        const clean = items.filter(s => !isMockSahyogi(s.id));
+        setSahyogis(clean);
       } else {
-        setSahyogis(initialSahyogis);
+        setSahyogis([]);
       }
     });
     const unsubMachinery = subscribeMachineries((items) => {
@@ -394,15 +415,20 @@ export default function App() {
     return () => unsubscribeAuth();
   }, []);
 
-  // Sync to LocalStorage
+  // Sync to LocalStorage & Local Accounts DB
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem('krishakarya_user', JSON.stringify(currentUser));
-      saveUserToFirestore(currentUser).catch(console.error);
+      saveUserToLocalAccountsDb(currentUser);
+      if (isAuthReady && auth.currentUser && auth.currentUser.uid === currentUser.id) {
+        saveUserToFirestore(currentUser).catch((err) => {
+          console.warn('Silent user sync note:', err);
+        });
+      }
     } else {
       localStorage.removeItem('krishakarya_user');
     }
-  }, [currentUser]);
+  }, [currentUser, isAuthReady]);
 
   useEffect(() => {
     localStorage.setItem('krishakarya_sahyogis', JSON.stringify(sahyogis));
@@ -873,6 +899,10 @@ export default function App() {
         }}
         currentUser={currentUser}
         presetPrompt={inboxPresetPrompt}
+        onNavigate={(tab) => {
+          setActiveTab(tab);
+          setIsInboxOpen(false);
+        }}
       />
 
       {/* Auth Modal */}

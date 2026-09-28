@@ -125,8 +125,8 @@ export const sendBrowserNotification = (
     try {
       const notif = new Notification(title, {
         body: options.body,
-        icon: options.icon || '/favicon.ico',
-        badge: options.badge || '/favicon.ico',
+        icon: options.icon || '/icons/icon-192.png',
+        badge: options.badge || '/icons/icon-192.png',
         tag: options.tag,
       });
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Sahyogi, Machinery, Booking, BookingStatus, LedgerEntry } from '../types';
+import { compressImageFile } from '../lib/imageUtils';
 import { 
   User as UserIcon, 
   MapPin, 
@@ -180,15 +181,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     }
   };
 
-  // Image Upload
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Image Upload with offline compression
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImageFile(file, { maxWidth: 600, maxHeight: 600, quality: 0.82 });
+        setProfileImage(compressed);
+      } catch (err) {
+        console.warn('Profile image compression note:', err);
+      }
     }
   };
 
@@ -506,7 +508,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               }`}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>Dashboard</span>
+              <span>{t('dashboard')}</span>
             </button>
 
             <button
@@ -518,7 +520,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Khatabook</span>
+              <span>{t('kisanBahiKhata')}</span>
             </button>
 
             <button
@@ -530,7 +532,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span>Calendar & Bookings (<AnimatedCounter value={myBookings.length} />)</span>
+              <span>{t('calendarAndBookings')} (<AnimatedCounter value={myBookings.length} />)</span>
             </button>
 
             <button
@@ -542,7 +544,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               }`}
             >
               <Users className="w-3.5 h-3.5" />
-              <span>Listings (<AnimatedCounter value={mySahyogiListings.length + myMachineryListings.length} />)</span>
+              <span>{t('myListings')} (<AnimatedCounter value={mySahyogiListings.length + myMachineryListings.length} />)</span>
             </button>
 
             <button
@@ -557,7 +559,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>Edit Profile</span>
+              <span>{t('editProfile')}</span>
             </button>
           </div>
         </div>
@@ -571,7 +573,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="glass-card p-5 rounded-2xl space-y-1">
               <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-bold uppercase">Total Bookings</span>
+                <span className="text-xs font-bold uppercase">{t('totalBookings')}</span>
                 <Calendar className="w-4 h-4 text-emerald-600 icon-micro-rotate" />
               </div>
               <p className="text-2xl font-black text-slate-900"><AnimatedCounter value={myBookings.length} /></p>
@@ -580,7 +582,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
             <div className="glass-card p-5 rounded-2xl space-y-1">
               <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-bold uppercase">Active Listings</span>
+                <span className="text-xs font-bold uppercase">{t('activeListings')}</span>
                 <Users className="w-4 h-4 text-emerald-600 icon-micro-rotate" />
               </div>
               <p className="text-2xl font-black text-slate-900"><AnimatedCounter value={mySahyogiListings.length + myMachineryListings.length} /></p>
@@ -589,7 +591,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
             <div className="glass-card p-5 rounded-2xl space-y-1">
               <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-bold uppercase">Farm Size</span>
+                <span className="text-xs font-bold uppercase">{t('farmSize')}</span>
                 <TrendingUp className="w-4 h-4 text-emerald-600 icon-micro-rotate" />
               </div>
               <p className="text-2xl font-black text-slate-900"><AnimatedCounter value={currentUser.farmSizeAcres ?? 0} /> Acres</p>
@@ -598,7 +600,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
             <div className="glass-card p-5 rounded-2xl space-y-1">
               <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-bold uppercase">Khatabook Total</span>
+                <span className="text-xs font-bold uppercase">{t('khatabookTotal')}</span>
                 <BookOpen className="w-4 h-4 text-amber-500 icon-micro-rotate" />
               </div>
               <p className="text-2xl font-black text-slate-900"><AnimatedCounter value={ledgerEntries.length} /> Records</p>

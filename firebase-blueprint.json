@@ -145,9 +145,21 @@
         "notes": { "type": "string", "maxLength": 500 }
       },
       "required": ["id", "userId", "date", "type", "amount"]
+    },
+    "TestConnection": {
+      "title": "TestConnection",
+      "description": "Firestore connectivity health check document",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" }
+      }
     }
   },
   "firestore": {
+    "/test/{testId}": {
+      "schema": { "$ref": "#/entities/TestConnection" },
+      "description": "Firestore connection validation health check path"
+    },
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "User profile collection"

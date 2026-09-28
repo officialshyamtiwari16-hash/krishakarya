@@ -143,6 +143,34 @@ export interface MarketplaceListing {
   createdAt: string;
 }
 
+export interface MandiWeeklyTrendPoint {
+  day: string;
+  date: string;
+  minPrice: number;
+  maxPrice: number;
+  modalPrice: number;
+  arrivalTonnes?: number;
+  msp?: number;
+}
+
+export interface MandiSellingDecision {
+  action: 'SELL_NOW' | 'HOLD' | 'SPLIT_SELL';
+  titleHindi: string;
+  titleEnglish: string;
+  confidenceScore: number;
+  reasoningHindi: string;
+  reasoningEnglish: string;
+  sevenDayChange: number;
+  sevenDayChangePercent: number;
+  peakDay: string;
+  lowestDay: string;
+  mspComparison?: {
+    msp: number;
+    diff: number;
+    isAboveMsp: boolean;
+  };
+}
+
 export interface MandiRateItem {
   commodity: string;
   category?: string;
@@ -153,6 +181,8 @@ export interface MandiRateItem {
   unit: string;
   trend: 'up' | 'down' | 'stable';
   arrival?: string;
+  weeklyTrends?: MandiWeeklyTrendPoint[];
+  sellingDecision?: MandiSellingDecision;
 }
 
 export interface MandiRateResponse {
@@ -222,6 +252,8 @@ export interface ChatMessage {
     district: string;
     addressStr: string;
   };
+  groundingSources?: Array<{ title: string; url: string }>;
+  isAiDiagnostic?: boolean;
 }
 
 export interface Conversation {

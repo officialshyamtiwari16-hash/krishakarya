@@ -90,6 +90,12 @@ service cloud.firestore {
              data.date is string;
     }
 
+    // 0. Connection Test Health Check
+    match /test/{testId} {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
     // 1. User Profiles Collection
     match /users/{userId} {
       allow get: if true;

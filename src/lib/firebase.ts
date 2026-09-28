@@ -14,15 +14,23 @@ const app = initializeApp(firebaseConfig);
 let firestoreInstance: Firestore;
 try {
   firestoreInstance = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager()
     })
   }, firebaseConfig.firestoreDatabaseId);
 } catch {
-  firestoreInstance = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  try {
+    firestoreInstance = initializeFirestore(app, {
+      experimentalAutoDetectLongPolling: true
+    }, firebaseConfig.firestoreDatabaseId);
+  } catch {
+    firestoreInstance = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  }
 }
 
 export const db = firestoreInstance;
 export const auth = getAuth(app);
 export const googleAuthProvider = new GoogleAuthProvider();
+
 

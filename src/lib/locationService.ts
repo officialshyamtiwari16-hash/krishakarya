@@ -296,3 +296,124 @@ export async function searchLocations(query: string): Promise<Array<{
     return [];
   }
 }
+
+const KNOWN_DISTRICT_COORDINATES: Record<string, { lat: number; lon: number; state: string }> = {
+  'varanasi': { lat: 25.3176, lon: 82.9739, state: 'Uttar Pradesh' },
+  'lucknow': { lat: 26.8467, lon: 80.9462, state: 'Uttar Pradesh' },
+  'gorakhpur': { lat: 26.7606, lon: 83.3732, state: 'Uttar Pradesh' },
+  'barabanki': { lat: 26.9274, lon: 81.1843, state: 'Uttar Pradesh' },
+  'prayagraj': { lat: 25.4358, lon: 81.8463, state: 'Uttar Pradesh' },
+  'allahabad': { lat: 25.4358, lon: 81.8463, state: 'Uttar Pradesh' },
+  'kanpur': { lat: 26.4499, lon: 80.3319, state: 'Uttar Pradesh' },
+  'patna': { lat: 25.5941, lon: 85.1376, state: 'Bihar' },
+  'darbhanga': { lat: 26.1542, lon: 85.8918, state: 'Bihar' },
+  'gaya': { lat: 24.7914, lon: 85.0002, state: 'Bihar' },
+  'muzaffarpur': { lat: 26.1209, lon: 85.3647, state: 'Bihar' },
+  'karnal': { lat: 29.6857, lon: 76.9905, state: 'Haryana' },
+  'kurukshetra': { lat: 29.9695, lon: 76.8783, state: 'Haryana' },
+  'hisar': { lat: 29.1492, lon: 75.7217, state: 'Haryana' },
+  'ludhiana': { lat: 30.9010, lon: 75.8573, state: 'Punjab' },
+  'bathinda': { lat: 30.2110, lon: 74.9455, state: 'Punjab' },
+  'amritsar': { lat: 31.6340, lon: 74.8723, state: 'Punjab' },
+  'jalandhar': { lat: 31.3260, lon: 75.5762, state: 'Punjab' },
+  'indore': { lat: 22.7196, lon: 75.8577, state: 'Madhya Pradesh' },
+  'bhopal': { lat: 23.2599, lon: 77.4126, state: 'Madhya Pradesh' },
+  'ujjain': { lat: 23.1765, lon: 75.7885, state: 'Madhya Pradesh' },
+  'jabalpur': { lat: 23.1815, lon: 79.9864, state: 'Madhya Pradesh' },
+  'jaipur': { lat: 26.9124, lon: 75.7873, state: 'Rajasthan' },
+  'jodhpur': { lat: 26.2389, lon: 73.0243, state: 'Rajasthan' },
+  'kota': { lat: 25.2138, lon: 75.8648, state: 'Rajasthan' },
+  'nashik': { lat: 19.9975, lon: 73.7898, state: 'Maharashtra' },
+  'pune': { lat: 18.5204, lon: 73.8567, state: 'Maharashtra' },
+  'nagpur': { lat: 21.1458, lon: 79.0882, state: 'Maharashtra' },
+  'aurangabad': { lat: 19.8762, lon: 75.3433, state: 'Maharashtra' },
+  'ahmedabad': { lat: 23.0225, lon: 72.5714, state: 'Gujarat' },
+  'surat': { lat: 21.1702, lon: 72.8311, state: 'Gujarat' },
+  'rajkot': { lat: 22.3039, lon: 70.8022, state: 'Gujarat' },
+  'guntur': { lat: 16.3067, lon: 80.4365, state: 'Andhra Pradesh' },
+  'vijayawada': { lat: 16.5062, lon: 80.6480, state: 'Andhra Pradesh' },
+  'dehradun': { lat: 30.3165, lon: 78.0322, state: 'Uttarakhand' },
+  'haridwar': { lat: 29.9457, lon: 78.1642, state: 'Uttarakhand' },
+  'ranchi': { lat: 23.3441, lon: 85.3096, state: 'Jharkhand' },
+  'bhubaneswar': { lat: 20.2961, lon: 85.8245, state: 'Odisha' },
+  'hyderabad': { lat: 17.3850, lon: 78.4867, state: 'Telangana' },
+  'bengaluru': { lat: 12.9716, lon: 77.5946, state: 'Karnataka' },
+  'mysuru': { lat: 12.2958, lon: 76.6394, state: 'Karnataka' },
+  'chennai': { lat: 13.0827, lon: 80.2707, state: 'Tamil Nadu' },
+  'coimbatore': { lat: 11.0168, lon: 76.9558, state: 'Tamil Nadu' },
+};
+
+/**
+ * Resolves accurate coordinates for a user's saved farm location (village, district, state).
+ * Prioritizes live geocoding via Open-Meteo, with fallback to curated district coordinates.
+ */
+export async function resolveSavedLocationCoords(location: {
+  village?: string;
+  district?: string;
+  state?: string;
+  pincode?: string;
+}): Promise<GeoLocationResult> {
+  const districtClean = (location.district || '').trim();
+  const villageClean = (location.village || '').trim();
+  const stateClean = (location.state || '').trim();
+
+  // Try Open-Meteo Geocoding for precise village/district
+  if (districtClean || villageClean) {
+    const queries = [
+      [villageClean, districtClean, stateClean].filter(Boolean).join(' '),
+      [districtClean, stateClean].filter(Boolean).join(' '),
+      districtClean,
+    ].filter(Boolean);
+
+    for (const q of queries) {
+      const results = await searchLocations(q);
+      if (results && results.length > 0) {
+        const top = results[0];
+        return {
+          latitude: top.latitude,
+          longitude: top.longitude,
+          accuracy: 50,
+          source: 'saved_profile' as any,
+          village: villageClean || top.name,
+          district: districtClean || top.admin1 || top.name,
+          state: stateClean || top.admin1 || 'State',
+          country: top.country || 'India',
+          address: [villageClean, districtClean, stateClean].filter(Boolean).join(', '),
+          timestamp: Date.now(),
+        };
+      }
+    }
+  }
+
+  // Fallback to Known District Coordinates
+  const distKey = districtClean.toLowerCase();
+  if (distKey && KNOWN_DISTRICT_COORDINATES[distKey]) {
+    const known = KNOWN_DISTRICT_COORDINATES[distKey];
+    return {
+      latitude: known.lat,
+      longitude: known.lon,
+      accuracy: 100,
+      source: 'saved_profile' as any,
+      village: villageClean || 'Farm Field',
+      district: districtClean,
+      state: stateClean || known.state,
+      country: 'India',
+      address: [villageClean, districtClean, stateClean || known.state].filter(Boolean).join(', '),
+      timestamp: Date.now(),
+    };
+  }
+
+  // Default Fallback
+  return {
+    latitude: 25.3176,
+    longitude: 82.9739,
+    accuracy: 100,
+    source: 'saved_profile' as any,
+    village: villageClean || 'Shivpur Rural',
+    district: districtClean || 'Varanasi',
+    state: stateClean || 'Uttar Pradesh',
+    country: 'India',
+    address: 'Shivpur Rural, Varanasi, Uttar Pradesh',
+    timestamp: Date.now(),
+  };
+}

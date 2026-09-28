@@ -28,10 +28,9 @@ export interface FirestoreErrorInfo {
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const message = error instanceof Error ? error.message : String(error);
-  const isUnavailable = message.includes('unavailable') || 
-                        message.includes('Could not reach Cloud Firestore backend') || 
-                        message.includes('offline') ||
-                        message.includes('failed to connect');
+  const isPermissionDenied = message.toLowerCase().includes('insufficient permissions') || 
+                             message.toLowerCase().includes('permission-denied') ||
+                             (error as any)?.code === 'permission-denied';
 
   const errInfo: FirestoreErrorInfo = {
     error: message,
@@ -50,11 +49,12 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     path,
   };
 
-  if (isUnavailable) {
-    console.warn(`Firestore operating in offline/local state for [${path}]:`, message);
+  if (isPermissionDenied) {
+    console.error('Firestore Permission Error: ', JSON.stringify(errInfo));
+    throw new Error(JSON.stringify(errInfo));
   } else {
-    console.error('Firestore Error: ', JSON.stringify(errInfo));
+    console.warn(`Firestore [${operationType}] offline/state note for [${path}]:`, message);
+    return errInfo;
   }
-  return errInfo;
 }
 

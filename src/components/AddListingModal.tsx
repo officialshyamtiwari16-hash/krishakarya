@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sahyogi, Machinery, MachineryCategory, User } from '../types';
 import { Users, Tractor, Upload, X } from 'lucide-react';
 import { ALL_INDIAN_DISTRICTS } from '../data/indiaLocations';
+import { compressImageFile } from '../lib/imageUtils';
 
 interface AddListingModalProps {
   isOpen: boolean;
@@ -66,22 +67,23 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Handle local image file upload
-  const handleImageUpload = (
+  // Handle local image file upload with offline compression
+  const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     target: 'sahyogi' | 'machinery'
   ) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
+      try {
+        const compressed = await compressImageFile(file, { maxWidth: 800, maxHeight: 800, quality: 0.8 });
         if (target === 'sahyogi') {
-          setSahyogiPhoto(reader.result as string);
+          setSahyogiPhoto(compressed);
         } else {
-          setMachineImage(reader.result as string);
+          setMachineImage(compressed);
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.warn('Image compression fallback:', err);
+      }
     }
   };
 

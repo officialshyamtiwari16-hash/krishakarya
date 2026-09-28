@@ -4,9 +4,10 @@ import { INDIAN_LANGUAGES, TRANSLATIONS, LanguageOption, TranslationKeys } from 
 interface LanguageContextType {
   currentLanguage: string;
   setLanguage: (code: string) => void;
-  t: (key: TranslationKeys) => string;
+  t: (key: TranslationKeys | string, fallback?: string) => string;
   languages: LanguageOption[];
   getLanguageInfo: (code: string) => LanguageOption;
+  isRTL: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -18,22 +19,51 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const setLanguage = (code: string) => {
     setCurrentLanguageState(code);
-    localStorage.setItem('krishakarya_language', code);
+    try {
+      localStorage.setItem('krishakarya_language', code);
+      window.dispatchEvent(new CustomEvent('krishakarya_language_changed', { detail: { language: code } }));
+    } catch (e) {
+      console.warn('Could not save language to localStorage:', e);
+    }
   };
 
   useEffect(() => {
-    // Optionally set lang attribute on document
     document.documentElement.lang = currentLanguage;
+    if (currentLanguage === 'ur') {
+      document.documentElement.dir = 'rtl';
+    } else {
+      document.documentElement.dir = 'ltr';
+    }
   }, [currentLanguage]);
 
-  const t = (key: TranslationKeys): string => {
+  useEffect(() => {
+    const handleLangSync = (e: Event) => {
+      const customEvent = e as CustomEvent<{ language: string }>;
+      if (customEvent.detail?.language && customEvent.detail.language !== currentLanguage) {
+        setCurrentLanguageState(customEvent.detail.language);
+      }
+    };
+    window.addEventListener('krishakarya_language_changed', handleLangSync);
+    return () => window.removeEventListener('krishakarya_language_changed', handleLangSync);
+  }, [currentLanguage]);
+
+  const t = (key: TranslationKeys | string, fallback?: string): string => {
     const langDict = TRANSLATIONS[currentLanguage] || TRANSLATIONS['en'];
-    return langDict[key] || TRANSLATIONS['en'][key] || key;
+    const enDict = TRANSLATIONS['en'];
+    if (langDict && langDict[key]) {
+      return langDict[key];
+    }
+    if (enDict && enDict[key]) {
+      return enDict[key];
+    }
+    return fallback !== undefined ? fallback : key;
   };
 
   const getLanguageInfo = (code: string): LanguageOption => {
     return INDIAN_LANGUAGES.find((l) => l.code === code) || INDIAN_LANGUAGES[0];
   };
+
+  const isRTL = currentLanguage === 'ur';
 
   return (
     <LanguageContext.Provider
@@ -43,6 +73,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         t,
         languages: INDIAN_LANGUAGES,
         getLanguageInfo,
+        isRTL,
       }}
     >
       {children}

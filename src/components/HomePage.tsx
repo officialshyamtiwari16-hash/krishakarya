@@ -134,7 +134,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 className="px-4 py-2 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-300 hover:from-emerald-300 hover:to-teal-200 text-slate-950 font-black rounded-xl text-xs shadow-lg transition-all flex items-center gap-1.5 min-h-[38px] btn-futuristic pulse-glow-cta cursor-pointer ring-2 ring-emerald-400/40"
               >
                 <Camera className="w-4 h-4 text-slate-950 icon-micro-rotate" />
-                <span>Crop Health AI</span>
+                <span>{t('cropHealthAI')}</span>
               </button>
 
               <button
@@ -178,14 +178,14 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-black text-sm sm:text-base text-white flex items-center gap-1.5 tracking-tight">
-                      Krishak A.I Inbox <span className="text-emerald-400 text-xs font-semibold">(कृषक ए.आई)</span>
+                      {t('krishakAiTitle')}
                     </h3>
                     <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black rounded-full uppercase tracking-wider backdrop-blur-xs">
-                      24/7 Agro Advisory
+                      {t('aiAdvisory')}
                     </span>
                   </div>
                   <p className="text-slate-300 text-xs mt-0.5 truncate">
-                    Ask pest diagnosis, fertilizer dose, seed rates, rental benchmarks & govt schemes.
+                    {t('krishakAiDesc')}
                   </p>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <MessageSquare className="w-4 h-4 fill-slate-950/20" />
-                  <span>Open Krishak A.I Inbox</span>
+                  <span>{t('openKrishakAi')}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -225,10 +225,10 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2.5">
               <div>
                 <h2 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-emerald-400" /> Quick Tools
+                  <Sparkles className="w-4 h-4 text-emerald-400" /> {t('quickTools')}
                 </h2>
                 <p className="text-[11px] text-emerald-100/70 mt-0.5 font-medium">
-                  Instant access to agricultural utilities and quick booking tools
+                  {t('quickToolsSubtitle')}
                 </p>
               </div>
             </div>
@@ -245,17 +245,17 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-black text-emerald-300 text-xs sm:text-sm group-hover:text-emerald-200 transition-colors">
-                      Crop Health Assistant
+                      {t('cropHealthAI')}
                     </h3>
                     <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase shadow-xs">
-                      New AI
+                      AI
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Take/upload crop photo for instant AI disease diagnosis & dosages.
+                    {t('cropHealthCardDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 pt-0.5">
-                    Scan Crop Health <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('scanCropHealth')} <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -273,10 +273,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                     {t('hireSahyogi')}
                   </h3>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Search verified labor workers for harvesting & sowing.
+                    {t('sahyogiCardDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
-                    Browse <AnimatedCounter value={sahyogis.length} /> Sahyogis <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('browseSahyogis')} (<AnimatedCounter value={sahyogis.length} />) <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -292,17 +292,17 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-amber-300 transition-colors">
-                      Machinery (Rent & Buy)
+                      {t('machineryCardTitle')}
                     </h3>
                     <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase shadow-xs">
-                      Buy/Rent
+                      {t('forRent')}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Tractors, harvesters, seeders & rotavators with filter by rent or purchase.
+                    {t('machineryCardDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 pt-0.5">
-                    Browse <AnimatedCounter value={machineries.length} /> Machines <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('browseMachinery')} (<AnimatedCounter value={machineries.length} />) <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -318,17 +318,17 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-amber-300 transition-colors">
-                      Krishi Bazaar & Mandi
+                      {t('krishiBazaar')}
                     </h3>
                     <span className="text-[9px] font-black px-1.5 py-0.5 bg-emerald-500 text-slate-950 rounded-md uppercase shadow-xs">
-                      Live Mandi
+                      Mandi
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Buy & sell crops, vegetables, fish, eggs & view live Google-grounded Mandi rates.
+                    {t('marketplaceDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 pt-0.5">
-                    Explore Marketplace <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('exploreMarketplace')} <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -346,10 +346,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                     {t('addListing')}
                   </h3>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Register labor profile or list machinery for income.
+                    {t('addListingDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
-                    Publish Listing <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('publishListing')} <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -365,17 +365,17 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-emerald-300 transition-colors">
-                      Kisan Bahi Khata
+                      {t('kisanBahiKhata')}
                     </h3>
                     <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase shadow-xs">
                       Ledger
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Record farm income, labor costs, seed purchases & sync bookings.
+                    {t('ledgerDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
-                    Manage Ledger (<AnimatedCounter value={ledgerEntries.length} /> Records) <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('manageLedger')} (<AnimatedCounter value={ledgerEntries.length} />) <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -390,13 +390,13 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </div>
                 <div className="space-y-0.5">
                   <h3 className="font-extrabold text-white text-xs sm:text-sm group-hover:text-emerald-300 transition-colors">
-                    Acre & Seed Calculator
+                    {t('calculatorTitle')}
                   </h3>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Convert Bigha/Katha to Acres, seed rates & fertilizer schedules.
+                    {t('calculatorDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
-                    Open Calculator <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('openCalculator')} <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -412,17 +412,17 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-extrabold text-amber-300 text-xs sm:text-sm group-hover:text-amber-200 transition-colors">
-                      Modern Farming & AI
+                      {t('modernFarmingTitle')}
                     </h3>
                     <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded-md uppercase shadow-xs">
                       AI 24/7
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    Instant AI pest diagnosis, crop questions & fertilizer dosage.
+                    {t('modernFarmingDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 pt-0.5">
-                    Open Modern Farming Q&A <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('modernFarming')} <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -440,10 +440,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                     {t('editProfile')}
                   </h3>
                   <p className="text-[11px] text-slate-300/90 leading-snug">
-                    View & update post, district, pincode & farm details.
+                    {t('profileCardDesc')}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 pt-0.5">
-                    Open Profile <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    {t('openProfile')} <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </button>
@@ -467,19 +467,19 @@ export const HomePage: React.FC<HomePageProps> = ({
               onClick={() => onNavigate('sahyogi')}
               className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer transition-colors"
             >
-              View All (<AnimatedCounter value={sahyogis.length} />)
+              {t('viewAll')} (<AnimatedCounter value={sahyogis.length} />)
             </button>
           </div>
 
           <div className="space-y-3">
             {sahyogis.length === 0 ? (
               <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 text-center space-y-2">
-                <p className="text-xs text-slate-500 font-medium">No Sahyogi labor workers registered yet.</p>
+                <p className="text-xs text-slate-500 font-medium">{t('noSahyogisFound')}</p>
                 <button
                   onClick={onOpenAddListing}
                   className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-[11px] shadow-xs cursor-pointer btn-futuristic"
                 >
-                  Register as Sahyogi
+                  {t('registerAsSahyogi')}
                 </button>
               </div>
             ) : (
@@ -516,19 +516,19 @@ export const HomePage: React.FC<HomePageProps> = ({
               onClick={() => onNavigate('machinery')}
               className="text-xs font-bold text-amber-700 hover:text-amber-800 hover:underline cursor-pointer transition-colors"
             >
-              View All (<AnimatedCounter value={machineries.length} />)
+              {t('viewAll')} (<AnimatedCounter value={machineries.length} />)
             </button>
           </div>
 
           <div className="space-y-3">
             {machineries.length === 0 ? (
               <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 text-center space-y-2">
-                <p className="text-xs text-slate-500 font-medium">No machinery listed for rent yet.</p>
+                <p className="text-xs text-slate-500 font-medium">{t('noMachineryFound')}</p>
                 <button
                   onClick={onOpenAddListing}
                   className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] shadow-xs cursor-pointer btn-futuristic"
                 >
-                  List Machinery
+                  {t('listMachinery')}
                 </button>
               </div>
             ) : (
@@ -547,7 +547,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     onClick={() => onNavigate('machinery')}
                     className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] cursor-pointer transition-all btn-futuristic"
                   >
-                    Rent
+                    {t('rentNow')}
                   </button>
                 </div>
               ))

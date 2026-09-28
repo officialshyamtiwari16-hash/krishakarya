@@ -37,7 +37,12 @@ import {
   Info,
   Calendar,
   Layers,
-  AlertTriangle
+  AlertTriangle,
+  Globe,
+  TrendingUp,
+  Calculator,
+  Sprout,
+  Languages,
 } from 'lucide-react';
 import { User, ChatMessage, Conversation } from '../types';
 import { askKrishakAiChat, askKrishakAiChatStream, getAiQuota } from '../lib/aiService';
@@ -49,6 +54,7 @@ interface InboxModalProps {
   currentUser: User | null;
   initialChatParticipant?: { id: string; name: string; phone?: string; image?: string; role?: string } | null;
   presetPrompt?: string | null;
+  onNavigate?: (tab: 'home' | 'sahyogi' | 'machinery' | 'marketplace' | 'profile' | 'terms' | 'modern-farming' | 'crop-health') => void;
 }
 
 const KRISHAK_AI_CONV: Conversation = {
@@ -82,6 +88,7 @@ export const InboxModal: React.FC<InboxModalProps> = ({
   currentUser,
   initialChatParticipant = null,
   presetPrompt = null,
+  onNavigate,
 }) => {
   // Persistence state management
   const [conversations, setConversations] = useState<Conversation[]>(() => {
@@ -173,10 +180,14 @@ export const InboxModal: React.FC<InboxModalProps> = ({
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
   
-  // Voice recording state
+  // Voice recording & Speech recognition state
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isListeningSpeech, setIsListeningSpeech] = useState(false);
+  const [speechLang, setSpeechLang] = useState<'hi-IN' | 'en-IN'>('hi-IN');
+  const speechRecognitionRef = useRef<any>(null);
+  const [activeAiCategory, setActiveAiCategory] = useState<'all' | 'disease' | 'fertilizer' | 'mandi' | 'weather' | 'schemes'>('all');
 
   // New Chat form state
   const [newRecipientName, setNewRecipientName] = useState('');
@@ -596,7 +607,14 @@ export const InboxModal: React.FC<InboxModalProps> = ({
         setAllMessages((prev) => {
           const msgs = prev['conv_krishak_ai'] || [];
           const updated = msgs.map((m) =>
-            m.id === aiMsgId ? { ...m, text: result.reply } : m
+            m.id === aiMsgId
+              ? {
+                  ...m,
+                  text: result.reply,
+                  groundingSources: result.groundingSources,
+                  isAiDiagnostic: result.isImageAnalyzed,
+                }
+              : m
           );
           return { ...prev, conv_krishak_ai: updated };
         });
@@ -750,8 +768,11 @@ export const InboxModal: React.FC<InboxModalProps> = ({
       if (isAiActive) {
         setIsAiTyping(true);
         setTimeout(async () => {
-          const aiPrompt = `Diagnose crop health and pest/fungal symptoms from this uploaded farm photo and suggest treatment dosage.`;
-          const res = await askKrishakAiChat(aiPrompt, [], currentUser);
+          const aiPrompt = `कृपया इस संलग्न फसल / पत्ती की तस्वीर का दृश्य निदान (Visual Agronomy Inspection) करें। फसल का नाम, रोग/कीट के लक्षण, बीमारी की तीव्रता और तुरंत रासायनिक व जैविक उपचार की सही खुराक (प्रति पंप/प्रति एकड़) विस्तार से बताएं।`;
+          const res = await askKrishakAiChat(aiPrompt, [], currentUser, {
+            base64: reader.result as string,
+            mimeType: file.type || 'image/jpeg',
+          });
           setIsAiTyping(false);
           const aiReply: ChatMessage = {
             id: `msg_ai_photo_${Date.now()}`,
@@ -764,9 +785,11 @@ export const InboxModal: React.FC<InboxModalProps> = ({
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             isRead: true,
             msgType: 'text',
+            groundingSources: res.groundingSources,
+            isAiDiagnostic: true,
           };
           appendMessage(aiReply, 'conv_krishak_ai');
-        }, 900);
+        }, 500);
       }
     };
     reader.readAsDataURL(file);
@@ -819,6 +842,69 @@ export const InboxModal: React.FC<InboxModalProps> = ({
         };
         appendMessage(aiReply, 'conv_krishak_ai');
       }, 1000);
+    }
+  };
+
+  // Voice Input / Speech Recognition Toggle
+  const handleVoiceToggle = () => {
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    // In Krishak A.I mode, try Speech-to-Text dictation so the user sees their words typed in Hindi/English
+    if (isAiActive && SpeechRec) {
+      if (isListeningSpeech) {
+        if (speechRecognitionRef.current) {
+          try {
+            speechRecognitionRef.current.stop();
+          } catch {}
+        }
+        setIsListeningSpeech(false);
+      } else {
+        try {
+          const recognition = new SpeechRec();
+          recognition.lang = speechLang;
+          recognition.continuous = false;
+          recognition.interimResults = true;
+
+          recognition.onstart = () => {
+            setIsListeningSpeech(true);
+          };
+
+          recognition.onresult = (event: any) => {
+            const transcript = Array.from(event.results)
+              .map((r: any) => r[0]?.transcript)
+              .join('');
+            if (transcript) {
+              setInputText(transcript);
+            }
+          };
+
+          recognition.onerror = () => {
+            setIsListeningSpeech(false);
+          };
+
+          recognition.onend = () => {
+            setIsListeningSpeech(false);
+          };
+
+          speechRecognitionRef.current = recognition;
+          recognition.start();
+        } catch {
+          setIsListeningSpeech(false);
+          if (isRecordingVoice) {
+            handleFinishVoiceRecording();
+          } else {
+            setIsRecordingVoice(true);
+          }
+        }
+      }
+      return;
+    }
+
+    // Direct chat or fallback voice note recording
+    if (isRecordingVoice) {
+      handleFinishVoiceRecording();
+    } else {
+      setIsRecordingVoice(true);
     }
   };
 
@@ -931,12 +1017,33 @@ export const InboxModal: React.FC<InboxModalProps> = ({
     return matchesSearch;
   });
 
+  const aiCategories = [
+    { id: 'all', label: 'सभी' },
+    { id: 'disease', label: '🔬 कीट-रोग' },
+    { id: 'fertilizer', label: '🌾 खाद-खुराक' },
+    { id: 'mandi', label: '📈 मंडी भाव' },
+    { id: 'weather', label: '🌦️ मौसम' },
+    { id: 'schemes', label: '🏛️ योजनाएं' },
+  ];
+
   const aiQuickPrompts = [
-    { icon: '🌾', label: 'Urea Dose', prompt: 'गेहूँ में यूरिया व नैनो डीएपी की सही खुराक बताएं।' },
-    { icon: '🐛', label: 'Pest Remedy', prompt: 'धान व सब्जियों में कीट नियंत्रण का तुरंत उपाय बताएं।' },
-    { icon: '🚜', label: 'Tractor Rates', prompt: 'ट्रैक्टर जुताई व थ्रेशर का प्रचलित किराया क्या है?' },
-    { icon: '🏛️', label: 'Govt Schemes', prompt: 'पीएम किसान और फसल बीमा के मुख्य नियम बताएं।' },
-    { icon: '💧', label: 'Drip Subsidy', prompt: 'ड्रिप व स्प्रिंकलर सिंचाई पर सब्सिडी कैसे पाएं?' }
+    // Disease & Pests
+    { cat: 'disease', icon: '🐛', label: 'पीलापन व फफूंद', prompt: 'फसल की पत्तियों में पीलापन और फफूंद का तुरंत रासायनिक व जैविक उपाय बताएं।' },
+    { cat: 'disease', icon: '🌿', label: 'माहू व तना छेदक', prompt: 'फसल में माहू (चेपा) और तना छेदक इल्ली के नियंत्रण का सटीक स्प्रे डोज बताएं।' },
+    { cat: 'disease', icon: '🧪', label: 'नीम तेल 10000 PPM', prompt: 'कीट नियंत्रण हेतु 10,000 PPM नीम तेल स्प्रे बनाने की सही विधि बताएं।' },
+    // Fertilizer
+    { cat: 'fertilizer', icon: '🌾', label: 'नैनो यूरिया + DAP', prompt: 'गेहूँ, धान व सरसों में नैनो यूरिया, डीएपी और पोटाश की सही खुराक व समय सारणी बताएं।' },
+    { cat: 'fertilizer', icon: '🌱', label: 'जिंक व सल्फर प्रयोग', prompt: 'मिट्टी में जिंक सल्फेट व सल्फर की कमी के लक्षण और सही पूर्ति का तरीका बताएं।' },
+    // Mandi
+    { cat: 'mandi', icon: '📈', label: 'गेहूं-सरसों मंडी भाव', prompt: 'आज प्रमुख मंडियों में गेहूं, सरसों और चने का ताजा मंडी भाव और बाजार रुख बताएं।' },
+    { cat: 'mandi', icon: '🌾', label: 'धान व सोयाबीन दरें', prompt: 'धान (बासमती) और सोयाबीन के वर्तमान बाजार भाव क्या चल रहे हैं?' },
+    // Weather
+    { cat: 'weather', icon: '🌦️', label: 'पाला व शीतलहर सुरक्षा', prompt: 'फसलों को पाले (Frost) व शीतलहर से बचाने के तुरंत कारगर उपाय बताएं।' },
+    { cat: 'weather', icon: '💧', label: 'सिंचाई के क्रांतिक चरण', prompt: 'रबी फसलों में सिंचाई के सबसे महत्वपूर्ण क्रांतिक चरण (CRI Stage) कौन से हैं?' },
+    // Schemes
+    { cat: 'schemes', icon: '🏛️', label: 'पीएम किसान ₹2000 किस्त', prompt: 'पीएम किसान सम्मान निधि की अगली किस्त, e-KYC और स्थिति जांचने की प्रक्रिया बताएं।' },
+    { cat: 'schemes', icon: '☀️', label: 'कुसुम सोलर पंप सब्सिडी', prompt: 'पीएम कुसुम योजना के तहत सोलर पंप पर सब्सिडी और आवेदन के नियम बताएं।' },
+    { cat: 'schemes', icon: '🛡️', label: 'फसल बीमा दावा (PMFBY)', prompt: 'बेमौसम बारिश या ओलावृष्टि से फसल नुकसान पर 72 घंटे में बीमा क्लेम कैसे दर्ज करें?' }
   ];
 
   const quickReplies = [
@@ -1628,17 +1735,81 @@ export const InboxModal: React.FC<InboxModalProps> = ({
                     >
                       {isAiSender && (
                         <div className="flex items-center justify-between gap-1 text-[10px] font-bold text-amber-300 mb-1.5 border-b border-emerald-500/20 pb-1">
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <Bot className="w-3.5 h-3.5 text-emerald-400" />
                             <span>Krishak A.I Agronomist</span>
+                            {msg.isAiDiagnostic && (
+                              <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded text-[9px] font-semibold flex items-center gap-1">
+                                <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                                Crop Vision
+                              </span>
+                            )}
                           </div>
-                          <span className="text-[9px] text-emerald-400/80 font-normal">Gemini</span>
+                          <span className="text-[9px] text-emerald-400/80 font-normal">Gemini 3.8</span>
                         </div>
                       )}
 
                       <div className="whitespace-pre-wrap select-text">
                         {isAiSender ? renderFormattedText(msg.text) : msg.text}
                       </div>
+
+                      {/* Live Grounding Citations */}
+                      {isAiSender && msg.groundingSources && msg.groundingSources.length > 0 && (
+                        <div className="mt-2.5 pt-2 border-t border-emerald-500/20 text-[10px]">
+                          <div className="text-emerald-300/90 font-semibold flex items-center gap-1 mb-1.5">
+                            <Globe className="w-3 h-3 text-cyan-400 flex-shrink-0" />
+                            <span>Live Grounding Sources:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {msg.groundingSources.map((source, sIdx) => (
+                              <a
+                                key={sIdx}
+                                href={source.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-500/30 rounded text-emerald-200 hover:text-white transition-colors text-[10px] max-w-[220px]"
+                                title={source.title}
+                              >
+                                <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 text-cyan-400" />
+                                <span className="truncate">{source.title}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Contextual Deep Links */}
+                      {isAiSender && onNavigate && (
+                        <div className="mt-2 pt-1.5 border-t border-emerald-500/15 flex flex-wrap gap-1.5">
+                          {(msg.isAiDiagnostic || msg.text.includes('पत्ती') || msg.text.includes('रोग') || msg.text.includes('कीट')) && (
+                            <button
+                              onClick={() => onNavigate('crop-health')}
+                              className="px-2 py-0.5 bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 hover:text-white border border-emerald-500/30 rounded text-[10px] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <Sprout className="w-3 h-3 text-emerald-400" />
+                              <span>Crop Doctor</span>
+                            </button>
+                          )}
+                          {(msg.text.includes('मंडी') || msg.text.includes('भाव') || msg.text.includes('दर')) && (
+                            <button
+                              onClick={() => onNavigate('marketplace')}
+                              className="px-2 py-0.5 bg-amber-950/60 hover:bg-amber-900 text-amber-200 hover:text-white border border-amber-500/30 rounded text-[10px] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <TrendingUp className="w-3 h-3 text-amber-400" />
+                              <span>Mandi Rates</span>
+                            </button>
+                          )}
+                          {(msg.text.includes('यूरिया') || msg.text.includes('खाद') || msg.text.includes('डीएपी') || msg.text.includes('पोटाश')) && (
+                            <button
+                              onClick={() => onNavigate('modern-farming')}
+                              className="px-2 py-0.5 bg-cyan-950/60 hover:bg-cyan-900 text-cyan-200 hover:text-white border border-cyan-500/30 rounded text-[10px] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <Calculator className="w-3 h-3 text-cyan-400" />
+                              <span>Dosage Calculator</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
 
                       {/* Quick message tools & time */}
                       <div className="flex items-center justify-between gap-2 mt-1.5 pt-1 border-t border-white/5 text-[9px] text-[#8696a0]">
@@ -1700,22 +1871,44 @@ export const InboxModal: React.FC<InboxModalProps> = ({
               <div ref={messagesEndRef} />
             </div>
 
-            {/* AI Quick Prompts Pills Strip */}
+            {/* AI Quick Prompts Pills Strip with Categories */}
             {isAiActive && (
-              <div className="px-2.5 py-1.5 bg-[#14261e] border-t border-emerald-800/30 flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-shrink-0">
-                <span className="text-amber-300 font-bold text-[9px] uppercase flex-shrink-0 flex items-center gap-0.5">
-                  <Sparkles className="w-2.5 h-2.5" /> FAQs:
-                </span>
-                {aiQuickPrompts.map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSendMessage(item.prompt)}
-                    className="px-2.5 py-1 bg-[#1a3327] hover:bg-emerald-600 hover:text-slate-950 text-emerald-200 font-medium rounded-lg text-[11px] whitespace-nowrap transition-all flex-shrink-0 border border-emerald-600/20 cursor-pointer flex items-center gap-1"
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
+              <div className="bg-[#14261e] border-t border-emerald-800/30 flex-shrink-0">
+                {/* Category selector */}
+                <div className="px-2.5 pt-1.5 pb-1 flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-emerald-900/40 text-[10px]">
+                  <span className="text-amber-300 font-bold text-[9px] uppercase flex-shrink-0 flex items-center gap-0.5 mr-1">
+                    <Sparkles className="w-2.5 h-2.5" /> विषय:
+                  </span>
+                  {aiCategories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveAiCategory(cat.id as any)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                        activeAiCategory === cat.id
+                          ? 'bg-emerald-600 text-slate-950 font-bold'
+                          : 'bg-emerald-950/70 text-emerald-300 hover:bg-emerald-900'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Prompts in selected category */}
+                <div className="px-2.5 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  {aiQuickPrompts
+                    .filter((item) => activeAiCategory === 'all' || item.cat === activeAiCategory)
+                    .map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSendMessage(item.prompt)}
+                        className="px-2.5 py-1 bg-[#1a3327] hover:bg-emerald-600 hover:text-slate-950 text-emerald-200 font-medium rounded-lg text-[11px] whitespace-nowrap transition-all flex-shrink-0 border border-emerald-600/20 cursor-pointer flex items-center gap-1"
+                      >
+                        <span>{item.icon}</span>
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                </div>
               </div>
             )}
 
@@ -1732,6 +1925,33 @@ export const InboxModal: React.FC<InboxModalProps> = ({
                     {q.label}
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Speech-to-Text Live Dictation Status */}
+            {isListeningSpeech && (
+              <div className="px-3 py-2 bg-amber-950/90 border-t border-amber-500/50 flex items-center justify-between gap-2 text-amber-200 text-xs animate-fadeIn">
+                <div className="flex items-center gap-2 font-medium">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+                  <span>
+                    बोलिए, कृषक ए.आई सुन रहा है ({speechLang === 'hi-IN' ? 'हिंदी' : 'English'})...
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setSpeechLang(speechLang === 'hi-IN' ? 'en-IN' : 'hi-IN')}
+                    className="px-2 py-0.5 bg-amber-900/70 hover:bg-amber-800 text-amber-300 rounded text-[11px] font-medium flex items-center gap-1"
+                  >
+                    <Languages className="w-3 h-3" />
+                    <span>{speechLang === 'hi-IN' ? 'हिंदी' : 'EN'}</span>
+                  </button>
+                  <button
+                    onClick={handleVoiceToggle}
+                    className="px-2.5 py-0.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-[11px]"
+                  >
+                    Done
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1831,19 +2051,15 @@ export const InboxModal: React.FC<InboxModalProps> = ({
 
               {/* Voice Button */}
               <button
-                onClick={() => {
-                  if (isRecordingVoice) {
-                    handleFinishVoiceRecording();
-                  } else {
-                    setIsRecordingVoice(true);
-                  }
-                }}
+                onClick={handleVoiceToggle}
                 className={`p-2 rounded-lg transition-all cursor-pointer ${
-                  isRecordingVoice 
+                  isListeningSpeech
+                    ? 'bg-amber-500 text-slate-950 animate-pulse'
+                    : isRecordingVoice 
                     ? 'bg-rose-600 text-white animate-pulse' 
                     : 'text-[#8696a0] hover:text-[#00a884] hover:bg-white/5'
                 }`}
-                title="Record Voice"
+                title={isAiActive ? "Speak to Krishak A.I (Hindi/English)" : "Record Voice"}
               >
                 <Mic className="w-4 h-4" />
               </button>
