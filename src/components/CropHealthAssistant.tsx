@@ -36,7 +36,7 @@ import {
 import { User, CropHealthDiagnosis, LedgerEntry } from '../types';
 import { diagnoseCropHealth, getAiQuota, AiQuotaResponse } from '../lib/aiService';
 import { useLanguage } from '../context/LanguageContext';
-import { compressImageFile } from '../lib/imageUtils';
+import { compressImageFile, compressImageDataUrl } from '../lib/imageUtils';
 
 interface CropHealthAssistantProps {
   currentUser: User | null;
@@ -327,8 +327,14 @@ export const CropHealthAssistant: React.FC<CropHealthAssistantProps> = ({
         ctx.scale(-1, 1);
       }
       ctx.drawImage(video, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-      setImagePreview(dataUrl);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+      compressImageDataUrl(dataUrl, { maxWidth: 1024, maxHeight: 1024, quality: 0.82 })
+        .then((optimized) => {
+          setImagePreview(optimized);
+        })
+        .catch(() => {
+          setImagePreview(dataUrl);
+        });
       setImageMimeType('image/jpeg');
       stopCameraStream();
     }
@@ -447,7 +453,6 @@ export const CropHealthAssistant: React.FC<CropHealthAssistantProps> = ({
     }
 
     if (!('speechSynthesis' in window)) {
-      alert('Text-to-speech audio is not supported in this browser.');
       return;
     }
 

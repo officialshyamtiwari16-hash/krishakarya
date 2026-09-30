@@ -24,6 +24,7 @@ import { LedgerModal } from './LedgerModal';
 import { KrishakaryaLogo } from './KrishakaryaLogo';
 import { AnimatedCounter } from './AnimatedCounter';
 import { LocalWeatherWidget } from './LocalWeatherWidget';
+import { AutoMandiRatesCard } from './AutoMandiRatesCard';
 
 interface HomePageProps {
   currentUser: User | null;
@@ -153,11 +154,18 @@ export const HomePage: React.FC<HomePageProps> = ({
             </div>
           </div>
 
-          {/* Live Local Farm Weather Forecast & Activity Planning Widget (Positioned above Krishak A.I Inbox) */}
+          {/* Live Local Farm Weather Forecast & Activity Planning Widget */}
           <div className="w-full">
             <LocalWeatherWidget
               currentUser={currentUser}
               onAskAiWithPrompt={handleOpenAiInbox}
+            />
+          </div>
+
+          {/* Automatic Live Local APMC Mandi Rates Card */}
+          <div className="w-full">
+            <AutoMandiRatesCard
+              onNavigateToMarketplace={() => onNavigate('marketplace')}
             />
           </div>
 

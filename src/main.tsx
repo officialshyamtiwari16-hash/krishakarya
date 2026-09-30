@@ -4,6 +4,7 @@ import App from './App.tsx';
 import './index.css';
 import { LanguageProvider } from './context/LanguageContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { LocationProvider } from './context/LocationContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Register Service Worker for PWA in production only, clean up in dev
@@ -34,7 +35,9 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <LanguageProvider>
         <SettingsProvider>
-          <App />
+          <LocationProvider>
+            <App />
+          </LocationProvider>
         </SettingsProvider>
       </LanguageProvider>
     </ErrorBoundary>

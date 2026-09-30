@@ -33,7 +33,7 @@ export const KrishakaryaLogo: React.FC<KrishakaryaLogoProps> = ({
         pixelSize = 56;
         break;
       case 'xl':
-        pixelSize = 80;
+        pixelSize = 84;
         break;
     }
   }
@@ -46,7 +46,7 @@ export const KrishakaryaLogo: React.FC<KrishakaryaLogoProps> = ({
 
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
-      {/* Metallic Emblem Badge matching Krishakarya logo */}
+      {/* Previous Iconic Metallic Emblem Badge with Devanagari 'कृ' */}
       <div 
         style={{ width: `${pixelSize}px`, height: `${pixelSize}px` }}
         className="relative shrink-0 rounded-full select-none shadow-md transition-transform duration-200 hover:scale-105 flex items-center justify-center overflow-hidden"
@@ -87,6 +87,7 @@ export const KrishakaryaLogo: React.FC<KrishakaryaLogoProps> = ({
               <feDropShadow dx="2" dy="5" stdDeviation="3" floodColor="#1f0900" floodOpacity="0.38" />
             </filter>
 
+            {/* Overall Badge Shadow */}
             <filter id={badgeShadowId} x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="#000000" floodOpacity="0.4" />
             </filter>
@@ -122,11 +123,10 @@ export const KrishakaryaLogo: React.FC<KrishakaryaLogoProps> = ({
       </div>
 
       {showText && (
-        <span className={`font-['Outfit',sans-serif] font-black tracking-tight leading-none text-emerald-700 dark:text-emerald-400 ${textClassName || 'text-2xl sm:text-3xl'}`}>
+        <span className={`font-['Outfit',sans-serif] font-black tracking-tight leading-none text-emerald-800 dark:text-emerald-300 ${textClassName || 'text-2xl sm:text-3xl'}`}>
           Krishakarya
         </span>
       )}
     </div>
   );
 };
-

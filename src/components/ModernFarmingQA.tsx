@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { User } from '../types';
 import { askModernFarmingQA, calculateCropInputs, getAiQuota, AiQuotaResponse } from '../lib/aiService';
+import { compressImageFile } from '../lib/imageUtils';
 
 interface ModernFarmingQAProps {
   currentUser: User | null;
@@ -164,17 +165,18 @@ export const ModernFarmingQA: React.FC<ModernFarmingQAProps> = ({ currentUser, o
     getAiQuota(currentUser?.id || currentUser?.username).then(setQuota);
   }, [currentUser]);
 
-  // Handle Photo selection/capture
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Photo selection/capture with offline compression
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setImageMimeType(file.type || 'image/jpeg');
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    setImageMimeType('image/jpeg');
+    try {
+      const compressed = await compressImageFile(file, { maxWidth: 1024, maxHeight: 1024, quality: 0.85 });
+      setImagePreview(compressed);
+    } catch (err) {
+      console.warn('QA image compression note:', err);
+    }
   };
 
   const handleClearPhoto = () => {
@@ -260,7 +262,7 @@ export const ModernFarmingQA: React.FC<ModernFarmingQAProps> = ({ currentUser, o
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-400/30 rounded-full text-xs font-black text-emerald-200">
               <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-              <span>Krishak A.I • Powered by Gemini 3.7</span>
+              <span>Krishak A.I • Gemini 3.8 Flash</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black font-['Outfit',sans-serif] tracking-tight leading-tight">
               Modern Farming Q&A & AI Advisory

@@ -154,19 +154,21 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* TOP CENTER: Krishakarya Heading & Logo */}
             <div className="flex-1 flex justify-center text-center px-1 min-w-0">
-              <button
-                onClick={() => {
-                  setActiveTab('home');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="focus:outline-none inline-flex items-center justify-center gap-1.5 sm:gap-2.5 cursor-pointer group py-0.5 min-w-0"
-                title="Krishakarya Home"
-              >
-                <KrishakaryaLogo size={32} />
-                <span className="font-['Outfit',sans-serif] font-black text-xl xs:text-2xl sm:text-3xl tracking-tight leading-none gradient-heading group-hover:scale-105 transition-transform truncate">
-                  Krishakarya
-                </span>
-              </button>
+              <div className="inline-flex items-center gap-1.5 sm:gap-2">
+                <button
+                  onClick={() => {
+                    setActiveTab('home');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="focus:outline-none inline-flex items-center justify-center gap-1.5 sm:gap-2.5 cursor-pointer group py-0.5 min-w-0"
+                  title="Krishakarya Home"
+                >
+                  <KrishakaryaLogo size={32} />
+                  <span className="font-['Outfit',sans-serif] font-black text-xl xs:text-2xl sm:text-3xl tracking-tight leading-none gradient-heading group-hover:scale-105 transition-transform truncate">
+                    Krishakarya
+                  </span>
+                </button>
+              </div>
             </div>
 
             {/* Right Action Controls */}

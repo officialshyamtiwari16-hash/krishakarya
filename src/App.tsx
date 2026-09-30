@@ -66,10 +66,18 @@ import { AddListingModal } from './components/AddListingModal';
 import { AddMarketplaceListingModal } from './components/AddMarketplaceListingModal';
 import { InboxModal } from './components/InboxModal';
 import { SettingsModal } from './components/SettingsModal';
+import { OpeningSplashScreen } from './components/OpeningSplashScreen';
 import { useSettings } from './context/SettingsContext';
 
 export default function App() {
   const { isSettingsOpen, setIsSettingsOpen } = useSettings();
+
+  // Integrated opening graphic animation splash screen (plays naturally on app open with identical logo)
+  const [showSplashScreen, setShowSplashScreen] = useState<boolean>(true);
+
+  const handleSplashComplete = () => {
+    setShowSplashScreen(false);
+  };
 
   // Navigation State: home, sahyogi, machinery, marketplace, profile, terms, modern-farming, crop-health
   const [activeTab, setActiveTab] = useState<
@@ -732,6 +740,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen min-h-[100dvh] w-full flex flex-col font-sans bg-mesh-animated bg-grid-pattern text-slate-900 transition-colors duration-200 overflow-x-hidden relative">
+      {/* Opening Logo Graphic Animation Splash Screen */}
+      {showSplashScreen && (
+        <OpeningSplashScreen
+          onComplete={handleSplashComplete}
+          autoDismissMs={2800}
+        />
+      )}
+
       {/* Ambient Glassmorphism Refraction Orbs (Fixed in Background) */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-32 -left-20 w-[480px] h-[480px] bg-emerald-400/25 rounded-full blur-[110px]" />

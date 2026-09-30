@@ -17,23 +17,12 @@ interface RateLimitEntry {
 const rateLimits = new Map<string, RateLimitEntry>();
 
 // Track Gemini API operational health and authentication state
-let geminiAuthBlocked = false;
-let lastGeminiAuthCheck = 0;
-const AUTH_RECHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-
-function markGeminiAuthFailure(err: any): void {
-  const errStr = typeof err === 'string' ? err : (err?.message || JSON.stringify(err || ''));
-  if (
-    err?.status === 401 ||
-    err?.status === 403 ||
-    errStr.includes('401') ||
-    errStr.includes('UNAUTHENTICATED') ||
-    errStr.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
-    errStr.includes('API_KEY_SERVICE_BLOCKED')
-  ) {
-    geminiAuthBlocked = true;
-    lastGeminiAuthCheck = Date.now();
+function extractCleanBase64(imageBase64: string): string {
+  if (!imageBase64 || typeof imageBase64 !== 'string') return '';
+  if (imageBase64.includes(';base64,')) {
+    return imageBase64.split(';base64,')[1].trim();
   }
+  return imageBase64.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '').trim();
 }
 
 function getTodayString(): string {
@@ -67,16 +56,37 @@ function getRemainingRateLimit(identifier: string): { remaining: number; limit: 
   return { remaining, limit: DAILY_LIMIT, used: entry.count };
 }
 
-// Safe initialization of Gemini API client
+// Resilient Singleton Gemini API Client
+let cachedGenAi: GoogleGenAI | null = null;
+let lastApiKeyUsed = '';
+let geminiAuthBlocked = false;
+let lastGeminiAuthCheck = 0;
+const AUTH_RECHECK_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes
+
+function markGeminiAuthFailure(err: any): void {
+  const errStr = typeof err === 'string' ? err : (err?.message || JSON.stringify(err || ''));
+  if (
+    err?.status === 401 ||
+    err?.status === 403 ||
+    errStr.includes('401') ||
+    errStr.includes('UNAUTHENTICATED') ||
+    errStr.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+    errStr.includes('API_KEY_SERVICE_BLOCKED')
+  ) {
+    geminiAuthBlocked = true;
+    lastGeminiAuthCheck = Date.now();
+  }
+}
+
 function getGenAI(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.API_KEY || '').trim();
   if (
     !apiKey || 
     apiKey === 'MY_GEMINI_API_KEY' || 
-    apiKey.trim() === '' || 
     apiKey === 'undefined' || 
     apiKey === 'null' ||
-    apiKey.length < 15
+    apiKey.length < 15 ||
+    !apiKey.startsWith('AIza')
   ) {
     return null;
   }
@@ -86,27 +96,23 @@ function getGenAI(): GoogleGenAI | null {
     return null;
   }
 
+  if (cachedGenAi && lastApiKeyUsed === apiKey) {
+    return cachedGenAi;
+  }
+
   try {
-    return new GoogleGenAI({
-      apiKey: apiKey.trim(),
+    cachedGenAi = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
     });
+    lastApiKeyUsed = apiKey;
+    return cachedGenAi;
   } catch {
     return null;
-  }
-}
-
-// Silent initial verification of Gemini credentials on startup
-if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.length >= 15) {
-  try {
-    const probeAi = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY.trim() });
-    probeAi.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: 'healthcheck',
-    }).catch((err: any) => {
-      markGeminiAuthFailure(err);
-    });
-  } catch (probeErr: any) {
-    markGeminiAuthFailure(probeErr);
   }
 }
 
@@ -136,8 +142,32 @@ function getFallbackChatAnswer(message: string, userContext?: any): string {
     return `🏛️ **प्रमुख सरकारी कृषि योजनाएं व सब्सिडी (Govt Agricultural Schemes):**\n\n1. **पीएम-किसान सम्मान निधि (PM-KISAN):**\n   - प्रति वर्ष ₹6,000 की आर्थिक सहायता (₹2,000 की 3 किस्तों में)। ई-केवाईसी व आधार सीडिंग अनिवार्य है।\n2. **कृषि यंत्रीकरण योजना (SMAM Subsidy):**\n   - ट्रैक्टर, रोटावेटर, सुपर सीडर, ड्रोन पर 40% से 50% तक सरकारी अनुदान (महिला/SC/ST हेतु 50%)।\n3. **पीएम कुसुम योजना (PM-KUSUM Component-B & C):**\n   - सोलर कृषि पंप (3HP - 7.5HP) स्थापना पर 60% से 90% तक संयुक्त सब्सिडी।\n4. **प्रधानमंत्री फसल बीमा योजना (PMFBY):**\n   - रबी फसलों पर केवल 1.5% व खरीफ फसलों पर 2% प्रीमियम पर ओलावृष्टि व बेमौसम बारिश से सुरक्षा।\n5. **मृदा स्वास्थ्य कार्ड (Soil Health Card):**\n   - नजदीकी कृषि विज्ञान केंद्र (KVK) से निःशुल्क मिट्टी परीक्षण कराएं।`;
   }
 
+  if (q.includes('seed') || q.includes('beej') || q.includes('बीज') || q.includes('treatment') || q.includes('उपचार') || q.includes('germination') || q.includes('अंकुरण')) {
+    return `🌱 **प्रमाणित बीज उपचार एवं अंकुरण तकनीक (Seed Treatment - F.I.R Protocol):**\n\n• **F.I.R क्रम अपनाएं:**\n  1. **F (Fungicide - फफूंदनाशी):** थीरम 75% WP या कार्बेन्डाजिम 50% WP (2.5 ग्राम/किग्रा बीज) अथवा जैविक ट्राइकोडर्मा विरिडी (5-8 ग्राम/किग्रा बीज)।\n  2. **I (Insecticide - कीटनाशी):** दीमक व रस चूसक कीटों से बचाव हेतु इमिडाक्लोप्रिड 600 FS (4-5 मि.ली./किग्रा बीज) या थायमेथोक्सम 30% FS।\n  3. **R (Rhizobium/PSB - जीवाणु कल्चर):** दलहनी फसलों में राइजोबियम कल्चर (10 ग्राम/किग्रा) एवं अन्य फसलों में PSB कल्चर छाया में मिलाकर सुखाएं।\n\n💡 **अंकुरण परीक्षण (Germination Test):** बुवाई से पूर्व गीली बोरी में 100 बीज रखकर 3-4 दिन नमी दें; यदि 85 से अधिक बीज अंकुरित हों तो ही बुवाई करें।`;
+  }
+
+  if (q.includes('organic') || q.includes('jaivik') || q.includes('जैविक') || q.includes('jivamrit') || q.includes('जीवामृत') || q.includes('vermicompost') || q.includes('केंचुआ')) {
+    return `🌿 **प्राकृतिक व जैविक कृषि प्रबंधन (Natural Farming & Jivamrit):**\n\n• **जीवामृत बनाने की विधि (1 एकड़ हेतु):**\n  - 200 लीटर पानी + 10 किग्रा देसी गाय का ताजा गोबर + 10 लीटर गोमूत्र + 1 किग्रा पुराना गुड़ + 1 किग्रा बेसन + 1 मुट्ठी मेड़ की सजीव मिट्टी।\n  - ड्रम को छाया में रखकर 48-72 घंटे तक घड़ी की सुई की दिशा में दिन में दो बार हिलाएं। सिंचाई के पानी के साथ या 10% छानकर स्प्रे करें।\n• **नीमास्त्र (रस चूसक कीटों हेतु):** 200 लीटर पानी + 5 किग्रा नीम की कुटी पत्तियां + 5 किग्रा गोबर + 5 लीटर गोमूत्र।\n• **वर्मीकम्पोस्ट (केंचुआ खाद):** 1.5 - 2 टन प्रति एकड़ बेसल डोज में मिट्टी की उर्वरता और जल धारण क्षमता दोगुनी करता है।`;
+  }
+
+  if (q.includes('weed') || q.includes('grah') || q.includes('खरपतवार') || q.includes('घास') || q.includes('nindai') || q.includes('gudai') || q.includes('निराई')) {
+    return `🌾 **खरपतवार नियंत्रण प्रबंधन (Weed Management):**\n\n• **बुवाई पूर्व / तुरंत बाद (Pre-Emergence):** पेंडिमिथैलिन 30% EC (1.0 - 1.25 लीटर प्रति एकड़ 200 लीटर पानी में) बुवाई के 48 घंटे के भीतर हल्की नमी में स्प्रे करें।\n• **खड़ी फसल में (Post-Emergence - 25-30 दिन):**\n  - **गेहूं में संकरी पत्ती (मंडूसी/गुल्ली डंडा):** क्लोडिनाफॉप 15% WP (160 ग्राम/एकड़) अथवा सल्फोसल्फ्यूरॉन 75% WG (13.5 ग्राम/एकड़)।\n  - **चौड़ी पत्ती (बथुआ/हिरनखुरी):** 2,4-D अमाइन साल्ट 58% SL (400 मि.ली./एकड़) अथवा मेटसल्फ्यूरॉन मिथाइल 20% WP (8 ग्राम/एकड़)।\n• **सावधानी:** स्प्रे हमेशा फ्लैट फैन नोजल (Flat Fan Nozzle) से ही करें; तेज हवा में स्प्रे न करें।`;
+  }
+
   if (q.includes('rent') || q.includes('tractor') || q.includes('ट्रैक्टर') || q.includes('मशीन') || q.includes('किराया') || q.includes('sahyogi') || q.includes('मजदूर') || q.includes('लेबर')) {
     return `🚜 **कृषि मशीनरी एवं सहयोगी श्रमिक दरें (Market Benchmarks):**\n\n• **ट्रैक्टर + कल्टीवेटर जुताई:** ₹600 - ₹900 प्रति घंटा / एकड़।\n• **रोटावेटर गहरी जुताई:** ₹800 - ₹1,200 प्रति घंटा।\n• **कंबाइन हार्वेस्टर कटाई:** ₹1,800 - ₹2,500 प्रति एकड़।\n• **कृषि ड्रोन स्प्रे (नैनो यूरिया/कीटनाशक):** ₹350 - ₹500 प्रति एकड़ (मात्र 7-10 मिनट में छिड़काव)।\n• **सहयोगी कुशल श्रमिक (Sahyogi Labor):** ₹400 - ₹600 प्रति दिन (8 घंटे कार्य)।\n\n👉 *सुझाव:* Krishakarya के 'Sahyogi' और 'Rent Machinery' टैब से सत्यापित सेवाप्रदाताओं को बिना बिचौलिए के सीधे कॉल करें।`;
+  }
+
+  if (q.includes('dairy') || q.includes('पशु') || q.includes('गाय') || q.includes('भैंस') || q.includes('दूध') || q.includes('animal') || q.includes('चारा')) {
+    return `🐄 **पशुपालन एवं दुग्ध उत्पादन प्रबंधन (Dairy & Livestock Advisory):**\n\n• **संतुलित पशु आहार (TMR Ration):**\n  - हरा चारा (बरसीम/ज्वार/मक्का): 25-30 किग्रा/दिन।\n  - सूखा भूसा: 4-5 किग्रा/दिन।\n  - दाना मिश्रण: 1 किग्रा शरीर निर्वाह हेतु + प्रति 2.5 लीटर दूध पर 1 किग्रा अतिरिक्त दाना।\n• **खनिज मिश्रण (Mineral Mixture):** 50-60 ग्राम प्रतिदिन अवश्य दें।\n• **थनैला रोग (Mastitis) से बचाव:** दुहने के तुरंत बाद थनों को 0.5% पोविडोन आयोडीन घोल में डुबोएं और 30 मिनट तक बैठने न दें।\n• **टीकाकरण:** गलघोंटू (HS) व खुरपका-मुंहपका (FMD) का टीका वर्ष में दो बार नियमित लगवाएं।`;
+  }
+
+  if (q.includes('soil') || q.includes('मिट्टी') || q.includes('ph') || q.includes('जांच')) {
+    return `🧪 **मृदा स्वास्थ्य एवं pH सुधार प्रबंधन (Soil Health Advisory):**\n\n• **मृदा pH स्तर मानक:** 6.5 से 7.5 सर्वोत्तम उपजाऊ मिट्टी मानी जाती है।\n• **क्षारीय/ऊसर मिट्टी (Alkaline Soil - pH > 8.0):**\n  - जिप्सम (Gypsum 70% purity) 2 से 3 टन प्रति हेक्टेयर खेत में मिलाकर हल्की सिंचाई करें।\n  - हरी खाद (ढैंचा/सनई) 45 दिन पर जुताई कर मिट्टी में दबाएं।\n• **अम्लीय मिट्टी (Acidic Soil - pH < 6.0):** बुझा हुआ चूना (Agricultural Lime) 1-2 टन/हेक्टेयर मिलाएं।\n• **मिट्टी नमूना लेने का सही समय:** फसल कटाई के बाद खेत के 8-10 स्थानों से V-आकार में 15 सेमी गहराई से मिट्टी एकत्र कर 500 ग्राम का कंपोजिट सैंपल बनाएं।`;
+  }
+
+  if (q.includes('veg') || q.includes('सब्जी') || q.includes('drip') || q.includes('ड्रिप') || q.includes('polyhouse') || q.includes('बागवानी')) {
+    return `🍅 **आधुनिक बागवानी एवं सूक्ष्म सिंचाई (Horticulture & Drip Advisory):**\n\n• **ड्रिप सिंचाई के लाभ:** 50-60% पानी की बचत, 30% अधिक पैदावार, और फर्टिगेशन (पानी के साथ 100% घुलनशील NPK 19:19:19 खाद) की सुविधा।\n• **मल्चिंग तकनीक (Silver-Black Plastic Mulch 25-30 Micron):** खरपतवार पूरी तरह रोकता है और मिट्टी की नमी वाष्पीकृत होने से बचाता है।\n• **उच्च लाभ वाली नकदी फसलें:** शिमला मिर्च, खीरा, चेरी टमाटर, तरबूज, और मशरूम की खेती पर सरकारी हॉर्टिकल्चर मिशन से 40-50% सब्सिडी मिलती है।`;
   }
 
   return `🌾 **कृषक ए.आई सलाहकार उत्तर:**\n\nनमस्ते ${name}${village}!\nआपके प्रश्न के संदर्भ में महत्वपूर्ण कृषि सुझाव:\n\n• **सटीक फसल प्रबंधन:** अपनी मिट्टी के प्रकार और सिंचाई व्यवस्था के अनुसार संतुलित खाद (NPK 4:2:1) का प्रयोग करें।\n• **कीट निगरानी:** खेत का सुबह-शाम निरीक्षण करें और प्रारंभिक अवस्था में ही नीम तेल या अनुशंसित जैविक कीटनाशक का छिड़काव करें।\n• **लागत में बचत:** 'Sahyogi' टैब से प्रशिक्षित लेबर और 'Rent Machinery' से आधुनिक यंत्र उचित दरों पर बुक करें।\n\nक्या आप किसी विशेष फसल, बीमारी या खाद की खुराक के बारे में विस्तार से जानना चाहते हैं? आप फसल की फोटो भी संलग्न कर सकते हैं!`;
@@ -453,7 +483,7 @@ ${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${use
 
           const userParts: any[] = [];
           if (imageBase64 && typeof imageBase64 === 'string') {
-            const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z0-9+]+;base64,/, '');
+            const cleanBase64 = extractCleanBase64(imageBase64);
             userParts.push({
               inlineData: {
                 mimeType: imageMimeType || 'image/jpeg',
@@ -487,8 +517,12 @@ ${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${use
             if (Array.isArray(chunks)) {
               for (const chunk of chunks) {
                 if (chunk?.web?.uri) {
+                  let hostname = 'Web Source';
+                  try {
+                    hostname = new URL(chunk.web.uri).hostname.replace(/^www\./, '');
+                  } catch {}
                   groundingSources.push({
-                    title: chunk.web.title || new URL(chunk.web.uri).hostname,
+                    title: chunk.web.title || hostname,
                     url: chunk.web.uri,
                   });
                 }
@@ -504,7 +538,7 @@ ${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${use
             });
           }
         } catch (genErr: any) {
-          console.warn('[Krishak AI Chat Error]', genErr?.message);
+          markGeminiAuthFailure(genErr);
         }
       }
 
@@ -578,7 +612,7 @@ ${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${use
 
           const userParts: any[] = [];
           if (imageBase64 && typeof imageBase64 === 'string') {
-            const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z0-9+]+;base64,/, '');
+            const cleanBase64 = extractCleanBase64(imageBase64);
             userParts.push({
               inlineData: {
                 mimeType: imageMimeType || 'image/jpeg',
@@ -593,23 +627,53 @@ ${userContext ? `User context: Farmer ${userContext.name || 'Member'} from ${use
             parts: userParts,
           });
 
+          // Check if query benefits from real-time live web grounding
+          const isRealtimeQuery = /mandi|मंडी|rate|bhav|भाव|price|weather|मौसम|rain|barish|बारिश|subsidy|सब्सिडी|pm-?kisan|योजना|scheme|news|update|today|aaj/i.test(message);
+
           const responseStream = await ai.models.generateContentStream({
             model: 'gemini-3.8-flash',
             contents,
             config: {
               systemInstruction: customPrompt || defaultPrompt,
               temperature: 0.7,
+              tools: isRealtimeQuery ? [{ googleSearch: {} }] : undefined,
             }
           });
+
+          const groundingSources: Array<{ title: string; url: string }> = [];
 
           for await (const chunk of responseStream) {
             const chunkText = chunk.text;
             if (chunkText) {
               res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
             }
+            // Capture any grounding metadata
+            const chunks = (chunk as any)?.candidates?.[0]?.groundingMetadata?.groundingChunks;
+            if (Array.isArray(chunks)) {
+              for (const c of chunks) {
+                if (c?.web?.uri) {
+                  let hostname = 'Web Source';
+                  try {
+                    hostname = new URL(c.web.uri).hostname.replace(/^www\./, '');
+                  } catch {}
+                  if (!groundingSources.some((s) => s.url === c.web.uri)) {
+                    groundingSources.push({
+                      title: c.web.title || hostname,
+                      url: c.web.uri,
+                    });
+                  }
+                }
+              }
+            }
           }
 
-          res.write(`data: ${JSON.stringify({ done: true, remaining: rateStatus.remaining, limit: rateStatus.limit, isImageAnalyzed: Boolean(imageBase64) })}\n\n`);
+          res.write(`data: ${JSON.stringify({
+            done: true,
+            remaining: rateStatus.remaining,
+            limit: rateStatus.limit,
+            isImageAnalyzed: Boolean(imageBase64),
+            groundingSources: groundingSources.length > 0 ? groundingSources : undefined,
+          })}\n\n`);
           res.write('data: [DONE]\n\n');
           return res.end();
         } catch (streamErr: any) {
@@ -680,10 +744,10 @@ Language: Bilingual (Clear Hindi explanation along with English technical terms)
           const parts: any[] = [];
 
           if (imageBase64) {
-            const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+            const cleanBase64 = extractCleanBase64(imageBase64);
             parts.push({
               inlineData: {
-                mimeType: imageMimeType,
+                mimeType: imageMimeType || 'image/jpeg',
                 data: cleanBase64
               }
             });
@@ -885,10 +949,10 @@ Be pragmatic, accurate for Indian agro-climates (Kharif, Rabi, Zaid), and recomm
           const parts: any[] = [];
 
           if (imageBase64) {
-            const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+            const cleanBase64 = extractCleanBase64(imageBase64);
             parts.push({
               inlineData: {
-                mimeType: imageMimeType,
+                mimeType: imageMimeType || 'image/jpeg',
                 data: cleanBase64,
               },
             });
@@ -919,8 +983,12 @@ Please provide a thorough, certified diagnostic analysis in the specified JSON s
           try {
             parsedData = JSON.parse(responseText);
           } catch (parseErr) {
-            const cleanJsonStr = responseText.replace(/```json\n?|\n?```/g, '').trim();
-            parsedData = JSON.parse(cleanJsonStr);
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              try {
+                parsedData = JSON.parse(jsonMatch[0]);
+              } catch {}
+            }
           }
 
           if (parsedData && parsedData.diseaseName) {
@@ -1317,8 +1385,17 @@ Return ONLY valid JSON.`;
           });
 
           const rawText = response.text || '';
-          const cleanJson = rawText.replace(/```json\n?|\n?```/g, '').trim();
-          const parsed = JSON.parse(cleanJson);
+          let parsed: any = null;
+          try {
+            parsed = JSON.parse(rawText);
+          } catch {
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              try {
+                parsed = JSON.parse(jsonMatch[0]);
+              } catch {}
+            }
+          }
 
           if (parsed && Array.isArray(parsed.rates) && parsed.rates.length > 0) {
             // Extract Google search grounding sources if available
@@ -1326,8 +1403,12 @@ Return ONLY valid JSON.`;
             const sources: { title: string; url: string }[] = [];
             for (const chunk of groundingChunks) {
               if (chunk?.web?.uri) {
+                let hostname = 'Agmarknet APMC';
+                try {
+                  hostname = new URL(chunk.web.uri).hostname.replace(/^www\./, '');
+                } catch {}
                 sources.push({
-                  title: chunk.web.title || 'Google Search Mandi Source',
+                  title: chunk.web.title || hostname,
                   url: chunk.web.uri,
                 });
               }

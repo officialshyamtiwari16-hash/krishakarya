@@ -23,7 +23,8 @@ import {
   ChevronLeft,
   Tractor,
   Users,
-  MapPin
+  MapPin,
+  Sparkles
 } from 'lucide-react';
 import { 
   signInWithPopup, 
@@ -310,6 +311,90 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setErrorMessage(err?.message || 'Google Sign-In failed. Please try again or use Email/Password.');
     } finally {
       setIsGoogleLoading(false);
+    }
+  };
+
+  // 1-Click Instant Demo Login for immediate exploration
+  const handleInstantDemoLogin = async (demoRole: 'farmer' | 'sahyogi' | 'machinery') => {
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      let demoUser: User;
+      if (demoRole === 'farmer') {
+        demoUser = {
+          id: 'demo_farmer_ramesh',
+          name: 'Ramesh Kumar (किसान)',
+          username: '@farmer_ramesh',
+          phone: '+91 98765 43210',
+          email: 'ramesh.farmer@krishakarya.app',
+          village: 'Daulatpur',
+          post: 'Badosarai',
+          district: 'Barabanki',
+          pincode: '225207',
+          state: 'Uttar Pradesh',
+          profileImage: 'https://images.unsplash.com/photo-1595273670150-bd0c3c392e46?w=200&auto=format&fit=crop&q=80',
+          farmSizeAcres: 5.5,
+          primaryCrops: ['Wheat / गेहूं', 'Paddy / धान', 'Mustard / सरसों'],
+          isVerified: true,
+          joinedDate: '2024-03-15',
+          isSahyogi: false,
+          isMachineryOwner: false,
+          bio: 'Progressive organic farmer with drip irrigation and multi-crop farming.',
+        };
+      } else if (demoRole === 'sahyogi') {
+        demoUser = {
+          id: 'demo_sahyogi_birju',
+          name: 'Birju Ram (सहयोगी श्रमिक)',
+          username: '@sahyogi_birju',
+          phone: '+91 98123 45678',
+          email: 'birju.sahyogi@krishakarya.app',
+          village: 'Maholi',
+          post: 'Maholi Post',
+          district: 'Sitapur',
+          pincode: '261141',
+          state: 'Uttar Pradesh',
+          profileImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
+          farmSizeAcres: 0,
+          primaryCrops: ['Harvesting', 'Transplanting', 'Spraying'],
+          isVerified: true,
+          joinedDate: '2024-02-10',
+          isSahyogi: true,
+          isMachineryOwner: false,
+          bio: 'Expert agricultural laborer with 12 years of experience in manual harvesting.',
+        };
+      } else {
+        demoUser = {
+          id: 'demo_machinery_gurpreet',
+          name: 'Gurpreet Singh (यंत्र मालिक)',
+          username: '@gurpreet_tractors',
+          phone: '+91 98888 77766',
+          email: 'gurpreet.machinery@krishakarya.app',
+          village: 'Samana',
+          post: 'Samana Mandi',
+          district: 'Patiala',
+          pincode: '147101',
+          state: 'Punjab',
+          profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+          farmSizeAcres: 12,
+          primaryCrops: ['Wheat', 'Basmati Paddy'],
+          isVerified: true,
+          joinedDate: '2023-11-20',
+          isSahyogi: false,
+          isMachineryOwner: true,
+          bio: 'Owner of John Deere 55HP 4WD Tractor, Rotavator, and Laser Leveler for rent.',
+        };
+      }
+
+      await saveUserToFirestore(demoUser);
+      setSuccessMessage(`Welcome, ${demoUser.name}!`);
+      onLoginSuccess(demoUser);
+      setTimeout(() => {
+        onClose();
+      }, 350);
+    } catch (e: any) {
+      setErrorMessage(e?.message || 'Login note: signed in locally.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -678,6 +763,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   Use Google, Email, or your unique @username handle
                 </p>
+              </div>
+
+              {/* Quick 1-Click Demo Profiles for Rapid Testing */}
+              <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/5 border border-emerald-400/30">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-black text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                    <span>Instant 1-Click Demo Login</span>
+                  </span>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                    Quick Access
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleInstantDemoLogin('farmer')}
+                    disabled={isLoading}
+                    className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-emerald-300/60 hover:border-emerald-500 text-center hover:scale-[1.02] transition-all shadow-xs cursor-pointer group"
+                  >
+                    <span className="text-base block mb-0.5">👨‍🌾</span>
+                    <span className="block text-[11px] font-black text-slate-800 dark:text-slate-200 truncate">Kisan</span>
+                    <span className="block text-[9px] text-slate-500 truncate">Farmer (5.5 Ac)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInstantDemoLogin('sahyogi')}
+                    disabled={isLoading}
+                    className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-teal-300/60 hover:border-teal-500 text-center hover:scale-[1.02] transition-all shadow-xs cursor-pointer group"
+                  >
+                    <span className="text-base block mb-0.5">🤝</span>
+                    <span className="block text-[11px] font-black text-slate-800 dark:text-slate-200 truncate">Sahyogi</span>
+                    <span className="block text-[9px] text-slate-500 truncate">Farm Worker</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInstantDemoLogin('machinery')}
+                    disabled={isLoading}
+                    className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-amber-300/60 hover:border-amber-500 text-center hover:scale-[1.02] transition-all shadow-xs cursor-pointer group"
+                  >
+                    <span className="text-base block mb-0.5">🚜</span>
+                    <span className="block text-[11px] font-black text-slate-800 dark:text-slate-200 truncate">Machinery</span>
+                    <span className="block text-[9px] text-slate-500 truncate">Tractor Owner</span>
+                  </button>
+                </div>
               </div>
 
               {/* Social Login: Google */}

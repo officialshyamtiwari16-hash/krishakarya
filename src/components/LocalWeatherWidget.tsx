@@ -59,6 +59,7 @@ import {
   GeoLocationResult 
 } from '../lib/locationService';
 import { useLanguage } from '../context/LanguageContext';
+import { useAutoLocation } from '../context/LocationContext';
 import { User } from '../types';
 
 interface LocalWeatherWidgetProps {
@@ -118,12 +119,34 @@ export const LocalWeatherWidget: React.FC<LocalWeatherWidgetProps> = ({
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load weather for Saved Farm Location by default
+  const { location: autoLocation, isDetectingLocation: autoDetecting, detectLocationAutomatically } = useAutoLocation();
+
+  // Load weather automatically: prioritizes real GPS location from useAutoLocation()
   useEffect(() => {
-    const currentSaved = getSavedFarmLocation();
-    setSavedFarm(currentSaved);
-    fetchWeatherForSavedFarm(currentSaved);
-  }, [currentUser?.district, currentUser?.village, currentUser?.state]);
+    if (autoLocation && autoLocation.latitude && autoLocation.longitude) {
+      setCurrentLocation(autoLocation);
+      setLocationMode(autoLocation.source === 'gps' ? 'gps' : 'saved_farm');
+      setIsLoading(true);
+      fetchLiveWeather(autoLocation.latitude, autoLocation.longitude, {
+        village: autoLocation.village || 'Field',
+        district: autoLocation.district || 'District',
+        state: autoLocation.state || 'State',
+        country: autoLocation.country || 'India',
+        source: autoLocation.source,
+        accuracy: autoLocation.accuracy,
+      }).then((data) => {
+        setWeather(data);
+        setIsLoading(false);
+      }).catch((err) => {
+        console.warn('Weather fetch from autoLocation note:', err);
+        setIsLoading(false);
+      });
+    } else {
+      const currentSaved = getSavedFarmLocation();
+      setSavedFarm(currentSaved);
+      fetchWeatherForSavedFarm(currentSaved);
+    }
+  }, [autoLocation, currentUser?.district, currentUser?.village, currentUser?.state]);
 
   // Fetch Weather for Saved Farm Location
   const fetchWeatherForSavedFarm = async (farm = savedFarm) => {

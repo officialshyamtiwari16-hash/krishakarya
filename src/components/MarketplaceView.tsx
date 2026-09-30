@@ -31,6 +31,7 @@ import {
   ALL_INDIAN_DISTRICTS 
 } from '../data/indiaLocations';
 import { useLanguage } from '../context/LanguageContext';
+import { useAutoLocation } from '../context/LocationContext';
 
 interface MarketplaceViewProps {
   listings: MarketplaceListing[];
@@ -87,13 +88,30 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedListingDetail, setSelectedListingDetail] = useState<MarketplaceListing | null>(null);
 
-  // Mandi Rates State
+  const {
+    detectedDistrict,
+    detectedState,
+    location: autoLocation,
+    isDetectingLocation,
+    detectLocationAutomatically,
+    mandiRates: autoMandiRates,
+  } = useAutoLocation();
+
+  // Mandi Rates State - automatically initialized from auto-detected district & state
   const [selectedMandiDistrict, setSelectedMandiDistrict] = useState(
-    currentUser?.district || 'Varanasi'
+    detectedDistrict || currentUser?.district || 'Varanasi'
   );
   const [selectedMandiState, setSelectedMandiState] = useState(
-    currentUser?.state || 'Uttar Pradesh'
+    detectedState || currentUser?.state || 'Uttar Pradesh'
   );
+
+  // Automatically update selected mandi location when GPS auto-detects new district/state
+  useEffect(() => {
+    if (detectedDistrict && detectedState) {
+      setSelectedMandiDistrict(detectedDistrict);
+      setSelectedMandiState(detectedState);
+    }
+  }, [detectedDistrict, detectedState]);
   const [districtSearchQuery, setDistrictSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -424,7 +442,30 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
           <span className="text-[10px] font-extrabold text-slate-400 uppercase shrink-0">
             Quick Hubs:
           </span>
-          {currentUser?.district && (
+
+          {/* Auto-Detected GPS Mandi Chip */}
+          <button
+            type="button"
+            onClick={() => {
+              if (detectedDistrict && detectedState) {
+                setSelectedMandiState(detectedState);
+                setSelectedMandiDistrict(detectedDistrict);
+              }
+              detectLocationAutomatically(true);
+            }}
+            className={`px-2.5 py-1 rounded-lg text-xs font-black shrink-0 transition-all cursor-pointer flex items-center gap-1.5 border shadow-xs ${
+              selectedMandiDistrict === detectedDistrict
+                ? 'bg-gradient-to-r from-emerald-700 to-teal-700 text-white border-emerald-500 ring-2 ring-emerald-400/30'
+                : 'bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100'
+            }`}
+            title="Auto-detect current location & local Mandi via GPS"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span>📍 Auto-Detected ({detectedDistrict})</span>
+            {isDetectingLocation && <RefreshCw className="w-3 h-3 animate-spin text-white" />}
+          </button>
+
+          {currentUser?.district && currentUser.district !== detectedDistrict && (
             <button
               type="button"
               onClick={() => {
@@ -437,7 +478,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                   : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
               }`}
             >
-              <span>📍 My District ({currentUser.district})</span>
+              <span>📍 Profile ({currentUser.district})</span>
             </button>
           )}
           {POPULAR_AGRICULTURAL_HUBS.map((hub) => {
